@@ -1,6 +1,6 @@
 # Final Project - EECS348  
 
-This is the repository for our final project for EECS-348 (Software Engineering I) at KU
+This is a fork of the repository for my final project for EECS 348 at KU. The goal of this fork is to implement my own AST, improve my existing code, and add more functionality to the program.
 
 ## Project Objective  
 
@@ -138,11 +138,11 @@ cmake -B build && make -C build
 
 ## Members     
 
-| Member           | Role                         | Email                   |
-| ---------------- | ---------------------------- | ----------------------- |
-| Alexander Phibbs | Project Lead, Developer      | alex.r.phibbs@gmail.com |
-| Caden LeCluyse   | Product Owner, Developer     | lecluyse20@gmail.com    |
-| Ceres Botkin     | Second Team Lead, Developer  | N/A                     | 
-| Theodora Okhagbuzo | Meeting Secretary, Developer | theo.ekp@gmail.com    |
-| Justin Daugherty | Debugger, Developer          | justin.darty03@gmail.com |
-| Cole Charpentier | Division of Tasks, Developer | c287c458@ku.edu         |
+| Member           | Role                         |
+| ---------------- | ---------------------------- |
+| Alexander Phibbs | Project Lead, Developer      |
+| Caden LeCluyse   | Product Owner, Developer     |
+| Ceres Botkin     | Second Team Lead, Developer  |
+| Theodora Okhagbuzo | Meeting Secretary, Developer |
+| Justin Daugherty | Debugger, Developer          |
+| Cole Charpentier | Division of Tasks, Developer |
