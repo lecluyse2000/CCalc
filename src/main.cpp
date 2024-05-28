@@ -9,7 +9,7 @@
 
 #include "ast/ast.h"
 #include "parser/parser.h"
-#include "test/test.h"
+#include "file/file.h"
 #include "version.hpp"
 
 void evaluate_expression(const std::string& expression) {
@@ -111,8 +111,8 @@ int main(int argc, char* const argv[]) {
         std::cout << "Version: " << PROGRAM_VERSION_MAJOR << "." << PROGRAM_VERSION_MINOR << "."
                   << PROGRAM_VERSION_PATCH << "\n\n";
         return 0;
-    } else if (expression == "-t" || expression == "--test") {
-        Test::initiate_tests();
+    } else if (expression == "-f" || expression == "--file") {
+        File::initiate_tests();
         return 0;
     } else if (expression[0] == '-') {
         std::cerr << "\nError: " << expression << " is an invalid flag.\n";

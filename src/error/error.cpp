@@ -2,6 +2,7 @@
 
 #include "error.h"
 
+#include <algorithm>
 #include <cctype>
 #include <stdexcept>
 #include <string>
@@ -10,6 +11,9 @@
 #include "types/types.h"
 
 namespace Error {
+
+// Declare helper functions in an anonymous namespace
+namespace {
 
 void check_leading(const std::string_view infix_expression) {
     for (const auto i : infix_expression) {
@@ -42,33 +46,34 @@ void check_trailing(const std::string_view infix_expression) {
     }
 }
 
-static void check_missing_parentheses(const char current_token, const char previous_token) {
+
+void check_missing_parentheses(const char current_token, const char previous_token) {
     if (current_token == '(' && previous_token == ')') {
         throw std::runtime_error("Empty parentheses detected!\n\n");
     }
 }
 
-static void check_consecutive_operands(const char current_token, const char previous_token) {
+void check_consecutive_operands(const char current_token, const char previous_token) {
     if (Types::isoperator(current_token) && Types::isoperator(previous_token)) {
         throw std::runtime_error("Two consecutive operators detected: " + std::string(1, current_token) + " and " +
                                  std::string(1, previous_token) + "\n\n");
     }
 }
 
-static void check_consecutive_operators(const char current_token, const char previous_token) {
+void check_consecutive_operators(const char current_token, const char previous_token) {
     if (Types::isoperand(current_token) && Types::isoperand(previous_token)) {
         throw std::runtime_error("Two consecutive operands detected: " + std::string(1, current_token) + " and " +
                                  std::string(1, previous_token) + "\n\n");
     }
 }
 
-static void check_not_after_value(const char current_token, const char previous_token) {
+void check_not_after_value(const char current_token, const char previous_token) {
     if (Types::isnot(current_token) && (Types::isoperator(previous_token) || previous_token == ')')) {
         throw std::runtime_error("NOT applied after value!\n\n");
     }
 }
 
-static void check_missing_operator(const char current_token, const char previous_token) {
+void check_missing_operator(const char current_token, const char previous_token) {
     if ((current_token == ')' && (Types::isnot(previous_token) || Types::isoperand(previous_token))) ||
         (Types::isoperand(current_token) && (previous_token == '(' || Types::isnot(previous_token))) ||
         (current_token == ')' && previous_token == '(')) {
@@ -76,11 +81,21 @@ static void check_missing_operator(const char current_token, const char previous
     }
 }
 
-static void check_missing_operand(const char current_token, const char previous_token) {
+void check_missing_operand(const char current_token, const char previous_token) {
     if ((current_token == '(' && Types::isoperator(previous_token)) ||
         (Types::isoperator(current_token) && previous_token == ')')) {
         throw std::runtime_error("Missing an operand!\n\n");
     }
+}
+
+}  // namespace
+
+void initial_checks(const std::string_view infix_expression) {
+    if (std::ranges::all_of(infix_expression, isspace)) {
+        throw std::runtime_error("Expression contains only spaces!\n\n");
+    }
+    Error::check_leading(infix_expression);
+    Error::check_trailing(infix_expression);
 }
 
 void error_checker(const char current_token, const char previous_token) {

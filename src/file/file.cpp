@@ -1,6 +1,6 @@
 // Author: Caden LeCluyse
 
-#include "test.h"
+#include "file.h"
 
 #include <fstream>
 #include <iostream>
@@ -11,24 +11,26 @@
 #include "ast/ast.h"
 #include "parser/parser.h"
 
-namespace Test {
+namespace File {
 
-static std::vector<std::string> get_expressions() {
+namespace {
+
+std::vector<std::string> get_expressions() {
     std::vector<std::string> expressions;
     std::ifstream input_file("expressions.txt");
     std::string current_expression;
     if (input_file.is_open()) {
         while (std::getline(input_file, current_expression)) {
-            if (!current_expression.empty()) {
-                expressions.push_back(current_expression);
-            }
+            expressions.push_back(current_expression);
         }
     } else {
-        std::cout << "Couldn't find expressions.txt for tests!\n";
+        std::cout << "Couldn't find expressions.txt!\n";
     }
 
     return expressions;
 }
+
+}  // namespace
 
 void initiate_tests() {
     const std::vector<std::string> expressions = get_expressions();
@@ -38,7 +40,7 @@ void initiate_tests() {
         try {
             Parser expression_parser;
             const std::string prefix_expression = expression_parser.create_prefix_expression(expression);
-            std::unique_ptr<AST> syntax_tree = std::make_unique<AST>();
+            auto syntax_tree = std::make_unique<AST>();
             syntax_tree->build_ast_prefix(prefix_expression);
 
             output_file << "Expression: " << expression << "\nResult:";

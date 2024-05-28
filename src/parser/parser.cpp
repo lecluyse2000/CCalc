@@ -67,20 +67,14 @@ void Parser::clear_stack(std::string& prefix_expression) {
 }
 
 [[nodiscard]] std::string Parser::create_prefix_expression(const std::string_view infix_expression) {
-    std::string prefix_expression;
     m_current_token = '\0';
     m_previous_token = '\0';
+    std::string prefix_expression;
 
-    // Check if the string is only white space
-    if (std::ranges::all_of(infix_expression, isspace)) {
-        throw std::runtime_error("Expression contains only spaces!\n\n");
-    }
-    Error::check_leading(infix_expression);
-    Error::check_trailing(infix_expression);
-
+    Error::initial_checks(infix_expression);
     parse(infix_expression, prefix_expression);
     clear_stack(prefix_expression);
-
     std::ranges::reverse(prefix_expression);
+
     return prefix_expression;
 }
