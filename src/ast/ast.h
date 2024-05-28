@@ -1,38 +1,23 @@
+// Author: Caden LeCluyse
+
 #ifndef AST_H
 #define AST_H
 
-#include <string>
+#include <memory>
+#include <string_view>
 
-// Node class which represents a node in a tree
-class Node {
-   public:
-    Node(std::string);
-    // Print representation of the node
-    std::string p_key;
-    // Left and right child of the node
-    Node* left_child;
-    Node* right_child;
-    bool is_leaf();
-    virtual bool evaluate() { return true; };
-    virtual ~Node() = default;
-};
+#include "node.h"
 
-// Binary tree
-class BT {
+class AST {
    public:
-    // Root of our tree
-    Node* root;
-    BT();
-    ~BT();
-    void print_post_order();
-};
+    AST(const std::string_view expression);
+    [[nodiscard]] bool evaluate() const;
 
-// AST definition to represent a boolean expression
-class AST : public BT {
-   public:
-    AST();
-    void build_ast_prefix(const std::string&);
-    bool evaluate();
+   private:
+    std::unique_ptr<Node> build_ast();
+    const std::string_view m_prefix_expression;
+    std::size_t m_index;
+    std::unique_ptr<Node> m_root;
 };
 
 #endif

@@ -2,9 +2,11 @@
 
 #include "types.h"
 
+#include <cctype>
+
 namespace Types {
 
-[[nodiscard]] bool isoperand(const char token) noexcept { return (token == 'T' || token == 'F'); }
+[[nodiscard]] bool isoperand(const char token) noexcept { return (toupper(token) == 'T' || toupper(token) == 'F'); }
 
 [[nodiscard]] bool isoperator(const char token) noexcept {
     return (token == '&' || token == '|' || token == '@' || token == '$');

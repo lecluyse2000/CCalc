@@ -15,10 +15,8 @@
 void evaluate_expression(const std::string& expression) {
     try {
         Parser expression_parser;
-        // Create the prefix expression and then build the tree
         const std::string prefix_expression = expression_parser.create_prefix_expression(expression);
-        auto syntax_tree = std::make_unique<AST>();
-        syntax_tree->build_ast_prefix(prefix_expression);
+        const auto syntax_tree = std::make_unique<AST>(prefix_expression);
 
         std::cout << "Result: ";
         if (syntax_tree->evaluate()) {
@@ -34,11 +32,8 @@ void evaluate_expression(const std::string& expression) {
 void evaluate_expression(const std::string& expression, auto& history) {
     try {
         static Parser expression_parser;
-
-        // Create the prefix expression and then build the tree
         const std::string prefix_expression = expression_parser.create_prefix_expression(expression);
-        auto syntax_tree = std::make_unique<AST>();
-        syntax_tree->build_ast_prefix(prefix_expression);
+        const auto syntax_tree = std::make_unique<AST>(prefix_expression);
 
         std::cout << "Result: ";
         if (syntax_tree->evaluate()) {
@@ -69,7 +64,7 @@ void print_history(const auto& history) {
         std::cout << "Please enter your boolean expression, or enter history to see all prior evaluated expressions "
                   << "(enter exit, quit, or q to exit the program): ";
         // If the input fails for some reason
-        if (!std::getline(std::cin, input_expression)) {
+        if (!std::getline(std::cin, input_expression)) [[unlikely]] {
             std::cerr << "\nUnknown error ocurred in receiving input. Aborting...\n";
             return 1;
         } else if (input_expression == "history") {

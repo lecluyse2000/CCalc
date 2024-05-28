@@ -40,8 +40,7 @@ void initiate_tests() {
         try {
             Parser expression_parser;
             const std::string prefix_expression = expression_parser.create_prefix_expression(expression);
-            auto syntax_tree = std::make_unique<AST>();
-            syntax_tree->build_ast_prefix(prefix_expression);
+            const auto syntax_tree = std::make_unique<AST>(prefix_expression);
 
             output_file << "Expression: " << expression << "\nResult:";
             if (syntax_tree->evaluate()) {
@@ -56,4 +55,4 @@ void initiate_tests() {
     }
 }
 
-}  // namespace Test
+}  // namespace File

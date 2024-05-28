@@ -46,7 +46,6 @@ void check_trailing(const std::string_view infix_expression) {
     }
 }
 
-
 void check_missing_parentheses(const char current_token, const char previous_token) {
     if (current_token == '(' && previous_token == ')') {
         throw std::runtime_error("Empty parentheses detected!\n\n");

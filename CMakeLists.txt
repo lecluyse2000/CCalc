@@ -9,6 +9,7 @@ add_executable(boolean_simulator)
 target_sources(boolean_simulator PRIVATE
     "src/main.cpp"
     "src/ast/ast.cpp"
+    "src/ast/node.cpp"
     "src/error/error.cpp"
     "src/parser/parser.cpp"
     "src/file/file.cpp"

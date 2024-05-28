@@ -1,12 +1,12 @@
 // Author: Caden LeCluyse
 
-#ifndef FILE_H 
-#define FILE_H 
+#ifndef FILE_H
+#define FILE_H
 
 namespace File {
 
 void initiate_tests();
 
-}  // namespace Test
+}  // namespace File
 
 #endif
