@@ -10,15 +10,16 @@
 #include <string_view>
 #include <utility>
 
-#include "error/error.h"
-#include "types/types.h"
+#include "error/error.hpp"
+#include "types/types.hpp"
 
-void Parser::empty_stack() {
+void Parser::empty_stack() noexcept {
     while (!m_operator_stack.empty()) {
         m_operator_stack.pop();
     }
 }
 
+[[nodiscard]]
 std::optional<std::string> Parser::parse(const std::string_view infix_expression, std::string& prefix_expression) {
     // Traverse the string in reverse
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
@@ -65,8 +66,7 @@ std::optional<std::string> Parser::parse(const std::string_view infix_expression
     return std::nullopt;
 }
 
-
-std::optional<std::string> Parser::clear_stack(std::string& prefix_expression) {
+[[nodiscard]] std::optional<std::string> Parser::clear_stack(std::string& prefix_expression) {
     while (!m_operator_stack.empty()) {
         if (m_operator_stack.top() == ')') {
             empty_stack();
