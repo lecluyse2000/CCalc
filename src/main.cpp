@@ -16,7 +16,7 @@ void evaluate_expression(const std::string& expression) {
     Parser expression_parser;
     const auto [result, status] = expression_parser.create_prefix_expression(expression);
     if (!status) {
-        std::cerr << "\nError: " << result;
+        std::cerr << "Error: " << result << std::endl;
         return;
     }
     const auto syntax_tree = std::make_unique<AST>(result);
@@ -33,7 +33,7 @@ void evaluate_expression(const std::string& expression, auto& history) {
     static Parser expression_parser;
     const auto [result, status] = expression_parser.create_prefix_expression(expression);
     if (!status) {
-        std::cerr << "\nError: " << result;
+        std::cerr << "Error: " << result << std::endl;
         return;
     }
     const auto syntax_tree = std::make_unique<AST>(result);

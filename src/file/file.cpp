@@ -39,17 +39,18 @@ void initiate_tests() {
     for (const auto& expression : expressions) {
         Parser expression_parser;
         const auto [result, status] = expression_parser.create_prefix_expression(expression);
+        
+        output_file << "Expression: " << expression << '\n';
         if (!status) {
-            output_file << "\nError: " << result;
+            output_file << "Error: " << result;
             continue;
         }
         const auto syntax_tree = std::make_unique<AST>(result);
 
-        std::cout << "Result: ";
         if (syntax_tree->evaluate()) {
-            output_file << "True!\n\n";
+            output_file << "Result: True!\n";
         } else {
-            output_file << "False!\n\n";
+            output_file << "Result: False!\n";
         }
     }
 }

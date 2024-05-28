@@ -10,10 +10,8 @@ target_sources(boolean_simulator PRIVATE
     "src/main.cpp"
     "src/ast/ast.cpp"
     "src/ast/node.cpp"
-    "src/error/error.hpp"
     "src/parser/parser.cpp"
     "src/file/file.cpp"
-    "src/types/types.hpp"
 )
 
 #Includes the header files from src
