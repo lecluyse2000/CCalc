@@ -8,9 +8,8 @@
 class Node {
    public:
     explicit Node(const char token);
-    [[nodiscard]] std::unique_ptr<Node>& get_left();
-    [[nodiscard]] std::unique_ptr<Node>& get_right();
-    [[nodiscard]] char get_key() const noexcept;
+    void set_left(std::unique_ptr<Node>&& node);
+    void set_right(std::unique_ptr<Node>&& node);
     [[nodiscard]] virtual bool evaluate() const = 0;
     virtual ~Node() = default;
 

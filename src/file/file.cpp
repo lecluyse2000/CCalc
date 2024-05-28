@@ -37,20 +37,19 @@ void initiate_tests() {
     std::ofstream output_file("results.txt");
 
     for (const auto& expression : expressions) {
-        try {
-            Parser expression_parser;
-            const std::string prefix_expression = expression_parser.create_prefix_expression(expression);
-            const auto syntax_tree = std::make_unique<AST>(prefix_expression);
+        Parser expression_parser;
+        const auto [result, status] = expression_parser.create_prefix_expression(expression);
+        if (!status) {
+            output_file << "\nError: " << result;
+            continue;
+        }
+        const auto syntax_tree = std::make_unique<AST>(result);
 
-            output_file << "Expression: " << expression << "\nResult:";
-            if (syntax_tree->evaluate()) {
-                output_file << "True!\n";
-            } else {
-                output_file << "False!\n";
-            }
-        } catch (const std::exception& error) {
-            output_file << "Expression: " << expression << "\nResult:";
-            output_file << error.what();
+        std::cout << "Result: ";
+        if (syntax_tree->evaluate()) {
+            output_file << "True!\n\n";
+        } else {
+            output_file << "False!\n\n";
         }
     }
 }

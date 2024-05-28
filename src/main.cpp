@@ -8,43 +8,43 @@
 #include <vector>
 
 #include "ast/ast.h"
-#include "parser/parser.h"
 #include "file/file.h"
+#include "parser/parser.h"
 #include "version.hpp"
 
 void evaluate_expression(const std::string& expression) {
-    try {
-        Parser expression_parser;
-        const std::string prefix_expression = expression_parser.create_prefix_expression(expression);
-        const auto syntax_tree = std::make_unique<AST>(prefix_expression);
+    Parser expression_parser;
+    const auto [result, status] = expression_parser.create_prefix_expression(expression);
+    if (!status) {
+        std::cerr << "\nError: " << result;
+        return;
+    }
+    const auto syntax_tree = std::make_unique<AST>(result);
 
-        std::cout << "Result: ";
-        if (syntax_tree->evaluate()) {
-            std::cout << "True!\n\n";
-        } else {
-            std::cout << "False!\n\n";
-        }
-    } catch (const std::exception& error) {
-        std::cerr << "\nError: " << error.what();
+    std::cout << "Result: ";
+    if (syntax_tree->evaluate()) {
+        std::cout << "True!\n\n";
+    } else {
+        std::cout << "False!\n\n";
     }
 }
 
 void evaluate_expression(const std::string& expression, auto& history) {
-    try {
-        static Parser expression_parser;
-        const std::string prefix_expression = expression_parser.create_prefix_expression(expression);
-        const auto syntax_tree = std::make_unique<AST>(prefix_expression);
+    static Parser expression_parser;
+    const auto [result, status] = expression_parser.create_prefix_expression(expression);
+    if (!status) {
+        std::cerr << "\nError: " << result;
+        return;
+    }
+    const auto syntax_tree = std::make_unique<AST>(result);
 
-        std::cout << "Result: ";
-        if (syntax_tree->evaluate()) {
-            std::cout << "True!\n\n";
-            history.emplace_back(std::make_pair(expression, "True!"));
-        } else {
-            std::cout << "False!\n\n";
-            history.emplace_back(std::make_pair(expression, "False!"));
-        }
-    } catch (const std::exception& error) {
-        std::cerr << "\nError: " << error.what();
+    std::cout << "Result: ";
+    if (syntax_tree->evaluate()) {
+        std::cout << "True!\n\n";
+        history.emplace_back(std::make_pair(expression, "True!"));
+    } else {
+        std::cout << "False!\n\n";
+        history.emplace_back(std::make_pair(expression, "False!"));
     }
 }
 
@@ -75,7 +75,7 @@ void print_history(const auto& history) {
             }
             continue;
         } else if (input_expression.empty()) {
-            std::cerr << "\nError: Empty expression received!\n";
+            std::cerr << "\nError: Empty expression received!\n\n";
             continue;
         } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
             std::cout << "Exiting...\n" << std::endl;

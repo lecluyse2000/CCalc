@@ -4,15 +4,22 @@
 
 #include <algorithm>
 #include <cctype>
+#include <optional>
 #include <stack>
-#include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "error/error.h"
 #include "types/types.h"
 
-void Parser::parse(const std::string_view infix_expression, std::string& prefix_expression) {
+void Parser::empty_stack() {
+    while (!m_operator_stack.empty()) {
+        m_operator_stack.pop();
+    }
+}
+
+std::optional<std::string> Parser::parse(const std::string_view infix_expression, std::string& prefix_expression) {
     // Traverse the string in reverse
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         // Ignore white space
@@ -28,7 +35,10 @@ void Parser::parse(const std::string_view infix_expression, std::string& prefix_
         m_current_token = *itr;
 
         // Check for various errors
-        Error::error_checker(m_current_token, m_previous_token);
+        const auto checker_result = Error::error_checker(m_current_token, m_previous_token);
+        if (checker_result) {
+            return checker_result;
+        }
 
         if (Types::isoperand(m_current_token)) {
             prefix_expression.push_back(m_current_token);
@@ -44,37 +54,50 @@ void Parser::parse(const std::string_view infix_expression, std::string& prefix_
             if (!m_operator_stack.empty()) {
                 m_operator_stack.pop();
             } else {
-                throw std::runtime_error("Missing closing parentheses!\n\n");
+                return ("Missing closing parentheses!\n\n");
             }
         } else {
-            Error::throw_invalid_character_error(m_current_token);
+            return Error::invalid_character_error(m_current_token);
         }
         m_previous_token = m_current_token;
     }
+
+    return std::nullopt;
 }
 
-void Parser::clear_stack(std::string& prefix_expression) {
+
+std::optional<std::string> Parser::clear_stack(std::string& prefix_expression) {
     while (!m_operator_stack.empty()) {
         if (m_operator_stack.top() == ')') {
-            while (!m_operator_stack.empty()) {
-                m_operator_stack.pop();
-            }
-            throw(std::runtime_error("Missing open parentheses!\n\n"));
+            empty_stack();
+            return ("Missing open parentheses!\n\n");
         }
         prefix_expression.push_back(m_operator_stack.top());
         m_operator_stack.pop();
     }
+
+    return std::nullopt;
 }
 
-[[nodiscard]] std::string Parser::create_prefix_expression(const std::string_view infix_expression) {
+[[nodiscard]] std::pair<std::string, bool> Parser::create_prefix_expression(const std::string_view infix_expression) {
+    empty_stack();
     m_current_token = '\0';
     m_previous_token = '\0';
     std::string prefix_expression;
 
-    Error::initial_checks(infix_expression);
-    parse(infix_expression, prefix_expression);
-    clear_stack(prefix_expression);
+    const auto initial_checks = Error::initial_checks(infix_expression);
+    if (initial_checks) {
+        return std::make_pair(*initial_checks, false);
+    }
+    const auto parse_result = parse(infix_expression, prefix_expression);
+    if (parse_result) {
+        return std::make_pair(*parse_result, false);
+    }
+    const auto stack_result = clear_stack(prefix_expression);
+    if (stack_result) {
+        return std::make_pair(*stack_result, false);
+    }
     std::ranges::reverse(prefix_expression);
 
-    return prefix_expression;
+    return std::make_pair(prefix_expression, true);
 }

@@ -7,9 +7,9 @@
 
 Node::Node(const char token) : m_key(token) {}
 
-[[nodiscard]] std::unique_ptr<Node>& Node::get_left() { return m_left_child; }
+void Node::set_left(std::unique_ptr<Node>&& node) { m_left_child = std::move(node); }
 
-[[nodiscard]] std::unique_ptr<Node>& Node::get_right() { return m_right_child; }
+void Node::set_right(std::unique_ptr<Node>&& node) { m_right_child = std::move(node); }
 
 [[nodiscard]] bool BoolNode::evaluate() const { return toupper(m_key) == 'T'; }
 
