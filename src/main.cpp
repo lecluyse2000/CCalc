@@ -1,119 +1,36 @@
 // Author: Caden LeCluyse
 
-#include <algorithm>
-#include <iostream>
-#include <memory>
 #include <string>
-#include <utility>
-#include <vector>
 
-#include "ast/ast.h"
 #include "file/file.h"
-#include "parser/parser.h"
-#include "version.hpp"
-
-void evaluate_expression(const std::string& expression) {
-    Parser expression_parser;
-    const auto [result, status] = expression_parser.create_prefix_expression(expression);
-    if (!status) {
-        std::cerr << "Error: " << result << std::endl;
-        return;
-    }
-    const auto syntax_tree = std::make_unique<AST>(result);
-
-    std::cout << "Result: ";
-    if (syntax_tree->evaluate()) {
-        std::cout << "True!\n\n";
-    } else {
-        std::cout << "False!\n\n";
-    }
-}
-
-void evaluate_expression(const std::string& expression, auto& history) {
-    static Parser expression_parser;
-    const auto [result, status] = expression_parser.create_prefix_expression(expression);
-    if (!status) {
-        std::cerr << "Error: " << result << std::endl;
-        return;
-    }
-    const auto syntax_tree = std::make_unique<AST>(result);
-
-    std::cout << "Result: ";
-    if (syntax_tree->evaluate()) {
-        std::cout << "True!\n\n";
-        history.emplace_back(std::make_pair(expression, "True!"));
-    } else {
-        std::cout << "False!\n\n";
-        history.emplace_back(std::make_pair(expression, "False!"));
-    }
-}
-
-void print_history(const auto& history) {
-    std::ranges::for_each(history, [](const auto& expression_result) {
-        const auto [expression, result] = expression_result;
-        std::cout << "Expression: " << expression << "\nResult: " << result << "\n";
-    });
-    std::cout << std::endl;
-}
-
-[[nodiscard]] int program_loop() {
-    std::string input_expression;
-    std::vector<std::pair<std::string, std::string> > program_history;
-
-    while (true) {
-        std::cout << "Please enter your boolean expression, or enter history to see all prior evaluated expressions "
-                  << "(enter exit, quit, or q to exit the program): ";
-        // If the input fails for some reason
-        if (!std::getline(std::cin, input_expression)) [[unlikely]] {
-            std::cerr << "\nUnknown error ocurred in receiving input. Aborting...\n";
-            return 1;
-        } else if (input_expression == "history") {
-            if (program_history.empty()) {
-                std::cerr << "You haven't evaluated any expressions yet!\n\n";
-            } else {
-                print_history(program_history);
-            }
-            continue;
-        } else if (input_expression.empty()) {
-            std::cerr << "\nError: Empty expression received!\n\n";
-            continue;
-        } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
-            std::cout << "Exiting...\n" << std::endl;
-            return 0;
-        }
-
-        evaluate_expression(input_expression, program_history);
-    }
-}
+#include "ui/ui.h"
 
 int main(int argc, char* const argv[]) {
     if (argc > 2) {
-        std::cerr << "Expected 1 argument, received " << argc - 1
-                  << ". Please pass in -c/--continuous, -v/--version, or an expression.\n"
-                  << "Make sure to wrap the expression in quotes.\n\n";
+        UI::print_excessive_arguments(argc - 1);
         return 1;
     } else if (argc == 1) {
-        std::cerr
-            << "Expected an argument to be passed in. Either add the -c/--continuous flag, -v/--version flag, or an "
-            << "expression to be evaluated.\n\n";
+        UI::print_insufficient_arguments();
         return 1;
     }
 
     const std::string expression = argv[1];
     if (expression == "-c" || expression == "--continuous") {
-        return program_loop();
+        return UI::program_loop();
     } else if (expression == "-v" || expression == "--version") {
-        std::cout << "Version: " << PROGRAM_VERSION_MAJOR << "." << PROGRAM_VERSION_MINOR << "."
-                  << PROGRAM_VERSION_PATCH << "\n\n";
+        UI::print_version();
         return 0;
     } else if (expression == "-f" || expression == "--file") {
-        File::initiate_tests();
+        File::initiate_file_mode();
+        return 0;
+    } else if (expression == "-h" || expression == "--help") {
+        UI::print_help();
         return 0;
     } else if (expression[0] == '-') {
-        std::cerr << "\nError: " << expression << " is an invalid flag.\n";
+        UI::print_invalid_flag(expression);
         return 1;
     }
 
-    evaluate_expression(expression);
+    UI::evaluate_expression(expression);
     return 0;
 }

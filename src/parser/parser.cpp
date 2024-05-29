@@ -55,7 +55,7 @@ std::optional<std::string> Parser::parse(const std::string_view infix_expression
             if (!m_operator_stack.empty()) {
                 m_operator_stack.pop();
             } else {
-                return ("Missing closing parentheses!\n\n");
+                return ("Missing closing parentheses!\n");
             }
         } else {
             return Error::invalid_character_error(m_current_token);
@@ -70,7 +70,7 @@ std::optional<std::string> Parser::parse(const std::string_view infix_expression
     while (!m_operator_stack.empty()) {
         if (m_operator_stack.top() == ')') {
             empty_stack();
-            return ("Missing open parentheses!\n\n");
+            return ("Missing open parentheses!\n");
         }
         prefix_expression.push_back(m_operator_stack.top());
         m_operator_stack.pop();

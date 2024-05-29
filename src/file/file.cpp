@@ -32,7 +32,7 @@ std::vector<std::string> get_expressions() {
 
 }  // namespace
 
-void initiate_tests() {
+void initiate_file_mode() {
     const std::vector<std::string> expressions = get_expressions();
     std::ofstream output_file("results.txt");
 

@@ -8,6 +8,7 @@ add_executable(boolean_simulator)
 
 target_sources(boolean_simulator PRIVATE
     "src/main.cpp"
+    "src/ui/ui.cpp"
     "src/ast/ast.cpp"
     "src/ast/node.cpp"
     "src/parser/parser.cpp"
@@ -17,6 +18,7 @@ target_sources(boolean_simulator PRIVATE
 #Includes the header files from src
 target_include_directories(boolean_simulator PRIVATE 
     "src"
+    "src/ui"
     "src/ast"
     "src/error"
     "src/parser"

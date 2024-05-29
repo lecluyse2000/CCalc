@@ -42,7 +42,7 @@ user@archlinux:~$ boolean_simulator 'T & F'
 Result: False!
 
 user@archlinux:~$ boolean_simulator -c 'T & F'
-Expected 1 argument, received 2. Please pass in -c/--continuous, -v/--version, or an expression.
+Expected 1 argument, received 2. Use the --help flag to see all flags, or pass in an expression.
 Make sure to wrap the expression in quotes.
 
 user@archlinux:~$ boolean_simulator -c
@@ -73,6 +73,7 @@ Exiting...
 - With the `-c` or `--continuous` flag, the program will run in continuous mode. The user will be prompted for boolean expressions to evaluate until exiting the program by typing `exit`, `quit`, or `q`. Passing in any other arguments along with `-c` will result in an error and the program will not run.
 - The flag `-f` or `--file` runs the program in file mode. Launching the program in this mode will take a list of expressions from `expressions.txt` and place the results in `results.txt`. The `expressions.txt` file must be placed in the current working directory.
 - With the `-v` or `--version` flag. The program simply displays the version information of the program.    
+- The `--help` flag prints a screen explaining all the flags and general program usage.
 
 ## Building from source
 

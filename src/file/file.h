@@ -5,7 +5,7 @@
 
 namespace File {
 
-void initiate_tests();
+void initiate_file_mode();
 
 }  // namespace File
 
