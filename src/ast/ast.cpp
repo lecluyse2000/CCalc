@@ -17,11 +17,11 @@ std::unique_ptr<Node> AST::build_ast() {
     std::unique_ptr<Node> node;
     if (current_token == '!') {
         node = std::make_unique<UnaryNode>(current_token);
-        node->set_left(build_ast());
+        node->m_left_child = build_ast();
     } else {
         node = std::make_unique<OperationNode>(current_token);
-        node->set_left(build_ast());
-        node->set_right(build_ast());
+        node->m_left_child = build_ast();
+        node->m_right_child = build_ast();
     }
 
     return node;

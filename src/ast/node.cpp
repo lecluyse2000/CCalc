@@ -7,10 +7,6 @@
 
 Node::Node(const char token) : m_key(token) {}
 
-void Node::set_left(std::unique_ptr<Node>&& node) { m_left_child = std::move(node); }
-
-void Node::set_right(std::unique_ptr<Node>&& node) { m_right_child = std::move(node); }
-
 [[nodiscard]] bool BoolNode::evaluate() const { return toupper(m_key) == 'T'; }
 
 [[nodiscard]] bool OperationNode::evaluate() const {

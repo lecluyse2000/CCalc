@@ -79,10 +79,14 @@ std::optional<std::string> Parser::parse(const std::string_view infix_expression
     return std::nullopt;
 }
 
-[[nodiscard]] std::pair<std::string, bool> Parser::create_prefix_expression(const std::string_view infix_expression) {
+void Parser::reset_state() {
     empty_stack();
     m_current_token = '\0';
     m_previous_token = '\0';
+}
+
+[[nodiscard]] std::pair<std::string, bool> Parser::create_prefix_expression(const std::string_view infix_expression) {
+    reset_state();
     std::string prefix_expression;
 
     const auto initial_checks = Error::initial_checks(infix_expression);

@@ -28,6 +28,14 @@ void print_insufficient_arguments() {
 
 namespace {
 
+void print_history(const auto& history) {
+    std::ranges::for_each(history, [](const auto& expression_result) {
+        const auto [expression, result] = expression_result;
+        std::cout << "Expression: " << expression << "\nResult: " << result << "\n";
+    });
+    std::cout << std::endl;
+}
+
 void evaluate_expression(const std::string_view expression, auto& history) {
     static Parser expression_parser;
     const auto [result, status] = expression_parser.create_prefix_expression(expression);
@@ -45,14 +53,6 @@ void evaluate_expression(const std::string_view expression, auto& history) {
         std::cout << "False!\n\n";
         history.emplace_back(std::make_pair(expression, "False!"));
     }
-}
-
-void print_history(const auto& history) {
-    std::ranges::for_each(history, [](const auto& expression_result) {
-        const auto [expression, result] = expression_result;
-        std::cout << "Expression: " << expression << "\nResult: " << result << "\n";
-    });
-    std::cout << std::endl;
 }
 
 }  // namespace
@@ -95,7 +95,7 @@ void print_version() {
 void print_help() {
     std::cout << " * Available flags:\n"
               << "\t - The [-c|--continuous] flag starts the program in continuous mode. You will be prompted for "
-              << "expressions until you exit.\n"
+                 "expressions until you exit.\n"
               << "\t - The [-f|--file] flag runs the program in file mode. Launching the program in this mode will "
                  "take a list of expressions from expressions.txt and place the results in results.txt.\n\t   The "
                  "expressions.txt file must be placed in the current working directory."
@@ -106,7 +106,7 @@ void print_help() {
                  "in single quotes.\n"
               << "\t - An expression is any valid combination of parentheses, boolean values (T and F for True and "
                  "False), and boolean operations.\n\n"
-              << " * Boolean expressions:\n"
+              << " * Boolean operations:\n"
               << "\t - AND (&) results in True when both value are True. (T & F = F).\n"
               << "\t - OR (|) returns True when at lest one of the values is True. (T | F = T).\n"
               << "\t - XOR ($) reults in True only when one of the values is True. (F $ F = F).\n"
