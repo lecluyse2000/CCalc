@@ -5,17 +5,18 @@
 #include <cctype>
 #include <string_view>
 
+#include "types/types.hpp"
 #include "node.h"
 
 std::unique_ptr<Node> AST::build_ast() {
     const char current_token = m_prefix_expression[m_index++];
 
-    if (toupper(current_token) == 'T' || toupper(current_token) == 'F') {
+    if (Types::isoperand(current_token)) {
         return std::make_unique<BoolNode>(current_token);
     }
 
     std::unique_ptr<Node> node;
-    if (current_token == '!') {
+    if (Types::isnot(current_token)) {
         node = std::make_unique<UnaryNode>(current_token);
         node->m_left_child = build_ast();
     } else {
