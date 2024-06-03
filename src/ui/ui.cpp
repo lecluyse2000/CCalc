@@ -3,8 +3,12 @@
 #include "ui/ui.h"
 
 #include <algorithm>
+#include <cctype>
+#include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -28,12 +32,80 @@ void print_insufficient_arguments() {
 
 namespace {
 
+void print_help_continuous() {
+    std::cout << "* Enter 'history' to view your history.\n"
+              << "* Enter 'save' to save your program history to a file.\n"
+              << "* Enter 'clear' to clear your history.\n"
+              << "* Enter 'exit', 'quit', or 'q' to exit the program.\n\n";
+}
+
 void print_history(const auto& history) {
     std::ranges::for_each(history, [](const auto& expression_result) {
         const auto [expression, result] = expression_result;
         std::cout << "Expression: " << expression << "\nResult: " << result << "\n";
     });
     std::cout << std::endl;
+}
+
+[[nodiscard]] std::optional<std::string> get_filename() {
+    std::string filename;
+    char filename_flag = 'f';
+    bool finish_flag = false;
+
+    while (!finish_flag) {
+        std::cout << "What is the name of the file you would like to save to? ";
+        if (!std::getline(std::cin, filename)) [[unlikely]] {
+            std::cerr << "Unable to receive input! Aborting...\n\n";
+            return std::nullopt;
+        }
+
+        std::cout << "You entered " << filename << " is this correct? (Y/N): ";
+        if (!std::cin.get(filename_flag)) [[unlikely]] {
+            std::cerr << "Unable to receive input! Aborting...\n\n";
+            return std::nullopt;
+        }
+
+        while (toupper(filename_flag) != 'Y' && toupper(filename_flag) != 'N') {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Incorrect input. Try again: ";
+            if (!std::cin.get(filename_flag)) {
+                std::cerr << "Unable to receive input! Aborting...\n\n";
+                return std::nullopt;
+            }
+        }
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (toupper(filename_flag) == 'Y') {
+            finish_flag = true;
+        }
+    }
+
+    return filename;
+}
+
+void output_history(const auto& history, std::ofstream& output_file) {
+    std::ranges::for_each(history, [&output_file](const auto& expression_result) {
+        const auto [expression, result] = expression_result;
+        output_file << "Expression: " << expression << "\nResult: " << result << "\n";
+    });
+}
+
+[[nodiscard]] bool save_history(const auto& history) {
+    const std::optional<std::string> filename = get_filename();
+    if (!filename) [[unlikely]] {
+        return false;
+    }
+
+    std::ofstream output_file(*filename);
+    if (!output_file.is_open()) [[unlikely]] {
+        std::cerr << "Output file could not be created!\n\n";
+        return false;
+    }
+
+    output_history(history, output_file);
+    return true;
 }
 
 void evaluate_expression(const std::string_view expression, auto& history) {
@@ -62,18 +134,36 @@ void evaluate_expression(const std::string_view expression, auto& history) {
     std::vector<std::pair<std::string, std::string> > program_history;
 
     while (true) {
-        std::cout << "Please enter your boolean expression, or enter history to see all prior evaluated expressions "
-                     "(enter exit, quit, or q to exit the program): ";
+        std::cout << "Please enter your boolean expression, or enter help to see all available commands: ";
         // If the input fails for some reason
         if (!std::getline(std::cin, input_expression)) [[unlikely]] {
             std::cerr << "Unknown error ocurred in receiving input. Aborting...\n\n";
             return 1;
+        } else if (input_expression == "help") {
+            print_help_continuous();
+            continue;
         } else if (input_expression == "history") {
             if (program_history.empty()) {
                 std::cerr << "You haven't evaluated any expressions yet!\n\n";
+                continue;
             } else {
                 print_history(program_history);
             }
+            continue;
+        } else if (input_expression == "save") {
+            if (program_history.empty()) {
+                std::cerr << "You haven't evaluated any expressions yet!\n\n";
+                continue;
+            } else {
+                if (!save_history(program_history)) {
+                    return 1;
+                }
+                std::cout << "History saved!\n";
+                continue;
+            }
+        } else if (input_expression == "clear") {
+            program_history.clear();
+            std::cout << "History cleared!\n\n";
             continue;
         } else if (input_expression.empty()) {
             std::cerr << "Error: Empty expression received!\n\n";

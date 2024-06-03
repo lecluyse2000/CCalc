@@ -28,6 +28,6 @@ std::unique_ptr<Node> AST::build_ast() {
     return node;
 }
 
-AST::AST(const std::string_view expression) : m_prefix_expression(expression), m_index(0) { m_root = build_ast(); }
+AST::AST(const std::string_view expression) : m_prefix_expression(expression), m_index(0),  m_root(build_ast()) {}
 
 [[nodiscard]] bool AST::evaluate() const { return m_root->evaluate(); }

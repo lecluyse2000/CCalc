@@ -46,16 +46,16 @@ Expected 1 argument, received 2. Use the --help flag to see all flags, or pass i
 Make sure to wrap the expression in quotes.
 
 user@archlinux:~$ boolean_simulator -c
-Please enter your boolean expression, or enter history to see all prior evaluated expressions (enter exit, quit, or q to exit the program): T & F
+Please enter your boolean expression, or enter help to see all available commands: T & F
 Result: False!
 
-Please enter your boolean expression, or enter history to see all prior evaluated expressions (enter exit, quit, or q to exit the program): T @ F
+Please enter your boolean expression, or enter help to see all available commands: T @ F
 Result: True!
 
-Please enter your boolean expression, or enter history to see all prior evaluated expressions (enter exit, quit, or q to exit the program): (T | F) $ (F & T)
+Please enter your boolean expression, or enter help to see all available commands: (T | F) $ (F & T)
 Result: True!
 
-Please enter your boolean expression, or enter history to see all prior evaluated expressions (enter exit, quit, or q to exit the program): history
+Please enter your boolean expression, or enter help to see all available commands: history
 Expression: T & F
 Result: False!
 Expression: T @ F
@@ -63,7 +63,7 @@ Result: True!
 Expression: (T | F) $ (F & T)
 Result: True!
 
-Please enter your boolean expression, or enter history to see all prior evaluated expressions (enter exit, quit, or q to exit the program): quit
+Please enter your boolean expression, or enter help to see all available commands: quit
 Exiting...
 ```
 
