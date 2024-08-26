@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "ast/ast.h"
+#include "file/file.h"
 #include "parser/parser.h"
 #include "version.hpp"
 
@@ -50,9 +51,8 @@ void print_history(const auto& history) {
 [[nodiscard]] std::optional<std::string> get_filename() {
     std::string filename;
     char filename_flag = 'f';
-    bool finish_flag = false;
 
-    while (!finish_flag) {
+    while (toupper(filename_flag) != 'Y') {
         std::cout << "What is the name of the file you would like to save to? ";
         if (!std::getline(std::cin, filename)) [[unlikely]] {
             std::cerr << "Unable to receive input! Aborting...\n\n";
@@ -68,7 +68,7 @@ void print_history(const auto& history) {
         while (toupper(filename_flag) != 'Y' && toupper(filename_flag) != 'N') {
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cout << "Incorrect input. Try again: ";
+            std::cout << "Incorrect input. Try again (Y/N): ";
             if (!std::cin.get(filename_flag)) {
                 std::cerr << "Unable to receive input! Aborting...\n\n";
                 return std::nullopt;
@@ -76,20 +76,9 @@ void print_history(const auto& history) {
         }
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-        if (toupper(filename_flag) == 'Y') {
-            finish_flag = true;
-        }
     }
 
     return filename;
-}
-
-void output_history(const auto& history, std::ofstream& output_file) {
-    std::ranges::for_each(history, [&output_file](const auto& expression_result) {
-        const auto [expression, result] = expression_result;
-        output_file << "Expression: " << expression << "\nResult: " << result << "\n";
-    });
 }
 
 [[nodiscard]] bool save_history(const auto& history) {
@@ -104,7 +93,7 @@ void output_history(const auto& history, std::ofstream& output_file) {
         return false;
     }
 
-    output_history(history, output_file);
+    File::output_history(history, output_file);
     return true;
 }
 
@@ -135,38 +124,41 @@ void evaluate_expression(const std::string_view expression, auto& history) {
 
     while (true) {
         std::cout << "Please enter your boolean expression, or enter help to see all available commands: ";
+
         // If the input fails for some reason
         if (!std::getline(std::cin, input_expression)) [[unlikely]] {
             std::cerr << "Unknown error ocurred in receiving input. Aborting...\n\n";
             return 1;
-        } else if (input_expression == "help") {
+        } else if (input_expression.empty()) {
+            std::cerr << "Error: Empty expression received!\n\n";
+            continue;
+        }
+
+        if (input_expression == "help") {
             print_help_continuous();
             continue;
         } else if (input_expression == "history") {
             if (program_history.empty()) {
                 std::cerr << "You haven't evaluated any expressions yet!\n\n";
                 continue;
-            } else {
-                print_history(program_history);
             }
+
+            print_history(program_history);
             continue;
         } else if (input_expression == "save") {
             if (program_history.empty()) {
                 std::cerr << "You haven't evaluated any expressions yet!\n\n";
                 continue;
-            } else {
-                if (!save_history(program_history)) {
-                    return 1;
-                }
-                std::cout << "History saved!\n";
-                continue;
             }
+
+            if (!save_history(program_history)) {
+                return 1;
+            }
+            std::cout << "History saved!\n";
+            continue;
         } else if (input_expression == "clear") {
             program_history.clear();
             std::cout << "History cleared!\n\n";
-            continue;
-        } else if (input_expression.empty()) {
-            std::cerr << "Error: Empty expression received!\n\n";
             continue;
         } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
             std::cout << "Exiting...\n" << std::endl;

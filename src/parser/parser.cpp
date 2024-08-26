@@ -19,6 +19,12 @@ void Parser::empty_stack() noexcept {
     }
 }
 
+void Parser::reset_state() noexcept {
+    m_current_token = '\0';
+    m_previous_token = '\0';
+    empty_stack();
+}
+
 [[nodiscard]]
 std::optional<std::string> Parser::parse(const std::string_view infix_expression, std::string& prefix_expression) {
     // Traverse the string in reverse
@@ -77,12 +83,6 @@ std::optional<std::string> Parser::parse(const std::string_view infix_expression
     }
 
     return std::nullopt;
-}
-
-void Parser::reset_state() {
-    empty_stack();
-    m_current_token = '\0';
-    m_previous_token = '\0';
 }
 
 [[nodiscard]] std::pair<std::string, bool> Parser::create_prefix_expression(const std::string_view infix_expression) {
