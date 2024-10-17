@@ -98,8 +98,7 @@ void print_history(const auto& history) {
 }
 
 void evaluate_expression(const std::string_view expression, auto& history) {
-    static Parser expression_parser;
-    const auto [result, status] = expression_parser.create_prefix_expression(expression);
+    const auto [result, status] = Parse::create_prefix_expression(expression);
     if (!status) {
         std::cerr << "Error: " << result << std::endl;
         return;
@@ -120,7 +119,7 @@ void evaluate_expression(const std::string_view expression, auto& history) {
 
 [[nodiscard]] int program_loop() {
     std::string input_expression;
-    std::vector<std::pair<std::string, std::string> > program_history;
+    std::vector<std::pair<const std::string, const std::string> > program_history;
 
     while (true) {
         std::cout << "Please enter your boolean expression, or enter help to see all available commands: ";
@@ -203,8 +202,7 @@ void print_invalid_flag(const std::string_view expression) {
 }
 
 void evaluate_expression(const std::string_view expression) {
-    Parser expression_parser;
-    const auto [result, status] = expression_parser.create_prefix_expression(expression);
+    const auto [result, status] = Parse::create_prefix_expression(expression);
     if (!status) {
         std::cerr << "Error: " << result << std::endl;
         return;

@@ -5,7 +5,7 @@
 #include "file/file.h"
 #include "ui/ui.h"
 
-int main(int argc, char* const argv[]) {
+int main(const int argc, const char* const argv[]) {
     if (argc > 2) {
         UI::print_excessive_arguments(argc - 1);
         return 1;

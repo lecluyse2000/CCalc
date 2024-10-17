@@ -13,7 +13,8 @@
 
 namespace File {
 
-void output_history(const std::vector<std::pair<std::string, std::string> >& history, std::ofstream& output_file) {
+void output_history(const std::vector<std::pair<const std::string, const std::string> >& history, 
+                    std::ofstream& output_file) noexcept {
     std::ranges::for_each(history, [&output_file](const auto& expression_result) {
         const auto [expression, result] = expression_result;
         output_file << "Expression: " << expression << "\nResult: " << result << "\n";
@@ -22,7 +23,7 @@ void output_history(const std::vector<std::pair<std::string, std::string> >& his
 
 namespace {
 
-std::vector<std::string> get_expressions() {
+std::vector<std::string> get_expressions() noexcept {
     std::vector<std::string> expressions;
     std::ifstream input_file("expressions.txt");
     std::string current_expression;
@@ -40,13 +41,12 @@ std::vector<std::string> get_expressions() {
 
 }  // namespace
 
-void initiate_file_mode() {
+void initiate_file_mode() noexcept {
     const std::vector<std::string> expressions = get_expressions();
     std::ofstream output_file("results.txt");
 
     for (const auto& expression : expressions) {
-        Parser expression_parser;
-        const auto [result, status] = expression_parser.create_prefix_expression(expression);
+        const auto [result, status] = Parse::create_prefix_expression(expression);
 
         output_file << "Expression: " << expression << '\n';
         if (!status) {

@@ -7,6 +7,7 @@
 
 struct Node {
     explicit Node(const char token);
+    virtual ~Node() = default;
     const char m_key;
     std::unique_ptr<Node> m_left_child;
     std::unique_ptr<Node> m_right_child;
