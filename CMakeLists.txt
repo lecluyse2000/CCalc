@@ -27,7 +27,7 @@ target_include_directories(boolean_simulator PRIVATE
 )
 
 target_compile_options(boolean_simulator PRIVATE
-    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-g -O1 -Wall -Wextra > # Apply -O1 if the compiler is not MSVC
-    $<$<CXX_COMPILER_ID:MSVC>:/O1>        # Apply /O1 if the compiler is MSVC
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-g -O2 -Wall -Wextra > # Apply -O2 if the compiler is not MSVC
+    $<$<CXX_COMPILER_ID:MSVC>:/O2>        # Apply /O2 if the compiler is MSVC
 )
 #Use this command to build: cmake -B build && make -C build
