@@ -5,12 +5,11 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <string>
 #include <vector>
 
-#include "ast/ast.h"
-#include "parser/parser.h"
+#include "../ast/ast.h"
+#include "../parser/parser.h"
 
 namespace File {
 

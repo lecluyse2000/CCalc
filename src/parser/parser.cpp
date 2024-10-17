@@ -10,8 +10,8 @@
 #include <string_view>
 #include <utility>
 
-#include "error/error.hpp"
-#include "types/types.hpp"
+#include "../error/error.hpp"
+#include "../types/types.hpp"
 
 void Parser::empty_stack() noexcept {
     while (!m_operator_stack.empty()) {

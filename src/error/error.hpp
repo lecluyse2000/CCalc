@@ -9,14 +9,14 @@
 #include <string>
 #include <string_view>
 
-#include "types/types.hpp"
+#include "../types/types.hpp"
 
 namespace Error {
 
 // Declare helper functions in an anonymous namespace
 namespace {
 
-[[nodiscard]] constexpr std::optional<std::string> check_leading(const std::string_view infix_expression) {
+[[nodiscard]] inline constexpr std::optional<std::string> check_leading(const std::string_view infix_expression) {
     for (const auto i : infix_expression) {
         if (isspace(i)) {
             continue;
@@ -32,7 +32,7 @@ namespace {
     return std::nullopt;
 }
 
-[[nodiscard]] constexpr std::optional<std::string> check_trailing(const std::string_view infix_expression) {
+[[nodiscard]] inline constexpr std::optional<std::string> check_trailing(const std::string_view infix_expression) {
     // I originally was just checking for the last value, but then I realized white space messed it all up
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         if (isspace(*itr)) {
@@ -51,7 +51,7 @@ namespace {
     return std::nullopt;
 }
 
-[[nodiscard]]
+[[nodiscard]] inline
 constexpr std::optional<std::string> check_missing_parentheses(const char current_token, const char previous_token) {
     if (current_token == '(' && previous_token == ')') {
         return ("Empty parentheses detected!\n");
@@ -60,7 +60,7 @@ constexpr std::optional<std::string> check_missing_parentheses(const char curren
     return std::nullopt;
 }
 
-[[nodiscard]]
+[[nodiscard]] inline
 constexpr std::optional<std::string> check_consecutive_operands(const char current_token, const char previous_token) {
     if (Types::isoperator(current_token) && Types::isoperator(previous_token)) {
         return ("Two consecutive operators detected: " + std::string(1, current_token) + " and " +
@@ -70,7 +70,7 @@ constexpr std::optional<std::string> check_consecutive_operands(const char curre
     return std::nullopt;
 }
 
-[[nodiscard]]
+[[nodiscard]] inline
 constexpr std::optional<std::string> check_consecutive_operators(const char current_token, const char previous_token) {
     if (Types::isoperand(current_token) && Types::isoperand(previous_token)) {
         return ("Two consecutive operands detected: " + std::string(1, current_token) + " and " +
@@ -81,7 +81,7 @@ constexpr std::optional<std::string> check_consecutive_operators(const char curr
 }
 
 [[nodiscard]]
-constexpr std::optional<std::string> check_not_after_value(const char current_token, const char previous_token) {
+inline constexpr std::optional<std::string> check_not_after_value(const char current_token, const char previous_token) {
     if (Types::isnot(current_token) && (Types::isoperator(previous_token) || previous_token == ')')) {
         return ("NOT applied after value!\n");
     }
@@ -90,7 +90,7 @@ constexpr std::optional<std::string> check_not_after_value(const char current_to
 }
 
 [[nodiscard]]
-constexpr std::optional<std::string> check_missing_operator(const char current_token, const char previous_token) {
+inline constexpr std::optional<std::string> check_missing_operator(const char current_token, const char previous_token) {
     if ((current_token == ')' && (Types::isnot(previous_token) || Types::isoperand(previous_token))) ||
         (Types::isoperand(current_token) && (previous_token == '(' || Types::isnot(previous_token))) ||
         (current_token == ')' && previous_token == '(')) {
@@ -101,7 +101,7 @@ constexpr std::optional<std::string> check_missing_operator(const char current_t
 }
 
 [[nodiscard]]
-constexpr std::optional<std::string> check_missing_operand(const char current_token, const char previous_token) {
+inline constexpr std::optional<std::string> check_missing_operand(const char current_token, const char previous_token) {
     if ((current_token == '(' && Types::isoperator(previous_token)) ||
         (Types::isoperator(current_token) && previous_token == ')')) {
         return ("Missing an operand!\n");
@@ -112,7 +112,7 @@ constexpr std::optional<std::string> check_missing_operand(const char current_to
 
 }  // namespace
 
-[[nodiscard]] constexpr std::optional<std::string> initial_checks(const std::string_view infix_expression) {
+[[nodiscard]] inline constexpr std::optional<std::string> initial_checks(const std::string_view infix_expression) {
     if (std::ranges::all_of(infix_expression, isspace)) {
         return ("Expression contains only spaces!\n");
     }
@@ -128,7 +128,7 @@ constexpr std::optional<std::string> check_missing_operand(const char current_to
     return std::nullopt;
 }
 
-[[nodiscard]] constexpr std::optional<std::string> error_checker(const char current_token, const char previous_token) {
+[[nodiscard]] inline constexpr std::optional<std::string> error_checker(const char current_token, const char previous_token) {
     std::initializer_list<std::optional<std::string> (*)(const char, const char)> error_checks{
         check_missing_parentheses, check_consecutive_operands, check_consecutive_operators,
         check_not_after_value,     check_missing_operator,     check_missing_operand};
@@ -143,7 +143,7 @@ constexpr std::optional<std::string> check_missing_operand(const char current_to
     return std::nullopt;
 }
 
-[[nodiscard]] constexpr std::string invalid_character_error(const char token) {
+[[nodiscard]] inline constexpr std::string invalid_character_error(const char token) {
     if (isalnum(token)) {
         return ("Expected T or F, received: " + std::string(1, token) + "\n");
     } else if (token == ']' || token == '[') {

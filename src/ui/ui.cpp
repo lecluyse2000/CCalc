@@ -1,6 +1,6 @@
 // Author: Caden LeCluyse
 
-#include "ui/ui.h"
+#include "ui.h"
 
 #include <algorithm>
 #include <cctype>
@@ -13,10 +13,10 @@
 #include <utility>
 #include <vector>
 
-#include "ast/ast.h"
-#include "file/file.h"
-#include "parser/parser.h"
-#include "version.hpp"
+#include "../ast/ast.h"
+#include "../file/file.h"
+#include "../parser/parser.h"
+#include "../version.hpp"
 
 namespace UI {
 

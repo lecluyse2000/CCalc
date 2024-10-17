@@ -20,10 +20,10 @@ Node::Node(const char token) : m_key(token) {}
             return left_value || right_value;
         case '@':
             return !(left_value && right_value);
+        default:
+            return (!left_value && right_value) || (left_value && !right_value);
     }
 
-    // If we are still in the function here it means that the operation is xor
-    return (!left_value && right_value) || (left_value && !right_value);
 }
 
 [[nodiscard]] bool UnaryNode::evaluate() const { return !m_left_child->evaluate(); }

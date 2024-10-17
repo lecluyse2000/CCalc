@@ -5,7 +5,7 @@
 #include <cctype>
 #include <string_view>
 
-#include "types/types.hpp"
+#include "../types/types.hpp"
 #include "node.h"
 
 std::unique_ptr<Node> AST::build_ast() {
