@@ -22,9 +22,9 @@ constexpr std::optional<const std::string> check_leading(const std::string_view 
         if (isspace(i)) {
             continue;
         } else if (Types::isoperator(i)) {
-            return "Expression begins with an operator!\n";
+            return std::optional<const std::string>("Expression begins with an operator!\n");
         } else if (i == ')') {
-            return "Expression begins with closed parentheses!\n";
+            return std::optional<const std::string>("Expression begins with closed parentheses!\n");
         } else {
             break;
         }
@@ -40,11 +40,11 @@ constexpr std::optional<const std::string> check_trailing(const std::string_view
         if (isspace(*itr)) {
             continue;
         } else if (Types::isnot(*itr)) {
-            return "Expression ends with NOT!\n";
+            return std::optional<const std::string>("Expression ends with NOT!\n");
         } else if (Types::isoperator(*itr)) {
-            return "Expression ends with an operator!\n";
+            return std::optional<const std::string>("Expression ends with an operator!\n");
         } else if (*itr == '(') {
-            return "Expression ends with open parentheses!\n";
+            return std::optional<const std::string>("Expression ends with open parentheses!\n");
         } else {
             break;
         }
@@ -56,7 +56,7 @@ constexpr std::optional<const std::string> check_trailing(const std::string_view
 [[nodiscard]] inline
 constexpr std::optional<const std::string> check_missing_parentheses(const char current_token, const char previous_token) {
     if (current_token == '(' && previous_token == ')') {
-        return "Empty parentheses detected!\n";
+        return std::optional<const std::string>("Empty parentheses detected!\n");
     }
 
     return std::nullopt;
@@ -65,8 +65,8 @@ constexpr std::optional<const std::string> check_missing_parentheses(const char 
 [[nodiscard]] inline
 constexpr std::optional<const std::string> check_consecutive_operands(const char current_token, const char previous_token) {
     if (Types::isoperator(current_token) && Types::isoperator(previous_token)) {
-        return "Two consecutive operators detected: " + std::string(1, current_token) + " and " +
-                std::string(1, previous_token) + "\n";
+        return std::optional<const std::string>("Two consecutive operators detected: " + std::string(1, current_token) + " and " +
+                std::string(1, previous_token) + "\n");
     }
 
     return std::nullopt;
@@ -75,8 +75,8 @@ constexpr std::optional<const std::string> check_consecutive_operands(const char
 [[nodiscard]] inline
 constexpr std::optional<const std::string> check_consecutive_operators(const char current_token, const char previous_token) {
     if (Types::isoperand(current_token) && Types::isoperand(previous_token)) {
-        return "Two consecutive operands detected: " + std::string(1, current_token) + " and " +
-                std::string(1, previous_token) + "\n";
+        return std::optional<const std::string>("Two consecutive operands detected: " + std::string(1, current_token) + " and " +
+                std::string(1, previous_token) + "\n");
     }
 
     return std::nullopt;
@@ -85,7 +85,7 @@ constexpr std::optional<const std::string> check_consecutive_operators(const cha
 [[nodiscard]] inline
 constexpr std::optional<const std::string> check_not_after_value(const char current_token, const char previous_token) {
     if (Types::isnot(current_token) && (Types::isoperator(previous_token) || previous_token == ')')) {
-        return "NOT applied after value!\n";
+        return std::optional<const std::string>("NOT applied after value!\n");
     }
 
     return std::nullopt;
@@ -96,7 +96,7 @@ constexpr std::optional<const std::string> check_missing_operator(const char cur
     if ((current_token == ')' && (Types::isnot(previous_token) || Types::isoperand(previous_token))) ||
         (Types::isoperand(current_token) && (previous_token == '(' || Types::isnot(previous_token))) ||
         (current_token == ')' && previous_token == '(')) {
-        return "Missing operator!\n";
+        return std::optional<const std::string>("Missing operator!\n");
     }
 
     return std::nullopt;
@@ -106,7 +106,7 @@ constexpr std::optional<const std::string> check_missing_operator(const char cur
 constexpr std::optional<const std::string> check_missing_operand(const char current_token, const char previous_token) {
     if ((current_token == '(' && Types::isoperator(previous_token)) ||
         (Types::isoperator(current_token) && previous_token == ')')) {
-        return "Missing an operand!\n";
+        return std::optional<const std::string>("Missing an operand!\n");
     }
 
     return std::nullopt;
@@ -116,8 +116,8 @@ constexpr std::optional<const std::string> check_missing_operand(const char curr
 
 [[nodiscard]] inline
 constexpr std::optional<const std::string> initial_checks(const std::string_view infix_expression) {
-    if (std::ranges::all_of(infix_expression, isspace)) {
-        return "Expression contains only spaces!\n";
+    if (std::ranges::all_of(infix_expression, ::isspace)) {
+        return std::optional<const std::string>("Expression contains only spaces!\n");
     }
     const auto leading = check_leading(infix_expression);
     if (leading) return leading;

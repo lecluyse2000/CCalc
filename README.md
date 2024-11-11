@@ -97,7 +97,7 @@ sudo apt install clang
 Build    
 
 ```bash
-cmake -B build && make -C build
+cmake -B build && cmake --build build
 ```
 
 Run    
@@ -118,7 +118,7 @@ brew install clang
 Build
 
 ```bash
-cmake -B build && make -C build
+cmake -B build && cmake --build build
 ```
 
 Run
@@ -131,19 +131,16 @@ build/boolean_simulator
 
 Use [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) and install via [Linux](#linux)    
 
-Or, you can use your own choice of installation for llvm/gcc and cmake.    
+If you don't want to use wsl CMake, Ninja, and clang++ is a good option.  
+
+Or, you can use your own choice of installation for llvm/gcc and cmake.
 
 ```powershell
-cmake -B build && make -C build
+cmake -B build && cmake --build build
 ```
 
-## Members     
+OR
 
-| Member           | Role                         |
-| ---------------- | ---------------------------- |
-| Alexander Phibbs | Project Lead, Developer      |
-| Caden LeCluyse   | Product Owner, Developer     |
-| Ceres Botkin     | Second Team Lead, Developer  |
-| Theodora Okhagbuzo | Meeting Secretary, Developer |
-| Justin Daugherty | Debugger, Developer          |
-| Cole Charpentier | Division of Tasks, Developer |
+```powershell
+cmake -G Ninja -B build && cmake --build build
+```

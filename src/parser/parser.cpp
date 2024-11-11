@@ -24,7 +24,7 @@ std::optional<const std::string> parse(const std::string_view infix_expression, 
     // Traverse the string in reverse
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         // Ignore white space
-        if (isspace(*itr)) {
+        if (std::isspace(*itr)) {
             continue;
         }
 
@@ -55,7 +55,7 @@ std::optional<const std::string> parse(const std::string_view infix_expression, 
             if (!operator_stack.empty()) {
                 operator_stack.pop();
             } else {
-                return "Missing closing parentheses!\n";
+                return std::optional<const std::string>("Missing closing parentheses!\n");
             }
         } else {
             return Error::invalid_character_error(current_token);
@@ -71,7 +71,7 @@ std::optional<const std::string> clear_stack(std::string& prefix_expression, std
     while (!operator_stack.empty()) {
         if (operator_stack.top() == ')') {
             empty_stack(operator_stack);
-            return "Missing open parentheses!\n";
+            return std::optional<const std::string>("Missing open parentheses!\n");
         }
         prefix_expression.push_back(operator_stack.top());
         operator_stack.pop();
