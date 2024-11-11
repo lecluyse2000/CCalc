@@ -78,7 +78,7 @@ void print_history(const auto& history) {
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
-    return filename;
+    return std::optional<std::string>(filename);
 }
 
 [[nodiscard]] bool save_history(const auto& history) {
@@ -119,7 +119,7 @@ void evaluate_expression(const std::string_view expression, auto& history) {
 
 [[nodiscard]] int program_loop() {
     std::string input_expression;
-    std::vector<std::pair<const std::string, const std::string> > program_history;
+    std::vector<std::pair<std::string, std::string> > program_history;
 
     while (true) {
         std::cout << "Please enter your boolean expression, or enter help to see all available commands: ";

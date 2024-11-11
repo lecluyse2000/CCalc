@@ -13,7 +13,7 @@
 
 namespace File {
 
-void output_history(const std::vector<std::pair<const std::string, const std::string> >& history, 
+void output_history(const std::vector<std::pair<std::string, std::string> >& history, 
                     std::ofstream& output_file) noexcept {
     std::ranges::for_each(history, [&output_file](const auto& expression_result) {
         const auto [expression, result] = expression_result;

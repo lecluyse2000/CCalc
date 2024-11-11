@@ -16,7 +16,7 @@
 namespace Parse {
 
 [[nodiscard]]
-std::optional<const std::string> parse(const std::string_view infix_expression, std::string& prefix_expression,
+std::optional<std::string_view> parse(const std::string_view infix_expression, std::string& prefix_expression,
                                  std::stack<char>& operator_stack) {
     char current_token = '\0';
     char previous_token = '\0';
@@ -55,7 +55,7 @@ std::optional<const std::string> parse(const std::string_view infix_expression, 
             if (!operator_stack.empty()) {
                 operator_stack.pop();
             } else {
-                return std::optional<const std::string>("Missing closing parentheses!\n");
+                return std::optional<std::string_view>("Missing closing parentheses!\n");
             }
         } else {
             return Error::invalid_character_error(current_token);
@@ -67,11 +67,11 @@ std::optional<const std::string> parse(const std::string_view infix_expression, 
 }
 
 [[nodiscard]]
-std::optional<const std::string> clear_stack(std::string& prefix_expression, std::stack<char>& operator_stack) {
+std::optional<std::string_view> clear_stack(std::string& prefix_expression, std::stack<char>& operator_stack) {
     while (!operator_stack.empty()) {
         if (operator_stack.top() == ')') {
             empty_stack(operator_stack);
-            return std::optional<const std::string>("Missing open parentheses!\n");
+            return std::optional<std::string_view>("Missing open parentheses!\n");
         }
         prefix_expression.push_back(operator_stack.top());
         operator_stack.pop();
@@ -81,21 +81,21 @@ std::optional<const std::string> clear_stack(std::string& prefix_expression, std
 }
 
 [[nodiscard]]
-std::pair<const std::string, const bool> create_prefix_expression(const std::string_view infix_expression) {
+std::pair<std::string, const bool> create_prefix_expression(const std::string_view infix_expression) {
     std::stack<char> operator_stack;
     std::string prefix_expression;
 
     const auto initial_checks = Error::initial_checks(infix_expression);
     if (initial_checks) {
-        return std::make_pair(*initial_checks, false);
+        return std::make_pair(std::string(*initial_checks), false);
     }
     const auto parse_result = parse(infix_expression, prefix_expression, operator_stack);
     if (parse_result) {
-        return std::make_pair(*parse_result, false);
+        return std::make_pair(std::string(*parse_result), false);
     }
     const auto stack_result = clear_stack(prefix_expression, operator_stack);
     if (stack_result) {
-        return std::make_pair(*stack_result, false);
+        return std::make_pair(std::string(*stack_result), false);
     }
     std::ranges::reverse(prefix_expression);
 
