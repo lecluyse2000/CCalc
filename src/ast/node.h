@@ -6,7 +6,7 @@
 #include <memory>
 
 struct Node {
-    explicit Node(const char token);
+    explicit Node(const char token) noexcept;
     virtual ~Node() = default;
     const char m_key;
     std::unique_ptr<Node> m_left_child;

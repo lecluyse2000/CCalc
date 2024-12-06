@@ -7,7 +7,7 @@
 
 namespace UI {
 
-void print_excessive_arguments(int arguments);
+void print_excessive_arguments(const int arguments);
 void print_insufficient_arguments();
 [[nodiscard]] int program_loop(); 
 void print_version();

@@ -20,7 +20,7 @@
 
 namespace UI {
 
-void print_excessive_arguments(int arguments) {
+void print_excessive_arguments(const int arguments) {
     std::cerr << "Expected 1 argument, received " << arguments
               << ". Use the --help flag to see all flags, or pass in an expression.\n"
               << "Make sure to wrap the expression in quotes.\n\n";
@@ -69,7 +69,7 @@ void print_history(const auto& history) {
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             std::cout << "Incorrect input. Try again (Y/N): ";
-            if (!std::cin.get(filename_flag)) {
+            if (!std::cin.get(filename_flag)) [[unlikely]] {
                 std::cerr << "Unable to receive input! Aborting...\n\n";
                 return std::nullopt;
             }
@@ -189,7 +189,7 @@ void print_help() {
                  "False), and boolean operations.\n\n"
               << " * Boolean operations:\n"
               << "\t - AND (&) results in True when both value are True. (T & F = F).\n"
-              << "\t - OR (|) returns True when at lest one of the values is True. (T | F = T).\n"
+              << "\t - OR (|) returns True when at least one of the values is True. (T | F = T).\n"
               << "\t - XOR ($) reults in True only when one of the values is True. (F $ F = F).\n"
               << "\t - NAND (@) returns True when both values are not True simultaneously. (F @ F = T).\n"
               << "\t - NOT (!) negates the value it is in front of. (!F = T).\n"

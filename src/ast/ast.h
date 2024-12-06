@@ -10,11 +10,11 @@
 
 class AST {
    public:
-    AST(const std::string_view expression);
+    AST(const std::string_view expression) noexcept;
     [[nodiscard]] bool evaluate() const;
 
    private:
-    std::unique_ptr<Node> build_ast();
+    std::unique_ptr<Node> build_ast() noexcept;
     const std::string_view m_prefix_expression;
     std::size_t m_index;
     std::unique_ptr<Node> m_root;

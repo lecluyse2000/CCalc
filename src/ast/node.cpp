@@ -5,7 +5,7 @@
 #include <cctype>
 #include <memory>
 
-Node::Node(const char token) : m_key(token) {}
+Node::Node(const char token) noexcept : m_key(token) {}
 
 [[nodiscard]] bool BoolNode::evaluate() const { return toupper(m_key) == 'T'; }
 

@@ -30,7 +30,7 @@ std::vector<std::string> get_expressions() noexcept {
 
     if (input_file.is_open()) {
         while (std::getline(input_file, current_expression)) {
-            expressions.push_back(current_expression);
+            expressions.emplace_back(std::move(current_expression));
         }
     } else {
         std::cout << "Couldn't find expressions.txt!\n";

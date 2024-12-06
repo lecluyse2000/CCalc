@@ -8,7 +8,7 @@
 #include "../types/types.hpp"
 #include "node.h"
 
-std::unique_ptr<Node> AST::build_ast() {
+std::unique_ptr<Node> AST::build_ast() noexcept {
     const char current_token = m_prefix_expression[m_index++];
 
     if (Types::isoperand(current_token)) {
@@ -28,6 +28,6 @@ std::unique_ptr<Node> AST::build_ast() {
     return node;
 }
 
-AST::AST(const std::string_view expression) : m_prefix_expression(expression), m_index(0),  m_root(build_ast()) {}
+AST::AST(const std::string_view expression) noexcept : m_prefix_expression(expression), m_index(0),  m_root(build_ast()) {}
 
 [[nodiscard]] bool AST::evaluate() const { return m_root->evaluate(); }
