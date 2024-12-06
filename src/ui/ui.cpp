@@ -97,7 +97,49 @@ void print_history(const auto& history) {
     return true;
 }
 
-void evaluate_expression(const std::string_view expression, auto& history) {
+enum class InputResult {
+    CONTINUE_TO_EVALUATE,
+    CONTINUE,
+    QUIT_FAILURE,
+    QUIT_SUCCESS
+};
+
+[[nodiscard]] InputResult handle_input(std::string_view input_expression, auto& program_history) {
+    if (input_expression == "help") {
+        print_help_continuous();
+        return InputResult::CONTINUE;
+    } else if (input_expression == "history") {
+        if (program_history.empty()) {
+            std::cerr << "You haven't evaluated any expressions yet!\n\n";
+            return InputResult::CONTINUE;
+        }
+
+        print_history(program_history);
+        return InputResult::CONTINUE;
+    } else if (input_expression == "save") {
+        if (program_history.empty()) {
+            std::cerr << "You haven't evaluated any expressions yet!\n\n";
+            return InputResult::CONTINUE;
+        }
+
+        if (!save_history(program_history)) {
+            return InputResult::QUIT_FAILURE;
+        }
+        std::cout << "History saved!\n";
+        return InputResult::CONTINUE;
+    } else if (input_expression == "clear") {
+        program_history.clear();
+        std::cout << "History cleared!\n\n";
+        return InputResult::CONTINUE;
+    } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
+        std::cout << "Exiting...\n" << std::endl;
+        return InputResult::QUIT_SUCCESS;
+    }
+
+    return InputResult::CONTINUE_TO_EVALUATE;
+}
+
+void evaluate_expression(std::string& expression, auto& history) {
     const auto [result, status] = Parse::create_prefix_expression(expression);
     if (!status) {
         std::cerr << "Error: " << result << std::endl;
@@ -108,10 +150,10 @@ void evaluate_expression(const std::string_view expression, auto& history) {
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
         std::cout << "True!\n\n";
-        history.emplace_back(std::make_pair(expression, "True!"));
+        history.emplace_back(std::make_pair(std::move(expression), "True!"));
     } else {
         std::cout << "False!\n\n";
-        history.emplace_back(std::make_pair(expression, "False!"));
+        history.emplace_back(std::make_pair(std::move(expression), "False!"));
     }
 }
 
@@ -133,38 +175,19 @@ void evaluate_expression(const std::string_view expression, auto& history) {
             continue;
         }
 
-        if (input_expression == "help") {
-            print_help_continuous();
-            continue;
-        } else if (input_expression == "history") {
-            if (program_history.empty()) {
-                std::cerr << "You haven't evaluated any expressions yet!\n\n";
-                continue;
-            }
+        const InputResult result = handle_input(input_expression, program_history);
 
-            print_history(program_history);
-            continue;
-        } else if (input_expression == "save") {
-            if (program_history.empty()) {
-                std::cerr << "You haven't evaluated any expressions yet!\n\n";
-                continue;
-            }
-
-            if (!save_history(program_history)) {
+        switch (result) {
+            case InputResult::QUIT_SUCCESS:
+                return 0;
+            case InputResult::QUIT_FAILURE:
                 return 1;
-            }
-            std::cout << "History saved!\n";
-            continue;
-        } else if (input_expression == "clear") {
-            program_history.clear();
-            std::cout << "History cleared!\n\n";
-            continue;
-        } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
-            std::cout << "Exiting...\n" << std::endl;
-            return 0;
+            case InputResult::CONTINUE:
+                continue;
+            default:
+                evaluate_expression(input_expression, program_history);
         }
 
-        evaluate_expression(input_expression, program_history);
     }
 }
 
