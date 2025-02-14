@@ -1,4 +1,4 @@
-# CCalc 
+# CCalc - Caden's Calculator
 
 CCalc is a CLI tool capable of solving both boolean and arithmetic expressions.
 

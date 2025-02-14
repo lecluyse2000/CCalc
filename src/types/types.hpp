@@ -33,6 +33,21 @@ namespace Types {
 
 [[nodiscard]] inline constexpr bool isnot(const char token) noexcept { return token == '!'; }
 
+[[nodiscard]] inline constexpr int get_precedence(const char op) {
+    switch (op) {
+        case '+':
+        case '-':
+            return 1;
+        case '*':
+        case '/':
+            return 2;
+        case '^':
+            return 3;
+        default:
+            return 0;
+    }
+}
+
 }  // namespace Types
 
 #endif

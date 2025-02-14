@@ -46,10 +46,10 @@ void initiate_file_mode() noexcept {
     std::ofstream output_file("results.txt");
 
     for (const auto& expression : expressions) {
-        const auto [result, status] = Parse::create_prefix_expression(expression);
+        const auto [success, is_math, result] = Parse::create_prefix_expression(expression);
 
         output_file << "Expression: " << expression << '\n';
-        if (!status) {
+        if (!success) {
             output_file << "Error: " << result;
             continue;
         }

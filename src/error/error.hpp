@@ -7,7 +7,7 @@
 #include <cctype>
 #include <optional>
 #include <string>
-#include <string_view>
+#include <string>
 
 #include "../types/types.hpp"
 
@@ -16,29 +16,16 @@ namespace Error {
 // Declare helper functions in an anonymous namespace
 namespace {
 
-[[nodiscard]] inline
-constexpr std::optional<bool> is_math_equation(const std::string_view infix_expression) {
-    for (const auto i : infix_expression) {
-        if (Types::is_bool_operator(i)) {
-            return false;
-        } else if (Types::is_math_operator(i)) {
-            return true;
-        } else {
-            continue;
-        }
-    }
-    return std::nullopt;
-}
-
-[[nodiscard]] inline
-constexpr std::optional<std::string_view> check_leading(const std::string_view infix_expression, const bool math) {
+[[nodiscard]] 
+constexpr std::optional<std::string> check_leading(const std::string_view infix_expression, const bool math) {
     for (const auto i : infix_expression) {
         if (isspace(i)) {
             continue;
         } else if (Types::isoperator(i)) {
-            return std::optional<std::string_view>("Expression begins with an operator!\n");
+            if (math && i == '-') return std::nullopt;
+            return std::optional<std::string>("Expression begins with an operator!\n");
         } else if (i == ')') {
-            return std::optional<std::string_view>("Expression begins with closed parentheses!\n");
+            return std::optional<std::string>("Expression begins with closed parentheses!\n");
         } else {
             break;
         }
@@ -48,17 +35,17 @@ constexpr std::optional<std::string_view> check_leading(const std::string_view i
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> check_trailing(const std::string_view infix_expression, const bool math) {
+constexpr std::optional<std::string> check_trailing(const std::string_view infix_expression) {
     // I originally was just checking for the last value, but then I realized white space messed it all up
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         if (isspace(*itr)) {
             continue;
         } else if (Types::isnot(*itr)) {
-            return std::optional<std::string_view>("Expression ends with NOT!\n");
+            return std::optional<std::string>("Expression ends with NOT!\n");
         } else if (Types::isoperator(*itr)) {
-            return std::optional<std::string_view>("Expression ends with an operator!\n");
+            return std::optional<std::string>("Expression ends with an operator!\n");
         } else if (*itr == '(') {
-            return std::optional<std::string_view>("Expression ends with open parentheses!\n");
+            return std::optional<std::string>("Expression ends with open parentheses!\n");
         } else {
             break;
         }
@@ -68,18 +55,18 @@ constexpr std::optional<std::string_view> check_trailing(const std::string_view 
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> check_missing_parentheses(const char current_token, const char previous_token) {
+constexpr std::optional<std::string> check_missing_parentheses(const char current_token, const char previous_token) {
     if (current_token == '(' && previous_token == ')') {
-        return std::optional<std::string_view>("Empty parentheses detected!\n");
+        return std::optional<std::string>("Empty parentheses detected!\n");
     }
 
     return std::nullopt;
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> check_consecutive_operands(const char current_token, const char previous_token) {
+constexpr std::optional<std::string> check_consecutive_operands(const char current_token, const char previous_token) {
     if (Types::isoperator(current_token) && Types::isoperator(previous_token)) {
-        return std::optional<std::string_view>("Two consecutive operators detected: " + std::string(1, current_token) + " and " +
+        return std::optional<std::string>("Two consecutive operators detected: " + std::string(1, current_token) + " and " +
                 std::string(1, previous_token) + "\n");
     }
 
@@ -87,9 +74,9 @@ constexpr std::optional<std::string_view> check_consecutive_operands(const char 
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> check_consecutive_operators(const char current_token, const char previous_token) {
+constexpr std::optional<std::string> check_consecutive_operators(const char current_token, const char previous_token) {
     if (Types::isoperand(current_token) && Types::isoperand(previous_token)) {
-        return std::optional<std::string_view>("Two consecutive operands detected: " + std::string(1, current_token) + " and " +
+        return std::optional<std::string>("Two consecutive operands detected: " + std::string(1, current_token) + " and " +
                 std::string(1, previous_token) + "\n");
     }
 
@@ -97,30 +84,30 @@ constexpr std::optional<std::string_view> check_consecutive_operators(const char
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> check_not_after_value(const char current_token, const char previous_token) {
+constexpr std::optional<std::string> check_not_after_value(const char current_token, const char previous_token) {
     if (Types::isnot(current_token) && (Types::isoperator(previous_token) || previous_token == ')')) {
-        return std::optional<std::string_view>("NOT applied after value!\n");
+        return std::optional<std::string>("NOT applied after value!\n");
     }
 
     return std::nullopt;
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> check_missing_operator(const char current_token, const char previous_token) {
+constexpr std::optional<std::string> check_missing_operator(const char current_token, const char previous_token) {
     if ((current_token == ')' && (Types::isnot(previous_token) || Types::isoperand(previous_token))) ||
         (Types::isoperand(current_token) && (previous_token == '(' || Types::isnot(previous_token))) ||
         (current_token == ')' && previous_token == '(')) {
-        return std::optional<std::string_view>("Missing operator!\n");
+        return std::optional<std::string>("Missing operator!\n");
     }
 
     return std::nullopt;
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> check_missing_operand(const char current_token, const char previous_token) {
+constexpr std::optional<std::string> check_missing_operand(const char current_token, const char previous_token) {
     if ((current_token == '(' && Types::isoperator(previous_token)) ||
         (Types::isoperator(current_token) && previous_token == ')')) {
-        return std::optional<std::string_view>("Missing an operand!\n");
+        return std::optional<std::string>("Missing an operand!\n");
     }
 
     return std::nullopt;
@@ -128,33 +115,36 @@ constexpr std::optional<std::string_view> check_missing_operand(const char curre
 
 }  // namespace
 
-struct initial_check_result {
-    bool math;
-    std::string_view error;
-    initial_check_result(const bool _math, std::string_view _error_result) :
-        math(_math), error(_error_result){}
-};
-
 [[nodiscard]] inline
-constexpr std::optional<initial_check_result> initial_checks(const std::string_view infix_expression) {
+constexpr std::optional<std::string> initial_checks(const std::string_view infix_expression, const bool math) {
     if (std::ranges::all_of(infix_expression, ::isspace)) {
-        return initial_check_result(false, "Expression contains only spaces!\n");
+        return std::optional<std::string>("Expression contains only spaces!\n");
     }
-    const auto math_equation = is_math_equation(infix_expression);
-    if (!math_equation) return initial_check_result(false, "Expression does not contain an operator!\n");
 
-    const auto leading = check_leading(infix_expression, *math_equation);
-    if (leading) return leading;
+    const auto leading = check_leading(infix_expression, math);
+    if (leading) return std::optional<std::string>(*leading);
     
-    const auto trailing = check_trailing(infix_expression, *math_equation);
-    if (trailing) return trailing;
+    const auto trailing = check_trailing(infix_expression);
+    if (trailing) return std::optional<std::string>(*trailing);
 
     return std::nullopt;
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> error_checker(const char current_token, const char previous_token) {
-    std::initializer_list<std::optional<std::string_view> (*)(const char, const char)> error_checks{
+constexpr std::optional<std::string> error_math(const char current_token, const char previous_token) {
+    std::initializer_list<std::optional<std::string> (*)(const char, const char)> error_checks{
+        check_missing_parentheses, check_consecutive_operators, check_missing_operator, check_missing_operand};
+
+    for (auto check : error_checks) {
+        const auto result = check(current_token, previous_token);
+        if (result) return result;
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] inline
+constexpr std::optional<std::string> error_bool(const char current_token, const char previous_token) {
+    std::initializer_list<std::optional<std::string> (*)(const char, const char)> error_checks{
         check_missing_parentheses, check_consecutive_operands, check_consecutive_operators,
         check_not_after_value,     check_missing_operator,     check_missing_operand};
 
@@ -162,7 +152,6 @@ constexpr std::optional<std::string_view> error_checker(const char current_token
         const auto result = check(current_token, previous_token);
         if (result) return result;
     }
-
     return std::nullopt;
 }
 
@@ -172,7 +161,7 @@ constexpr std::optional<std::string_view> error_checker(const char current_token
     } else if (token == ']' || token == '[') {
         return "Invalid use of brackets detected! Just use parentheses please.\n";
     }
-    return "Expected &, |, !, @, $, received: " + std::string(1, token) + "\n";
+    return "Expected &, |, !, @, $, +, -, *, / received: " + std::string(1, token) + "\n";
 }
 
 }  // namespace Error

@@ -5,28 +5,37 @@
 
 #include <memory>
 
-struct Node {
-    explicit Node(const char token) noexcept;
-    virtual ~Node() = default;
-    const char m_key;
-    std::unique_ptr<Node> m_left_child;
-    std::unique_ptr<Node> m_right_child;
+struct BoolNode {
+    explicit BoolNode(const char token) noexcept;
+    virtual ~BoolNode() = default;
     [[nodiscard]] virtual bool evaluate() const = 0;
+    std::unique_ptr<BoolNode> m_left_child;
+    std::unique_ptr<BoolNode> m_right_child;
+    const char key;
 };
 
-struct BoolNode : public Node {
-    explicit BoolNode(const char token) : Node(token) {}
+struct ValueBNode : public BoolNode {
+    explicit ValueBNode(const char token) : BoolNode(token) {}
     [[nodiscard]] bool evaluate() const override;
 };
 
-struct OperationNode : public Node {
-    explicit OperationNode(const char token) : Node(token) {}
+struct OperationBNode : public BoolNode {
+    explicit OperationBNode(const char token) : BoolNode(token) {}
     [[nodiscard]] bool evaluate() const override;
 };
 
-struct UnaryNode : public Node {
-    explicit UnaryNode(const char token) : Node(token) {}
+struct UnaryBNode : public BoolNode {
+    explicit UnaryBNode(const char token) : BoolNode(token) {}
     [[nodiscard]] bool evaluate() const override;
+};
+
+struct MathNode {
+    explicit MathNode(const char token) noexcept;
+    virtual ~MathNode() = default;
+    std::unique_ptr<MathNode> m_left_child;
+    std::unique_ptr<MathNode> m_right_child;
+    [[nodiscard]] bool evaluate() const;
+    const char key;
 };
 
 #endif
