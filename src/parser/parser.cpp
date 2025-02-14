@@ -18,15 +18,14 @@ namespace Parse {
 [[nodiscard]]
 std::optional<std::string_view> parse(const std::string_view infix_expression, std::string& prefix_expression,
                                  std::stack<char>& operator_stack) {
+    bool math_equation = false;
     char current_token = '\0';
     char previous_token = '\0';
 
     // Traverse the string in reverse
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         // Ignore white space
-        if (std::isspace(*itr)) {
-            continue;
-        }
+        if (std::isspace(*itr)) continue;
 
         // Grab the current token
         // If the token is an operand, simply add it to the string

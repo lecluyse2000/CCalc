@@ -17,7 +17,21 @@ namespace Error {
 namespace {
 
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> check_leading(const std::string_view infix_expression) {
+constexpr std::optional<bool> is_math_equation(const std::string_view infix_expression) {
+    for (const auto i : infix_expression) {
+        if (Types::is_bool_operator(i)) {
+            return false;
+        } else if (Types::is_math_operator(i)) {
+            return true;
+        } else {
+            continue;
+        }
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] inline
+constexpr std::optional<std::string_view> check_leading(const std::string_view infix_expression, const bool math) {
     for (const auto i : infix_expression) {
         if (isspace(i)) {
             continue;
@@ -34,7 +48,7 @@ constexpr std::optional<std::string_view> check_leading(const std::string_view i
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> check_trailing(const std::string_view infix_expression) {
+constexpr std::optional<std::string_view> check_trailing(const std::string_view infix_expression, const bool math) {
     // I originally was just checking for the last value, but then I realized white space messed it all up
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         if (isspace(*itr)) {
@@ -114,15 +128,25 @@ constexpr std::optional<std::string_view> check_missing_operand(const char curre
 
 }  // namespace
 
+struct initial_check_result {
+    bool math;
+    std::string_view error;
+    initial_check_result(const bool _math, std::string_view _error_result) :
+        math(_math), error(_error_result){}
+};
+
 [[nodiscard]] inline
-constexpr std::optional<std::string_view> initial_checks(const std::string_view infix_expression) {
+constexpr std::optional<initial_check_result> initial_checks(const std::string_view infix_expression) {
     if (std::ranges::all_of(infix_expression, ::isspace)) {
-        return std::optional<std::string_view>("Expression contains only spaces!\n");
+        return initial_check_result(false, "Expression contains only spaces!\n");
     }
-    const auto leading = check_leading(infix_expression);
+    const auto math_equation = is_math_equation(infix_expression);
+    if (!math_equation) return initial_check_result(false, "Expression does not contain an operator!\n");
+
+    const auto leading = check_leading(infix_expression, *math_equation);
     if (leading) return leading;
     
-    const auto trailing = check_trailing(infix_expression);
+    const auto trailing = check_trailing(infix_expression, *math_equation);
     if (trailing) return trailing;
 
     return std::nullopt;
