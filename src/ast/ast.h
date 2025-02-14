@@ -8,26 +8,28 @@
 
 #include "node.h"
 
-class AST {
+class BoolAST {
    public:
-    AST(const std::string_view expression) noexcept;
+    BoolAST(const std::string_view expression) noexcept;
     [[nodiscard]] virtual bool evaluate() const = 0;
 
    private:
-    std::unique_ptr<Node> build_ast() noexcept;
+    std::unique_ptr<BoolNode> build_ast() noexcept;
+    std::unique_ptr<BoolNode> m_root;
     const std::string_view m_prefix_expression;
     std::size_t m_index;
-    std::unique_ptr<Node> m_root;
 };
 
-class MathAST: public AST {
-    MathAST(const std::string_view expression) : AST(expression){}
-    [[nodiscard]] bool evaluate() const override; 
-};
+class MathAST {
+   public:
+    MathAST(const std::string_view expression) noexcept;
+    [[nodiscard]] virtual bool evaluate() const = 0;
 
-class BoolAST: public AST {
-    BoolAST(const std::string_view expression) : AST(expression){}
-    [[nodiscard]] bool evaluate() const override; 
+   private:
+    std::unique_ptr<MathNode> build_ast() noexcept;
+    std::unique_ptr<MathNode> m_root;
+    const std::string_view m_prefix_expression;
+    std::size_t m_index;
 };
 
 #endif
