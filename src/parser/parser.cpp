@@ -1,7 +1,7 @@
 // Author: Caden LeCluyse
-
 #include "parser.h"
 
+#include <iostream>
 #include <algorithm>
 #include <cctype>
 #include <optional>
@@ -18,7 +18,7 @@ namespace Parse {
 namespace {
 
 [[nodiscard]]
-constexpr std::optional<bool> is_math_equation(const std::string_view infix_expression) {
+constexpr std::optional<bool> is_math_equation(const std::string_view infix_expression) noexcept {
     for (const auto i : infix_expression) {
         if (Types::is_bool_operator(i)) {
             return false;
@@ -29,8 +29,45 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
         }
     }
     return std::nullopt;
+} 
+
+[[nodiscard]] constexpr bool check_first_minus(const std::string_view infix_expression) noexcept {
+    for (const auto c : infix_expression) {
+        if (std::isspace(c)) continue;
+        return c == '-';
+    }
+    return false;
 }
 
+[[nodiscard]] constexpr std::optional<std::string>
+check_for_number(std::string& num_buffer, const char current_token, bool& in_number, bool& floating_point) {
+    if (std::isdigit(current_token)) {
+        in_number = true;
+        num_buffer += current_token;
+        return std::optional<std::string>("");
+    } else if (current_token == '.') {
+        if (num_buffer.find('.') != std::string::npos) {
+            return std::optional<std::string>("Multiple decimal points in number!");
+        }
+        in_number = true;
+        num_buffer += current_token;
+        floating_point = true;
+        return std::optional<std::string>("");
+    }
+
+    return std::nullopt;
+}
+
+constexpr void 
+check_for_unary(const std::string_view infix_expression, const auto itr, char& current_token, const char previous_token) {
+    if (current_token != '-') return;
+    if (check_first_minus(infix_expression) || previous_token == '(' ||
+        (Types::is_math_operand(previous_token) && *(itr + 1) == '(')) {
+        current_token = '~';
+    }
+
+}
+// When parsing a math expression a comma is used as a delimiter
 [[nodiscard]]
 std::optional<std::string> parse_math(const std::string_view infix_expression, std::string& prefix_expression,
                                            std::stack<char>& operator_stack, bool& floating_point) {
@@ -43,44 +80,30 @@ std::optional<std::string> parse_math(const std::string_view infix_expression, s
         if (std::isspace(*itr)) {
             if (in_number) {
                 prefix_expression += num_buffer + ',';
-                in_number = false; 
-                num_buffer.clear();
+                clear_num_buffer(num_buffer, in_number);
             }
             continue;
         } else if (*itr == '!') return std::optional<std::string>("! operator is not supported yet!\n");
         
         current_token = *itr;
-        if (std::isdigit(current_token)) {
-            in_number = true;
-            num_buffer += current_token;
-            continue;
-        } else if (current_token == '.') {
-            if (num_buffer.find('.') != std::string::npos) {
-                return std::optional<std::string>("Multiple decimal points in number!");
-            }
-            in_number = true;
-            num_buffer += current_token;
-            floating_point = true;
-            continue;
-        }
-        
         const auto checker_result = Error::error_math(current_token, previous_token);
-        if (checker_result) {
-            return checker_result;
-        }
+        if (checker_result) return checker_result;
+
+        const auto num_check = check_for_number(num_buffer, current_token, in_number, floating_point); 
+        if (num_check && *num_check == "") continue;
+        else if (num_check && *num_check != "") return num_check;
+        check_for_unary(infix_expression, itr, current_token, previous_token);
 
         if (Types::isoperator(current_token)) {
             if (in_number) {
                 prefix_expression += num_buffer + ',';
-                in_number = false;
-                num_buffer.clear();
+                clear_num_buffer(num_buffer, in_number);
             }
             if (current_token == '/') {
                 floating_point = true;
             }
             while (!operator_stack.empty() && operator_stack.top() != ')' && 
                    Types::get_precedence(operator_stack.top()) > Types::get_precedence(current_token)) {
-
                 prefix_expression.push_back(operator_stack.top());
                 prefix_expression.push_back(',');
                 operator_stack.pop();
@@ -89,15 +112,13 @@ std::optional<std::string> parse_math(const std::string_view infix_expression, s
         } else if (current_token == ')') {
             if (in_number) {
                 prefix_expression += num_buffer + ',';
-                in_number = false;
-                num_buffer.clear();
+                clear_num_buffer(num_buffer, in_number);
             }
             operator_stack.push(current_token);
         } else if (current_token == '(') {
             if (in_number) {
                 prefix_expression += num_buffer + ',';
-                in_number = false;
-                num_buffer.clear();
+                clear_num_buffer(num_buffer, in_number);
             }
             while (!operator_stack.empty() && operator_stack.top() != ')') {
                 prefix_expression.push_back(operator_stack.top());
@@ -114,9 +135,6 @@ std::optional<std::string> parse_math(const std::string_view infix_expression, s
         }
         
         previous_token = current_token;
-    }
-    if (in_number) {
-        prefix_expression += num_buffer + ',';
     }
     return std::nullopt;
 }
@@ -209,7 +227,6 @@ ParseResult create_prefix_expression(const std::string_view infix_expression) {
         return ParseResult(*stack_result, false, *is_math, floating_point); 
     }
     std::ranges::reverse(prefix_expression);
-    prefix_expression.erase(prefix_expression.begin());
 
     return ParseResult(std::move(prefix_expression),true, *is_math, floating_point);
 }

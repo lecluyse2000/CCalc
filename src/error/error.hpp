@@ -156,7 +156,7 @@ constexpr std::optional<std::string> error_bool(const char current_token, const 
 }
 
 [[nodiscard]] inline constexpr std::string invalid_character_error_math(const char token) {
-    if (isalnum(token)) {
+    if (!Types::is_math_operand(token)) {
         return "Expected a number, received: " + std::string(1, token) + "\n";
     } else if (token == ']' || token == '[') {
         return "Invalid use of brackets detected! Just use parentheses please.\n";

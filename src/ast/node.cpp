@@ -40,6 +40,8 @@ BoolNode::BoolNode(const char token) noexcept : key(token){}
     switch(key) {
         case '+':
             return left_value + right_value;
+        case '-':
+            return left_value - right_value;
         case '*':
             return left_value * right_value;
         default:
@@ -60,6 +62,8 @@ BoolNode::BoolNode(const char token) noexcept : key(token){}
     switch(key) {
         case '+':
             return left_value + right_value;
+        case '-':
+            return left_value - right_value;
         case '*':
             return left_value * right_value;
         case '/':

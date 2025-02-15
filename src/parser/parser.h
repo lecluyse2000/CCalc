@@ -26,6 +26,11 @@ namespace Parse {
             operator_stack.pop();
         }
     }
+    
+    inline void clear_num_buffer(std::string& buf, bool& in_num) noexcept {
+        in_num = false;
+        buf.clear();
+    }
 
     [[nodiscard]] ParseResult create_prefix_expression(const std::string_view infix_expression);
 };

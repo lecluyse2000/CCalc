@@ -57,7 +57,7 @@ std::unique_ptr<MathNode> MathAST::build_ast() noexcept {
     }
 
     std::unique_ptr<MathNode> node;
-    if (current_token == '-') {
+    if (current_token == '~') {
         node = std::make_unique<UnaryMNode>();
         node->m_left_child = build_ast();
     } else {

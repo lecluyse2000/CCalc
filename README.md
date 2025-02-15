@@ -20,7 +20,7 @@ This program requires [building from source](#building-from-source). You can dow
 
 ## Start Guide   
 
-Below are examples of general program usage. For a more in-depth look, please look at the [User Manual](https://github.com/YAKU-Student/EECS-348---Group-Project/blob/main/doc/06-Users-Manual.pdf).    
+Below are examples of general program usage.
 
 ```console
 user@archlinux:~$ ccalc 'T & F'
@@ -39,6 +39,8 @@ Result: True!
 
 Please enter your boolean expression, or enter help to see all available commands: (T | F) $ (F & T)
 Result: True!
+
+Please enter your boolean expression, or enter help to see all available commands: 2 + 3 - 3 * 3
 
 Please enter your boolean expression, or enter help to see all available commands: history
 Expression: T & F

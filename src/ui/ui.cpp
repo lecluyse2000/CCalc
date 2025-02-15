@@ -243,7 +243,6 @@ void evaluate_expression(const std::string_view expression) {
         std::cerr << "Error: " << result << std::endl;
         return;
     }
-    std::cout << "\n\nPrefix: " << result << "\n\n";
     if(is_math) {
         const auto tree = std::make_unique<MathAST>(result, is_floating_point);
         if (is_floating_point) {
