@@ -42,7 +42,7 @@ std::optional<std::string> parse_math(const std::string_view infix_expression, s
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         if (std::isspace(*itr)) {
             if (in_number) {
-                prefix_expression += num_buffer + ','; //Using commas as delimiters
+                prefix_expression += num_buffer + ',';
                 in_number = false; 
                 num_buffer.clear();
             }
@@ -53,6 +53,7 @@ std::optional<std::string> parse_math(const std::string_view infix_expression, s
         if (std::isdigit(current_token)) {
             in_number = true;
             num_buffer += current_token;
+            continue;
         } else if (current_token == '.') {
             if (num_buffer.find('.') != std::string::npos) {
                 return std::optional<std::string>("Multiple decimal points in number!");
@@ -60,6 +61,7 @@ std::optional<std::string> parse_math(const std::string_view infix_expression, s
             in_number = true;
             num_buffer += current_token;
             floating_point = true;
+            continue;
         }
         
         const auto checker_result = Error::error_math(current_token, previous_token);
@@ -108,7 +110,7 @@ std::optional<std::string> parse_math(const std::string_view infix_expression, s
                 return std::optional<std::string>("Missing closing parentheses!\n");
             }
         } else {
-            return Error::invalid_character_error(current_token);
+            return Error::invalid_character_error_math(current_token);
         }
         
         previous_token = current_token;
@@ -160,7 +162,7 @@ std::optional<std::string> parse_bool(const std::string_view infix_expression, s
                 return std::optional<std::string>("Missing closing parentheses!\n");
             }
         } else {
-            return Error::invalid_character_error(current_token);
+            return Error::invalid_character_error_bool(current_token);
         }
         previous_token = current_token;
     }
@@ -191,24 +193,25 @@ ParseResult create_prefix_expression(const std::string_view infix_expression) {
     bool floating_point = false;
 
     const auto is_math = is_math_equation(infix_expression);
-    if (!is_math) return ParseResult(std::string_view("No valid operators detected!\n"), false, *is_math);
+    if (!is_math) return ParseResult(std::string_view("No valid operators detected!\n"), false, *is_math, floating_point);
 
     const auto initial_checks = Error::initial_checks(infix_expression, *is_math);
     if (initial_checks) {
-        return ParseResult(*initial_checks, false, *is_math);
+        return ParseResult(*initial_checks, false, *is_math, floating_point);
     }
     const auto parse_result = *is_math ? parse_math(infix_expression, prefix_expression, operator_stack, floating_point)
                                        : parse_bool(infix_expression, prefix_expression, operator_stack);
     if (parse_result) {
-        return ParseResult(*parse_result, false, *is_math); 
+        return ParseResult(*parse_result, false, *is_math, floating_point); 
     }
     const auto stack_result = clear_stack(prefix_expression, operator_stack);
     if (stack_result) {
-        return ParseResult(*stack_result, false, *is_math); 
+        return ParseResult(*stack_result, false, *is_math, floating_point); 
     }
     std::ranges::reverse(prefix_expression);
+    prefix_expression.erase(prefix_expression.begin());
 
-    return ParseResult(std::move(prefix_expression),true, *is_math);
+    return ParseResult(std::move(prefix_expression),true, *is_math, floating_point);
 }
 
 }

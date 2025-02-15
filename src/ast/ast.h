@@ -11,25 +11,27 @@
 class BoolAST {
    public:
     BoolAST(const std::string_view expression) noexcept;
-    [[nodiscard]] virtual bool evaluate() const = 0;
+    [[nodiscard]] bool evaluate() const;
 
    private:
     std::unique_ptr<BoolNode> build_ast() noexcept;
-    std::unique_ptr<BoolNode> m_root;
     const std::string_view m_prefix_expression;
     std::size_t m_index;
+    std::unique_ptr<BoolNode> m_root;
 };
 
 class MathAST {
    public:
-    MathAST(const std::string_view expression) noexcept;
-    [[nodiscard]] virtual bool evaluate() const = 0;
+    MathAST(const std::string_view expression, const bool _floating_point) noexcept;
+    [[nodiscard]] long long evaluate() const;
+    [[nodiscard]] long double evaluate_floating_point() const;
 
    private:
     std::unique_ptr<MathNode> build_ast() noexcept;
-    std::unique_ptr<MathNode> m_root;
     const std::string_view m_prefix_expression;
     std::size_t m_index;
+    const bool m_floating_point;
+    std::unique_ptr<MathNode> m_root;
 };
 
 #endif

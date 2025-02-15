@@ -12,12 +12,13 @@ namespace Parse {
         std::string result;
         bool success;
         bool is_math;
+        bool is_floating_point;
         
-        ParseResult(std::string_view _result, const bool _err, const bool _math) : 
-        result(_result), success(_err), is_math(_math) {}
+        ParseResult(std::string_view _result, const bool _err, const bool _math, const bool _fp) : 
+        result(_result), success(_err), is_math(_math), is_floating_point(_fp) {}
 
-        ParseResult(std::string&& _result, const bool _err, const bool _math) : 
-        result(std::move(_result)), success(_err), is_math(_math) {}
+        ParseResult(std::string&& _result, const bool _err, const bool _math, const bool _fp) : 
+        result(std::move(_result)), success(_err), is_math(_math), is_floating_point(_fp) {}
     };
 
     inline void empty_stack(std::stack<char>& operator_stack) noexcept {

@@ -140,13 +140,26 @@ enum class InputResult {
 }
 
 void evaluate_expression(std::string& expression, auto& history) {
-    const auto [result, status] = Parse::create_prefix_expression(expression);
+    const auto [result, status, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
     if (!status) {
         std::cerr << "Error: " << result << std::endl;
         return;
     }
-    const auto syntax_tree = std::make_unique<AST>(result);
+    if(is_math) {
+        const auto tree = std::make_unique<MathAST>(result, is_floating_point);
+        if (is_floating_point) {
+            const long double final_value = tree->evaluate_floating_point();
+            std::cout << "Result: " << final_value << '\n';
+            history.emplace_back(std::make_pair(std::move(expression), std::to_string(final_value)));
+            return;
+        }
+        const long long final_value = tree->evaluate();
+        std::cout << "Result: " << final_value << '\n';
+        history.emplace_back(std::make_pair(std::move(expression), std::to_string(final_value)));
+        return;
+    }
 
+    const auto syntax_tree = std::make_unique<BoolAST>(result);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
         std::cout << "True!\n\n";
@@ -225,13 +238,25 @@ void print_invalid_flag(const std::string_view expression) {
 }
 
 void evaluate_expression(const std::string_view expression) {
-    const auto [result, status] = Parse::create_prefix_expression(expression);
+    const auto [result, status, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
     if (!status) {
         std::cerr << "Error: " << result << std::endl;
         return;
     }
-    const auto syntax_tree = std::make_unique<AST>(result);
+    std::cout << "\n\nPrefix: " << result << "\n\n";
+    if(is_math) {
+        const auto tree = std::make_unique<MathAST>(result, is_floating_point);
+        if (is_floating_point) {
+            const long double final_value = tree->evaluate_floating_point();
+            std::cout << "Result: " << final_value << "\n\n";
+            return;
+        }
+        const long long final_value = tree->evaluate();
+        std::cout << "Result: " << final_value << "\n\n";
+        return;
+    }
 
+    const auto syntax_tree = std::make_unique<BoolAST>(result);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
         std::cout << "True!\n\n";

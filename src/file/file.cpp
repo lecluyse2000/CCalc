@@ -46,15 +46,26 @@ void initiate_file_mode() noexcept {
     std::ofstream output_file("results.txt");
 
     for (const auto& expression : expressions) {
-        const auto [success, is_math, result] = Parse::create_prefix_expression(expression);
+        const auto [result, success, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
 
         output_file << "Expression: " << expression << '\n';
         if (!success) {
             output_file << "Error: " << result;
             continue;
         }
-        const auto syntax_tree = std::make_unique<AST>(result);
+        if(is_math) {
+            const auto tree = std::make_unique<MathAST>(result, is_floating_point);
+            if (is_floating_point) {
+                const long double final_value = tree->evaluate_floating_point();
+                output_file<< "Result: " << final_value;
+                continue;
+            }
+            const long long final_value = tree->evaluate();
+            output_file << "Result: " << final_value;
+            continue;
+        }
 
+        const auto syntax_tree = std::make_unique<BoolAST>(result);
         if (syntax_tree->evaluate()) {
             output_file << "Result: True!\n";
         } else {

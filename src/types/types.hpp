@@ -8,7 +8,7 @@
 namespace Types {
 
 [[nodiscard]] inline constexpr bool is_math_operand(const char token) noexcept {
-    return std::isdigit(token);
+    return std::isdigit(token) || token == '.';
 }
 
 [[nodiscard]] inline constexpr bool is_bool_operand(const char token) noexcept {

@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(ccalc)
 
-target_sources(boolean_simulator PRIVATE
+target_sources(ccalc PRIVATE
     "src/main.cpp"
     "src/ui/ui.cpp"
     "src/ast/ast.cpp"
@@ -16,7 +16,7 @@ target_sources(boolean_simulator PRIVATE
 )
 
 #Includes the header files from src
-target_include_directories(boolean_simulator PRIVATE 
+target_include_directories(ccalc PRIVATE 
     "src"
     "src/ui"
     "src/ast"
@@ -26,7 +26,7 @@ target_include_directories(boolean_simulator PRIVATE
     "src/types"
 )
 
-target_compile_options(boolean_simulator PRIVATE
+target_compile_options(ccalc PRIVATE
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-g -O2 -Wall -Wextra -Wpedantic -Wshadow -Werror > # Apply -O2 if the compiler is not MSVC
     $<$<CXX_COMPILER_ID:MSVC>:/O2>        # Apply /O2 if the compiler is MSVC
 )
