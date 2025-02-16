@@ -73,6 +73,6 @@ BoolNode::BoolNode(const char token) noexcept : key(token){}
     }
 }
 
-[[nodiscard]] long long UnaryMNode::evaluate() const { return m_left_child->evaluate() * -1; }
+[[nodiscard]] long long UnaryMNode::evaluate() const { return m_left_child->evaluate() * -1LL; }
 
-[[nodiscard]] long double UnaryMNode::evaluate_float() const { return m_left_child->evaluate_float() * -1.0; }
+[[nodiscard]] long double UnaryMNode::evaluate_float() const { return m_left_child->evaluate_float() * -1.0L; }
