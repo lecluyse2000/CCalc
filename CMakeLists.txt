@@ -26,8 +26,35 @@ target_include_directories(ccalc PRIVATE
     "src/types"
 )
 
-target_compile_options(ccalc PRIVATE
-    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-g -O2 -Wall -Wextra -Wpedantic -Wshadow -Werror > # Apply -O2 if the compiler is not MSVC
-    $<$<CXX_COMPILER_ID:MSVC>:/O2>        # Apply /O2 if the compiler is MSVC
-)
+if(MSVC)
+    target_compile_options(ccalc PRIVATE 
+        /O2 /W4
+    )
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(ccalc PRIVATE 
+        -g 
+        -O2 
+        -Wall 
+        -Wextra 
+        -Wshadow 
+        -Wconversion 
+        -Wpedantic
+        -fno-fast-math
+        -fcomplex-arithmetic=full
+    )
+else()
+    target_compile_options(ccalc PRIVATE 
+        -g 
+        -O2 
+        -Wall 
+        -Wextra 
+        -Wshadow 
+        -Wconversion 
+        -Wpedantic
+        -fno-fast-math
+        -fexcess-precision=standard
+        -frounding-math
+        -fsignaling-nans
+    )
+endif()
 #Use this command to build: cmake -B build && make -C build

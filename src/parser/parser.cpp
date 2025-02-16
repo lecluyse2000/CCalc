@@ -78,8 +78,6 @@ std::optional<std::string> parse_math(std::string& infix_expression, std::string
             previous_token = current_token;
             continue;
         } else if (num_check && *num_check != "") return num_check;
-        std::cout << "Before error check - Current: '" << current_token 
-          << "', Previous: '" << previous_token << "'" << std::endl;
         const auto checker_result = Error::error_math(current_token, previous_token);
         if (checker_result) return checker_result;
 
@@ -118,7 +116,6 @@ std::optional<std::string> parse_math(std::string& infix_expression, std::string
                 return std::optional<std::string>("Missing closing parentheses!\n");
             }
         } else {
-            std::cout << "Current token: " << current_token << '\n';
             return Error::invalid_character_error_math(current_token);
         }
         previous_token = current_token;
