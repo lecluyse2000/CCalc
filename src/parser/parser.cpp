@@ -67,7 +67,6 @@ std::optional<std::string> parse_math(std::string& infix_expression, std::string
     bool in_number = false;
     if (infix_expression[0] == '-') infix_expression[0] = '~';
     
-    std::cout << "Expression: " << infix_expression << '\n';
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         if (*itr == '!') return std::optional<std::string>("! operator is not supported yet!\n");
         
