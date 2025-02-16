@@ -221,14 +221,20 @@ void print_help() {
               << "\t - The [-h|--help] flag prints this screen.\n\n"
               << " * If no flags are passed in, the program expects an expression to be passed in. Wrap the expression "
                  "in single quotes.\n"
-              << "\t - An expression is any valid combination of parentheses, boolean values (T and F for True and "
-                 "False), and boolean operations.\n\n"
+              << "\t - An expression is any valid combination of parentheses, boolean values or numbers (T and F for True and "
+                 "False), and boolean/arithmetic operations.\n\n"
               << " * Boolean operations:\n"
               << "\t - AND (&) results in True when both value are True. (T & F = F).\n"
               << "\t - OR (|) returns True when at least one of the values is True. (T | F = T).\n"
               << "\t - XOR ($) reults in True only when one of the values is True. (F $ F = F).\n"
               << "\t - NAND (@) returns True when both values are not True simultaneously. (F @ F = T).\n"
-              << "\t - NOT (!) negates the value it is in front of. (!F = T).\n"
+              << "\t - NOT (!) negates the value it is in front of. (!F = T).\n\n"
+              << " * Arithmetic operations:\n"
+              << "\t - Addition (+) Adds two numbers together (2 + 2 = 4).\n"
+              << "\t - Subtraction (-) Subtracts two numbers (3 - 2 = 1)\n"
+              << "\t - Multiplication (*) Performs repeated addition (3 * 3 = 9)\n"
+              << "\t - Division (/) Performs repeated subtraction (9 / 3 = 3)\n"
+              << "\t - Exponent (^) Multiplies a number by itself a certain number of times (3 ^ 2 = 9)\n"
 
               << std::endl;
 }
@@ -238,6 +244,7 @@ void print_invalid_flag(const std::string_view expression) {
 }
 
 void evaluate_expression(std::string& expression) {
+    expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
     const auto [result, status, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
     if (!status) {
         std::cerr << "Error: " << result << std::endl;

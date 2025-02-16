@@ -19,10 +19,10 @@ namespace {
 
 [[nodiscard]]
 constexpr std::optional<bool> is_math_equation(const std::string_view infix_expression) noexcept {
-    for (const auto i : infix_expression) {
-        if (Types::is_bool_operator(i)) {
+    for (const auto c : infix_expression) {
+        if (Types::is_bool_operator(c)) {
             return false;
-        } else if (Types::is_math_operator(i)) {
+        } else if (Types::is_math_operator(c)) {
             return true;
         } else {
             continue;
@@ -67,6 +67,7 @@ std::optional<std::string> parse_math(std::string& infix_expression, std::string
     bool in_number = false;
     if (infix_expression[0] == '-') infix_expression[0] = '~';
     
+    std::cout << "Expression: " << infix_expression << '\n';
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         if (*itr == '!') return std::optional<std::string>("! operator is not supported yet!\n");
         
@@ -77,6 +78,8 @@ std::optional<std::string> parse_math(std::string& infix_expression, std::string
             previous_token = current_token;
             continue;
         } else if (num_check && *num_check != "") return num_check;
+        std::cout << "Before error check - Current: '" << current_token 
+          << "', Previous: '" << previous_token << "'" << std::endl;
         const auto checker_result = Error::error_math(current_token, previous_token);
         if (checker_result) return checker_result;
 

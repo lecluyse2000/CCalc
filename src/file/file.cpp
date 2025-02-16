@@ -46,6 +46,7 @@ void initiate_file_mode() noexcept {
     std::ofstream output_file("results.txt");
 
     for (auto& expression : expressions) {
+        expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
         const auto [result, success, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
 
         output_file << "Expression: " << expression << '\n';
