@@ -59,9 +59,9 @@ check_for_number(std::string& num_buffer, const char current_token, bool& in_num
 }
 
 constexpr void 
-check_for_unary(const std::string_view infix_expression, const auto itr, char& current_token, const char previous_token) {
+check_for_unary(const std::string_view infix_expression, auto itr, char& current_token, const char previous_token) {
     if (current_token != '-') return;
-    if (check_first_minus(infix_expression) || previous_token == '(' ||
+    if (check_first_minus(infix_expression) || 
         (Types::is_math_operand(previous_token) && *(itr + 1) == '(')) {
         current_token = '~';
     }
@@ -136,6 +136,7 @@ std::optional<std::string> parse_math(const std::string_view infix_expression, s
         
         previous_token = current_token;
     }
+    if (in_number) prefix_expression += num_buffer;
     return std::nullopt;
 }
 
