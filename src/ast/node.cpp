@@ -5,6 +5,7 @@
 #include <cctype>
 #include <cmath>
 #include <memory>
+#include <optional>
 
 BoolNode::BoolNode(const char token) noexcept : key(token){}
 
@@ -31,7 +32,7 @@ BoolNode::BoolNode(const char token) noexcept : key(token){}
 
 [[nodiscard]] long long ValueMNode::evaluate() const { return value_long; }
 
-[[nodiscard]] long double ValueMNode::evaluate_float() const { return value_double; }
+[[nodiscard]] std::optional<long double> ValueMNode::evaluate_float() const { return value_double; }
 
 [[nodiscard]] long long OperationMNode::evaluate() const {
     const long long left_value = m_left_child->evaluate();
@@ -55,24 +56,26 @@ BoolNode::BoolNode(const char token) noexcept : key(token){}
     }
 }
 
-[[nodiscard]] long double OperationMNode::evaluate_float() const {
-    const long double left_value = m_left_child->evaluate_float();
-    const long double right_value = m_right_child->evaluate_float();
+[[nodiscard]] std::optional<long double> OperationMNode::evaluate_float() const {
+    const auto left_value = m_left_child->evaluate_float();
+    const auto right_value = m_right_child->evaluate_float();
+    if (!left_value || !right_value) return std::nullopt;
 
     switch(key) {
         case '+':
-            return left_value + right_value;
+            return *left_value + *right_value;
         case '-':
-            return left_value - right_value;
+            return *left_value - *right_value;
         case '*':
-            return left_value * right_value;
+            return *left_value * *right_value;
         case '/':
-            return left_value / right_value;
+            if (*right_value == 0) return std::nullopt;
+            return *left_value / *right_value;
         default:
-            return static_cast<long double>(std::pow(left_value, right_value));
+            return std::powl(*left_value, *right_value);
     }
 }
 
 [[nodiscard]] long long UnaryMNode::evaluate() const { return m_left_child->evaluate() * -1LL; }
 
-[[nodiscard]] long double UnaryMNode::evaluate_float() const { return m_left_child->evaluate_float() * -1.0L; }
+[[nodiscard]] std::optional<long double> UnaryMNode::evaluate_float() const { return *(m_left_child->evaluate_float()) * -1.0L; }

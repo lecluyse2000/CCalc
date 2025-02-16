@@ -142,15 +142,19 @@ enum class InputResult {
 void evaluate_expression(std::string& expression, auto& history) {
     const auto [result, status, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
     if (!status) {
-        std::cerr << "Error: " << result << std::endl;
+        std::cerr << "Error: " << result << '\n';
         return;
     }
     if(is_math) {
         const auto tree = std::make_unique<MathAST>(result, is_floating_point);
         if (is_floating_point) {
-            const long double final_value = tree->evaluate_floating_point();
-            std::cout << "Result: " << final_value << '\n';
-            history.emplace_back(std::make_pair(std::move(expression), std::to_string(final_value)));
+            const std::optional<long double> final_value = tree->evaluate_floating_point();
+            if (!final_value) {
+                std::cerr << "Error: Cannot divide by zero!\n\n";
+                return;
+            }
+            std::cout << "Result: " << *final_value << '\n';
+            history.emplace_back(std::make_pair(std::move(expression), std::to_string(*final_value)));
             return;
         }
         const long long final_value = tree->evaluate();
@@ -253,8 +257,12 @@ void evaluate_expression(std::string& expression) {
     if(is_math) {
         const auto tree = std::make_unique<MathAST>(result, is_floating_point);
         if (is_floating_point) {
-            const long double final_value = tree->evaluate_floating_point();
-            std::cout << "Result: " << final_value << "\n\n";
+            const std::optional<long double> final_value = tree->evaluate_floating_point();
+            if (!final_value) {
+                std::cout << "Error: Cannot divide by zero!\n\n";
+                return;
+            }
+            std::cout << "Result: " << *final_value << "\n\n";
             return;
         }
         const long long final_value = tree->evaluate();

@@ -4,6 +4,7 @@
 #define AST_H
 
 #include <memory>
+#include <optional>
 #include <string_view>
 
 #include "node.h"
@@ -24,7 +25,7 @@ class MathAST {
    public:
     MathAST(const std::string_view expression, const bool _floating_point) noexcept;
     [[nodiscard]] long long evaluate() const;
-    [[nodiscard]] long double evaluate_floating_point() const;
+    [[nodiscard]] std::optional<long double> evaluate_floating_point() const;
 
    private:
     std::unique_ptr<MathNode> build_ast() noexcept;

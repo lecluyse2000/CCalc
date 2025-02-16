@@ -3,6 +3,7 @@
 #include "ast.h"
 
 #include <cctype>
+#include <optional>
 #include <string_view>
 
 #include "../types/types.hpp"
@@ -74,4 +75,4 @@ MathAST::MathAST(const std::string_view expression, const bool _floating_point) 
     m_root(build_ast()){}
 
 [[nodiscard]] long long MathAST::evaluate() const { return m_root->evaluate(); }
-[[nodiscard]] long double MathAST::evaluate_floating_point() const { return m_root->evaluate_float(); }
+[[nodiscard]] std::optional<long double> MathAST::evaluate_floating_point() const { return m_root->evaluate_float(); }
