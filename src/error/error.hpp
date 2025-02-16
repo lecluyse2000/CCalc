@@ -93,7 +93,18 @@ constexpr std::optional<std::string> check_not_after_value(const char current_to
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_missing_operator(const char current_token, const char previous_token) {
+constexpr std::optional<std::string> check_missing_operator_math(const char current_token, const char previous_token) {
+    if ((current_token == ')' && (Types::isnot(previous_token) || Types::isoperand(previous_token))) ||
+        ((Types::isoperand(current_token) && current_token != '~') && previous_token == '(') || 
+        (current_token == ')' && previous_token == '(')) {
+        return std::optional<std::string>("Missing operator!\n");
+    }
+
+    return std::nullopt;
+}
+
+[[nodiscard]] inline
+constexpr std::optional<std::string> check_missing_operator_bool(const char current_token, const char previous_token) {
     if ((current_token == ')' && (Types::isnot(previous_token) || Types::isoperand(previous_token))) ||
         (Types::isoperand(current_token) && (previous_token == '(' || Types::isnot(previous_token))) ||
         (current_token == ')' && previous_token == '(')) {
@@ -104,23 +115,28 @@ constexpr std::optional<std::string> check_missing_operator(const char current_t
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_missing_operand(const char current_token, const char previous_token) {
-    if ((current_token == '(' && Types::isoperator(previous_token)) ||
-        (Types::isoperator(current_token) && previous_token == ')')) {
+constexpr std::optional<std::string> check_missing_operand_math(const char current_token, const char previous_token) {
+    if ((current_token == '(' && Types::is_math_operator(previous_token)) ||
+        (Types::is_math_operator(current_token) && previous_token == ')') ||
+        (Types::is_math_operator(current_token) && Types::is_math_operator(previous_token))) {
+        return std::optional<std::string>("Missing an operand!\n");
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] inline
+constexpr std::optional<std::string> check_missing_operand_bool(const char current_token, const char previous_token) {
+    if ((current_token == '(' && Types::is_bool_operator(previous_token)) ||
+        (Types::is_bool_operator(current_token) && previous_token == ')')) {
         return std::optional<std::string>("Missing an operand!\n");
     }
 
     return std::nullopt;
 }
-
 }  // namespace
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> initial_checks(const std::string_view infix_expression, const bool math) {
-    if (std::ranges::all_of(infix_expression, ::isspace)) {
-        return std::optional<std::string>("Expression contains only spaces!\n");
-    }
-
     const auto leading = check_leading(infix_expression, math);
     if (leading) return std::optional<std::string>(*leading);
     
@@ -133,7 +149,7 @@ constexpr std::optional<std::string> initial_checks(const std::string_view infix
 [[nodiscard]] inline
 constexpr std::optional<std::string> error_math(const char current_token, const char previous_token) {
     std::initializer_list<std::optional<std::string> (*)(const char, const char)> error_checks{
-        check_missing_parentheses, check_consecutive_operators, check_missing_operator, check_missing_operand};
+        check_missing_parentheses, check_consecutive_operators, check_missing_operator_math, check_missing_operand_math};
 
     for (auto check : error_checks) {
         const auto result = check(current_token, previous_token);
@@ -146,7 +162,7 @@ constexpr std::optional<std::string> error_math(const char current_token, const 
 constexpr std::optional<std::string> error_bool(const char current_token, const char previous_token) {
     std::initializer_list<std::optional<std::string> (*)(const char, const char)> error_checks{
         check_missing_parentheses, check_consecutive_operands, check_consecutive_operators,
-        check_not_after_value,     check_missing_operator,     check_missing_operand};
+        check_not_after_value,     check_missing_operator_bool,     check_missing_operand_bool};
 
     for (auto check : error_checks) {
         const auto result = check(current_token, previous_token);

@@ -14,7 +14,7 @@ int main(const int argc, const char* const argv[]) {
         return 1;
     }
 
-    const std::string expression = argv[1];
+    std::string expression = argv[1];
     if (expression == "-c" || expression == "--continuous") {
         return UI::program_loop();
     } else if (expression == "-v" || expression == "--version") {

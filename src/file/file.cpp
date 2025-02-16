@@ -42,10 +42,10 @@ std::vector<std::string> get_expressions() noexcept {
 }  // namespace
 
 void initiate_file_mode() noexcept {
-    const std::vector<std::string> expressions = get_expressions();
+    std::vector<std::string> expressions = get_expressions();
     std::ofstream output_file("results.txt");
 
-    for (const auto& expression : expressions) {
+    for (auto& expression : expressions) {
         const auto [result, success, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
 
         output_file << "Expression: " << expression << '\n';

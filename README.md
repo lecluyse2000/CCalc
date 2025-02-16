@@ -31,32 +31,40 @@ Expected 1 argument, received 2. Use the --help flag to see all flags, or pass i
 Make sure to wrap the expression in quotes.
 
 user@archlinux:~$ ccalc -c
-Please enter your boolean expression, or enter help to see all available commands: T & F
+Please enter your expression, or enter help to see all available commands: T & F
 Result: False!
 
-Please enter your boolean expression, or enter help to see all available commands: T @ F
+Please enter your expression, or enter help to see all available commands: T @ F
 Result: True!
 
-Please enter your boolean expression, or enter help to see all available commands: (T | F) $ (F & T)
+Please enter your expression, or enter help to see all available commands: (T | F) $ (F & T)
 Result: True!
 
-Please enter your boolean expression, or enter help to see all available commands: 2 + 3 - 3 * 3
+Please enter your expression, or enter help to see all available commands: 2 + 3 - 3 * 3
+Result: -4
 
-Please enter your boolean expression, or enter help to see all available commands: history
+Please enter your expression, or enter help to see all available commands: 3^2 / 3
+Result: 3
+
+Please enter your expression, or enter help to see all available commands: history
 Expression: T & F
 Result: False!
 Expression: T @ F
 Result: True!
 Expression: (T | F) $ (F & T)
 Result: True!
+Expression: 2 + 3 - 3 * 3
+Result: -4
+Expression: 3^2 / 3
+Result: 3
 
-Please enter your boolean expression, or enter help to see all available commands: quit
+Please enter your expression, or enter help to see all available commands: quit
 Exiting...
 ```
 
 ### Flags
 
-- Without any flags, the program will expect a boolean expression as the input. For example: `ccalc 'T & F'`
+- Without any flags, the program will expect a boolean or arithmetic expression as the input. For example: `ccalc 'T & F'` or `ccalc '2 + 2'`
 - With the `-c` or `--continuous` flag, the program will run in continuous mode. The user will be prompted for boolean expressions to evaluate until exiting the program by typing `exit`, `quit`, or `q`. Passing in any other arguments along with `-c` will result in an error and the program will not run.
 - The flag `-f` or `--file` runs the program in file mode. Launching the program in this mode will take a list of expressions from `expressions.txt` and place the results in `results.txt`. The `expressions.txt` file must be placed in the current working directory.
 - With the `-v` or `--version` flag. The program simply displays the version information of the program.    

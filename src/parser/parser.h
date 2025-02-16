@@ -32,7 +32,7 @@ namespace Parse {
         buf.clear();
     }
 
-    [[nodiscard]] ParseResult create_prefix_expression(const std::string_view infix_expression);
+    [[nodiscard]] ParseResult create_prefix_expression(std::string& infix_expression);
 };
 
 #endif

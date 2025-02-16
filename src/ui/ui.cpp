@@ -187,7 +187,7 @@ void evaluate_expression(std::string& expression, auto& history) {
             std::cerr << "Error: Empty expression received!\n\n";
             continue;
         }
-
+        input_expression.erase(remove(input_expression.begin(), input_expression.end(), ' '), input_expression.end());
         const InputResult result = handle_input(input_expression, program_history);
 
         switch (result) {
@@ -237,7 +237,7 @@ void print_invalid_flag(const std::string_view expression) {
     std::cerr << "Error: " << expression << " is an invalid flag!\n\n";
 }
 
-void evaluate_expression(const std::string_view expression) {
+void evaluate_expression(std::string& expression) {
     const auto [result, status, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
     if (!status) {
         std::cerr << "Error: " << result << std::endl;

@@ -3,6 +3,7 @@
 #ifndef UI_H
 #define UI_H
 
+#include <string>
 #include <string_view>
 
 namespace UI {
@@ -13,7 +14,7 @@ void print_insufficient_arguments();
 void print_version();
 void print_help();
 void print_invalid_flag(const std::string_view expression);
-void evaluate_expression(const std::string_view expression);
+void evaluate_expression(std::string& expression);
 
 }
 
