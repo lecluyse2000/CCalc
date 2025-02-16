@@ -52,7 +52,8 @@ check_for_number(std::string& num_buffer, const char current_token, bool& in_num
 
 constexpr void 
 check_for_unary(const auto itr, char& current_token, const char previous_token) {
-    if ((Types::is_math_operand(previous_token) && *(itr + 1) == '(')) {
+    if ((Types::is_math_operand(previous_token) && *(itr + 1) == '(') ||
+         Types::is_math_operator(*(itr + 1))) {
         current_token = '~';
     }
 }

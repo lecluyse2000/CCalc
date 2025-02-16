@@ -118,7 +118,7 @@ constexpr std::optional<std::string> check_missing_operator_bool(const char curr
 constexpr std::optional<std::string> check_missing_operand_math(const char current_token, const char previous_token) {
     if ((current_token == '(' && Types::is_math_operator(previous_token)) ||
         (Types::is_math_operator(current_token) && previous_token == ')') ||
-        (Types::is_math_operator(current_token) && Types::is_math_operator(previous_token))) {
+        (Types::is_math_operator(current_token) && (Types::is_math_operator(previous_token) && previous_token != '~'))) {
         return std::optional<std::string>("Missing an operand!\n");
     }
     return std::nullopt;
