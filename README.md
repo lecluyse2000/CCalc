@@ -24,7 +24,7 @@ Below are examples of general program usage.
 
 ```console
 user@archlinux:~$ ccalc 'T & F'
-Result: False!
+Result: False
 
 user@archlinux:~$ ccalc -c 'T & F'
 Expected 1 argument, received 2. Use the --help flag to see all flags, or pass in an expression.
@@ -32,27 +32,22 @@ Make sure to wrap the expression in quotes.
 
 user@archlinux:~$ ccalc -c
 Please enter your expression, or enter help to see all available commands: T & F
-Result: False!
-
+Result: False
 Please enter your expression, or enter help to see all available commands: T @ F
-Result: True!
-
+Result: True
 Please enter your expression, or enter help to see all available commands: (T | F) $ (F & T)
-Result: True!
-
+Result: True
 Please enter your expression, or enter help to see all available commands: 2 + 3 - 3 * 3
 Result: -4
-
 Please enter your expression, or enter help to see all available commands: 3^2 / 3
 Result: 3
-
 Please enter your expression, or enter help to see all available commands: history
 Expression: T & F
-Result: False!
+Result: False
 Expression: T @ F
-Result: True!
+Result: True
 Expression: (T | F) $ (F & T)
-Result: True!
+Result: True
 Expression: 2 + 3 - 3 * 3
 Result: -4
 Expression: 3^2 / 3

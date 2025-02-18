@@ -57,8 +57,12 @@ void initiate_file_mode() noexcept {
         if(is_math) {
             const auto tree = std::make_unique<MathAST>(result, is_floating_point);
             if (is_floating_point) {
-                const long double final_value = tree->evaluate_floating_point();
-                output_file<< "Result: " << final_value;
+                const std::optional<long double> final_value = tree->evaluate_floating_point();
+                if (!final_value) {
+                    output_file << "Error: You cannot divide by zero\n";
+                    continue;
+                }
+                output_file<< "Result: " << *final_value;
                 continue;
             }
             const long long final_value = tree->evaluate();

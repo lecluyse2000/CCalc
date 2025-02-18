@@ -110,7 +110,7 @@ enum class InputResult {
         return InputResult::CONTINUE;
     } else if (input_expression == "history") {
         if (program_history.empty()) {
-            std::cerr << "You haven't evaluated any expressions yet!\n\n";
+            std::cerr << "You haven't evaluated any expressions yet!\n";
             return InputResult::CONTINUE;
         }
 
@@ -118,7 +118,7 @@ enum class InputResult {
         return InputResult::CONTINUE;
     } else if (input_expression == "save") {
         if (program_history.empty()) {
-            std::cerr << "You haven't evaluated any expressions yet!\n\n";
+            std::cerr << "You haven't evaluated any expressions yet!\n";
             return InputResult::CONTINUE;
         }
 
@@ -129,7 +129,7 @@ enum class InputResult {
         return InputResult::CONTINUE;
     } else if (input_expression == "clear") {
         program_history.clear();
-        std::cout << "History cleared!\n\n";
+        std::cout << "History cleared!\n";
         return InputResult::CONTINUE;
     } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
         std::cout << "Exiting...\n" << std::endl;
@@ -142,7 +142,7 @@ enum class InputResult {
 void evaluate_expression(std::string& expression, auto& history) {
     const auto [result, status, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
     if (!status) {
-        std::cerr << "Error: " << result << '\n';
+        std::cerr << "Error: " << result;
         return;
     }
     if(is_math) {
@@ -150,7 +150,7 @@ void evaluate_expression(std::string& expression, auto& history) {
         if (is_floating_point) {
             const std::optional<long double> final_value = tree->evaluate_floating_point();
             if (!final_value) {
-                std::cerr << "Error: Cannot divide by zero!\n\n";
+                std::cerr << "Error: Cannot divide by zero!\n";
                 return;
             }
             std::cout << "Result: " << *final_value << '\n';
@@ -166,11 +166,11 @@ void evaluate_expression(std::string& expression, auto& history) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
-        std::cout << "True!\n\n";
-        history.emplace_back(std::make_pair(std::move(expression), "True!"));
+        std::cout << "True!\n";
+        history.emplace_back(std::make_pair(std::move(expression), "True"));
     } else {
-        std::cout << "False!\n\n";
-        history.emplace_back(std::make_pair(std::move(expression), "False!"));
+        std::cout << "False!\n";
+        history.emplace_back(std::make_pair(std::move(expression), "False"));
     }
 }
 
@@ -188,7 +188,7 @@ void evaluate_expression(std::string& expression, auto& history) {
             std::cerr << "Unknown error ocurred in receiving input. Aborting...\n\n";
             return 1;
         } else if (input_expression.empty()) {
-            std::cerr << "Error: Empty expression received!\n\n";
+            std::cerr << "Error: Empty expression received!\n";
             continue;
         }
         input_expression.erase(remove(input_expression.begin(), input_expression.end(), ' '), input_expression.end());
