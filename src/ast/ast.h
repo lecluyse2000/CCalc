@@ -27,7 +27,6 @@ class MathAST {
     MathAST(const std::string_view expression, const bool _floating_point) noexcept;
     [[nodiscard]] mpz_class evaluate() const;
     [[nodiscard]] mpfr_t& evaluate_floating_point() const;
-    mpfr_t final_result;
 
    private:
     std::unique_ptr<MathNode> build_ast() noexcept;

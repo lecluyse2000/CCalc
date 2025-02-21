@@ -74,7 +74,6 @@ std::unique_ptr<MathNode> MathAST::build_ast() noexcept {
 MathAST::MathAST(const std::string_view expression, const bool _floating_point) noexcept :
     m_prefix_expression(expression), m_index(0), m_floating_point(_floating_point),
     m_root(build_ast()) {
-    mpfr_init2(final_result, 256);
 }
 
 [[nodiscard]] mpz_class MathAST::evaluate() const { return m_root->evaluate(); }
