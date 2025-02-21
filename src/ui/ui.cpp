@@ -312,6 +312,7 @@ void bool_procedure(const std::string& result) {
 }
 
 void evaluate_expression(std::string& expression) {
+    expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
     const auto [result, status, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
     if (!status) {
         std::cerr << "Error: " << result;
