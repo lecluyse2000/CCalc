@@ -3,13 +3,11 @@
 #ifndef ERROR_HPP
 #define ERROR_HPP
 
-#include <algorithm>
 #include <cctype>
 #include <optional>
 #include <string>
-#include <string>
 
-#include "../types.hpp"
+#include "types.hpp"
 
 namespace Error {
 
@@ -18,16 +16,17 @@ namespace {
 
 [[nodiscard]] 
 constexpr std::optional<std::string> check_leading(const std::string_view infix_expression, const bool math) {
+    if(Types::isoperator(infix_expression[0]) && infix_expression[0] != '-' && infix_expression[0] != '~') {
+        return std::optional<std::string>("Expression begins with an operator!\n");
+    }
+    if (infix_expression[0] == ')') {
+        return std::optional<std::string>("Expression begins with closed parentheses!\n");
+    }
     for (const auto i : infix_expression) {
-        if (isspace(i)) {
-            continue;
-        } else if (Types::isoperator(i)) {
-            if (math && i == '-') return std::nullopt;
-            return std::optional<std::string>("Expression begins with an operator!\n");
-        } else if (i == ')') {
-            return std::optional<std::string>("Expression begins with closed parentheses!\n");
-        } else {
-            break;
+        if (!math && std::isdigit(i)) {
+            return std::optional<std::string>("Boolean expression contains a number!\n");
+        } else if (math && Types::is_bool_operand(i)) {
+            return std::optional<std::string>("Arithmetic expression contains a bool!\n");
         }
     }
 
@@ -36,11 +35,8 @@ constexpr std::optional<std::string> check_leading(const std::string_view infix_
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_trailing(const std::string_view infix_expression) {
-    // I originally was just checking for the last value, but then I realized white space messed it all up
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
-        if (isspace(*itr)) {
-            continue;
-        } else if (Types::isnot(*itr)) {
+        if (Types::isnot(*itr)) {
             return std::optional<std::string>("Expression ends with NOT!\n");
         } else if (Types::isoperator(*itr)) {
             return std::optional<std::string>("Expression ends with an operator!\n");
@@ -50,7 +46,6 @@ constexpr std::optional<std::string> check_trailing(const std::string_view infix
             break;
         }
     }
-
     return std::nullopt;
 }
 
@@ -116,10 +111,11 @@ constexpr std::optional<std::string> check_missing_operator_bool(const char curr
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_missing_operand_math(const char current_token, const char previous_token) {
-    if ((current_token == '(' && Types::is_math_operator(previous_token)) ||
-        (Types::is_math_operator(current_token) && previous_token == ')') ||
-        (Types::is_math_operator(current_token) && (Types::is_math_operator(previous_token) && previous_token != '~'))) {
-        return std::optional<std::string>("Missing an operand!\n");
+    if ((current_token == '+' && previous_token =='*') || (current_token == '*' && previous_token == '*') ||
+         (current_token == '-' && previous_token == '/') || (Types::is_math_operator(current_token) && previous_token == ')') ||
+         (current_token == '*' && previous_token == '/') || (current_token == '/' && previous_token == '*') ||
+         (current_token == '(' && (Types::is_math_operator(previous_token) && previous_token != '+' && previous_token != '-' && previous_token != '~'))){
+        return std::optional<std::string>("Missing operand!\n");
     }
     return std::nullopt;
 }
@@ -149,7 +145,7 @@ constexpr std::optional<std::string> initial_checks(const std::string_view infix
 [[nodiscard]] inline
 constexpr std::optional<std::string> error_math(const char current_token, const char previous_token) {
     std::initializer_list<std::optional<std::string> (*)(const char, const char)> error_checks{
-        check_missing_parentheses, check_consecutive_operators, check_missing_operator_math, check_missing_operand_math};
+        check_missing_parentheses,  check_missing_operator_math, check_missing_operand_math};
 
     for (auto check : error_checks) {
         const auto result = check(current_token, previous_token);

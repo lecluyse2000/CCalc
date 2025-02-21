@@ -51,7 +51,7 @@ check_for_number(std::string& num_buffer, const char current_token, bool& in_num
 
 constexpr void 
 check_for_unary(const auto itr, char& current_token, const char previous_token) {
-    if ((Types::is_math_operand(previous_token) && *(itr + 1) == '(') ||
+    if (((Types::is_math_operand(previous_token) || previous_token == '(') && *(itr + 1) == '(') ||
          Types::is_math_operator(*(itr + 1))) {
         current_token = '~';
     }
@@ -84,6 +84,7 @@ std::optional<std::string> parse_math(std::string& infix_expression, std::string
             if (in_number) {
                 prefix_expression += num_buffer + ',';
                 clear_num_buffer(num_buffer, in_number);
+                if (current_token == '+' && (Types::is_math_operator(*(itr + 1)) || *(itr + 1) == '(')) continue;
             }
             if (current_token == '/') floating_point = true;
             while (!operator_stack.empty() && operator_stack.top() != ')' && 
@@ -192,7 +193,7 @@ ParseResult create_prefix_expression(std::string& infix_expression) {
     bool floating_point = false;
 
     const auto is_math = is_math_equation(infix_expression);
-    if (!is_math) return ParseResult(std::string_view("No valid operators detected!\n"), false, *is_math, floating_point);
+    if (!is_math) return ParseResult(std::string_view("No valid operators detected!\n"), false, false, floating_point);
 
     const auto initial_checks = Error::initial_checks(infix_expression, *is_math);
     if (initial_checks) {

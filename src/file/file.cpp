@@ -55,7 +55,7 @@ void math_procedure(FILE*& output_file, const std::string_view result, const boo
                 mpfr_fprintf(output_file, "Result: %.12Rf\n", final_value);
             }
         } catch (std::exception& err) {
-            fprintf(output_file, "Error: %s", err.what()); 
+            fprintf(output_file, "Error: %s\n", err.what()); 
         }
         return;
     }

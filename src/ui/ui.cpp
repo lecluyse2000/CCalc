@@ -180,7 +180,7 @@ void math_procedure(std::string& orig_input, const std::string& result, const bo
     }
     const mpz_class final_value = tree->evaluate();
     std::cout << "Result: " << final_value.get_str() << '\n';
-    history.emplace_back(std::make_pair(std::move(result), final_value.get_str()));
+    history.emplace_back(std::make_pair(std::move(orig_input), final_value.get_str()));
 }
 
 void bool_procedure(std::string& orig_input, const std::string& result, auto& history) {
