@@ -69,19 +69,32 @@ Exiting...
 
 ### Required dependencies
 
-- A valid c++ compiler, we recommend [clang++](https://clang.llvm.org/), but you can use [g++](https://gcc.gnu.org/)   
+- A valid c++ compiler, I recommend [g++](https://gcc.gnu.org/)   
   - [LLVM](https://www.llvm.org/)
     * [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
     * [clang++](https://clang.llvm.org/)
 - [CMake](https://cmake.org/)
+- [GNU GMP](https://gmplib.org/)
+- [GNU MPFR](https://www.mpfr.org/)
 
-### Linux
-
-Dependencies    
+### Debian
 
 ```bash
 sudo apt-get install cmake
-sudo apt install clang
+sudo apt install build-essential libgmp-dev libmpfr-dev
+```
+
+### Fedora 
+
+```bash
+sudo dnf group install "Development Tools"
+sudo dnf install cmake gmp-devel mpfr-devel 
+```
+
+### Arch
+
+```bash
+sudo pacman -S base-devel cmake gmp mpfr
 ```
 
 Build    
@@ -101,8 +114,8 @@ build/ccalc
 Dependencies
 
 ```bash
-brew install cmake
-brew install clang
+xcode-select --install
+brew install cmake gmp mpfr
 ```
 
 Build
@@ -119,18 +132,4 @@ build/ccalc
 
 ### Windows
 
-Use [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) and install via [Linux](#linux)    
-
-If you don't want to use wsl CMake, Ninja, and clang++ is a good option.  
-
-Or, you can use your own choice of installation for llvm/gcc and cmake.
-
-```powershell
-cmake -B build && cmake --build build
-```
-
-OR
-
-```powershell
-cmake -G Ninja -B build && cmake --build build
-```
+Use [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) and install via [Linux](#Debian)    
