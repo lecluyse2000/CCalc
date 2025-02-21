@@ -58,6 +58,7 @@ check_for_unary(const auto itr, char& current_token, const char previous_token) 
 }
 
 // When parsing a math expression a comma is used as a delimiter
+// This function sucks right now I know
 [[nodiscard]]
 std::optional<std::string> parse_math(std::string& infix_expression, std::string& prefix_expression,
                                            std::stack<char>& operator_stack, bool& floating_point) {
@@ -87,6 +88,15 @@ std::optional<std::string> parse_math(std::string& infix_expression, std::string
                 if (current_token == '+' && (Types::is_math_operator(*(itr + 1)) || *(itr + 1) == '(')) continue;
             }
             if (current_token == '/') floating_point = true;
+            if (current_token == '^') {
+                for (auto new_itr = itr.base(); new_itr != infix_expression.end(); ++new_itr) {
+                    if (*new_itr == '-' || *new_itr == '~') {
+                        floating_point = true;
+                        break;
+                    } else if(*new_itr == '(') continue;
+                    break;
+                }
+            }
             while (!operator_stack.empty() && operator_stack.top() != ')' && 
                    Types::get_precedence(operator_stack.top()) > Types::get_precedence(current_token)) {
                 prefix_expression.push_back(operator_stack.top());
