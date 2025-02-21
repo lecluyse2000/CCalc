@@ -142,31 +142,39 @@ enum class InputResult {
     return InputResult::CONTINUE_TO_EVALUATE;
 }
 
-void math_procedure(std::string& result, const bool floating_point, auto& history) {
+int print_mpfr(const mpfr_t& final_value) {
+    const int is_int = mpfr_integer_p(final_value);
+    if (is_int) {
+        mpfr_printf("Result: %.0Rf\n", final_value);
+    } else {
+        mpfr_printf("Result: %.12Rf\n", final_value);
+    }
+    return is_int;
+}
+
+void add_mpfr_history(std::string& orig_input, const mpfr_t& final_value, const int is_int, auto& history) {
+    static constexpr std::size_t buffer_size = 256;
+    std::vector<char> buffer(buffer_size);
+    const int snprintf_result = is_int ? mpfr_snprintf(buffer.data(), buffer_size, "%.0Rf", final_value)
+                                       : mpfr_snprintf(buffer.data(), buffer_size, "%.12Rf", final_value);
+    if (snprintf_result < 0) {
+        std::cerr << "Error in mpfr_snprintf!" << std::endl;
+        return;
+    } else if (static_cast<std::size_t>(snprintf_result) >= buffer_size) {
+        std::cerr << "Warning: Buffer too small for mpfr_snprintf, output may be truncated." << std::endl;
+    }
+    history.emplace_back(std::make_pair(std::move(orig_input), std::string(buffer.data())));
+}
+
+void math_procedure(std::string& orig_input, const std::string& result, const bool floating_point, auto& history) {
     const auto tree = std::make_unique<MathAST>(result, floating_point);
     if (floating_point) {
         try {
             const mpfr_t& final_value = tree->evaluate_floating_point();
-            const int is_int = mpfr_integer_p(final_value);
-            if (is_int) {
-                mpfr_printf("Result: %.0Rf\n", final_value);
-            } else {
-                mpfr_printf("Result: %.12Rf\n", final_value);
-            }
-            constexpr std::size_t buffer_size = 256;
-            std::vector<char> buffer(buffer_size);
-
-            const int snprintf_result = is_int ? mpfr_snprintf(buffer.data(), buffer_size, "%.0Rf", final_value)
-                                               : mpfr_snprintf(buffer.data(), buffer_size, "%.12Rf", final_value);
-            if (snprintf_result < 0) {
-                std::cerr << "Error in mpfr_snprintf!" << std::endl;
-                return;
-            } else if (static_cast<std::size_t>(snprintf_result) >= buffer_size) {
-                std::cerr << "Warning: Buffer too small for mpfr_snprintf, output may be truncated." << std::endl;
-            }
-            history.emplace_back(std::make_pair(std::move(result), std::string(buffer.data())));
+            const int is_int = print_mpfr(final_value);
+            add_mpfr_history(orig_input, final_value, is_int, history);
         } catch (std::exception& err) {
-            std::cerr << "Error: " << err.what() << '\n';; 
+            std::cerr << "Error: " << err.what() << '\n';
         }
         return;
     }
@@ -175,28 +183,28 @@ void math_procedure(std::string& result, const bool floating_point, auto& histor
     history.emplace_back(std::make_pair(std::move(result), final_value.get_str()));
 }
 
-void bool_procedure(std::string& result, auto& history) {
+void bool_procedure(std::string& orig_input, const std::string& result, auto& history) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
         std::cout << "True!\n";
-        history.emplace_back(std::make_pair(std::move(result), "True"));
+        history.emplace_back(std::make_pair(std::move(orig_input), "True"));
     } else {
         std::cout << "False!\n";
-        history.emplace_back(std::make_pair(std::move(result), "False"));
+        history.emplace_back(std::make_pair(std::move(orig_input), "False"));
     }
 }
 
-void evaluate_expression(std::string& expression, auto& history) {
+void evaluate_expression(std::string& orig_input, std::string& expression, auto& history) {
     Parse::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
         std::cerr << "Error: " << result.result;
         return;
     }
     if(result.is_math) {
-        math_procedure(result.result, result.is_floating_point, history);
+        math_procedure(orig_input, result.result, result.is_floating_point, history);
     } else {
-        bool_procedure(result.result, history);
+        bool_procedure(orig_input, result.result, history);
     }
 }
 
@@ -217,6 +225,7 @@ void evaluate_expression(std::string& expression, auto& history) {
             std::cerr << "Error: Empty expression received!\n";
             continue;
         }
+        std::string orig_input = input_expression;
         input_expression.erase(remove(input_expression.begin(), input_expression.end(), ' '), input_expression.end());
         const InputResult result = handle_input(input_expression, program_history);
 
@@ -228,7 +237,7 @@ void evaluate_expression(std::string& expression, auto& history) {
             case InputResult::CONTINUE:
                 continue;
             default:
-                evaluate_expression(input_expression, program_history);
+                evaluate_expression(orig_input, input_expression, program_history);
         }
 
     }
@@ -273,6 +282,35 @@ void print_invalid_flag(const std::string_view expression) {
     std::cerr << "Error: " << expression << " is an invalid flag!\n\n";
 }
 
+namespace {
+
+void math_procedure(const std::string& result, const bool floating_point) {
+    const auto tree = std::make_unique<MathAST>(result, floating_point);
+    if (floating_point) {
+        try {
+            const mpfr_t& final_value = tree->evaluate_floating_point();
+            print_mpfr(final_value);
+        } catch (std::exception& err) {
+            std::cerr << "Error: " << err.what() << '\n';
+        }
+        return;
+    }
+    const mpz_class final_value = tree->evaluate();
+    std::cout << "Result: " << final_value.get_str() << '\n';
+}
+
+void bool_procedure(const std::string& result) {
+    const auto syntax_tree = std::make_unique<BoolAST>(result);
+    std::cout << "Result: ";
+    if (syntax_tree->evaluate()) {
+        std::cout << "True!\n";
+    } else {
+        std::cout << "False!\n";
+    }
+}
+
+}
+
 void evaluate_expression(std::string& expression) {
     const auto [result, status, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
     if (!status) {
@@ -280,27 +318,9 @@ void evaluate_expression(std::string& expression) {
         return;
     }
     if(is_math) {
-        const auto tree = std::make_unique<MathAST>(result, is_floating_point);
-        if (is_floating_point) {
-            try {
-                const mpfr_t& final_value = tree->evaluate_floating_point();
-                mpfr_printf("Result: %Rf", final_value);
-            } catch (std::exception& err) {
-                std::cerr << "Error: " << err.what() << '\n';; 
-            }
-            return;
-        }
-        const mpz_class final_value = tree->evaluate();
-        std::cout << "Result: " << final_value.get_str() << '\n';
-        return;
-    }
-
-    const auto syntax_tree = std::make_unique<BoolAST>(result);
-    std::cout << "Result: ";
-    if (syntax_tree->evaluate()) {
-        std::cout << "True!\n";
+        math_procedure(result, is_floating_point);
     } else {
-        std::cout << "False!\n";
+        bool_procedure(result);
     }
 }
 

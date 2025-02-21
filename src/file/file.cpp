@@ -44,48 +44,65 @@ std::vector<std::string> get_expressions() noexcept {
     return expressions;
 }
 
+void math_procedure(FILE*& output_file, const std::string_view result, const bool is_floating_point) {
+    const auto tree = std::make_unique<MathAST>(result, is_floating_point);
+    if (is_floating_point) {
+        try {
+            const mpfr_t& final_value = tree->evaluate_floating_point();
+            if (mpfr_integer_p(final_value)) {
+                mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
+            } else {
+                mpfr_fprintf(output_file, "Result: %.12Rf\n", final_value);
+            }
+        } catch (std::exception& err) {
+            fprintf(output_file, "Error: %s", err.what()); 
+        }
+        return;
+    }
+    const mpz_class final_value = tree->evaluate();
+    gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
+}
+
+void bool_procedure(FILE*& output_file, const std::string_view result) {
+    const auto syntax_tree = std::make_unique<BoolAST>(result);
+    if (syntax_tree->evaluate()) {
+        fprintf(output_file, "Result: True!\n");
+    } else {
+        fprintf(output_file, "Result: False!\n");
+    }
+}
+
+void main_loop(FILE*& output_file, std::string& expression) {
+    const std::string orig_expression = expression;
+    expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
+    const auto [result, success, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
+
+    fprintf(output_file, "Expression: %s\n", orig_expression.c_str());
+    if (!success) {
+        fprintf(output_file, "Error: %s", result.c_str());
+        return;
+    }
+    if(is_math) {
+        math_procedure(output_file, result, is_floating_point);
+    } else {
+        bool_procedure(output_file, result);
+    }
+
+}
+
 }  // namespace
 
-void initiate_file_mode() noexcept {
+void initiate_file_mode() {
     std::vector<std::string> expressions = get_expressions();
+    if (expressions.empty()) return;
     FILE* output_file;
-    output_file = fopen("expressions.txt", "w");
-    if(!output_file) {
+    output_file = fopen("results.txt", "w");
+    if(!output_file) [[unlikely]] {
         std::cerr << "Error opening file!\n";
         return;
     }
-
     for (auto& expression : expressions) {
-        expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
-        const auto [result, success, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
-
-        fprintf(output_file, "Expression: %s\n", expression.c_str());
-        if (!success) {
-            fprintf(output_file, "Error: %s", result.c_str());
-            continue;
-        }
-        if(is_math) {
-            const auto tree = std::make_unique<MathAST>(result, is_floating_point);
-            if (is_floating_point) {
-                try {
-                    const mpfr_t& final_value = tree->evaluate_floating_point();
-                    mpfr_fprintf(output_file, "Result: %Rg\n", final_value);
-                } catch (std::exception& err) {
-                    fprintf(output_file, "Error: %s", err.what()); 
-                }
-                continue;
-            }
-            const mpz_class final_value = tree->evaluate();
-            gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
-            continue;
-        }
-
-        const auto syntax_tree = std::make_unique<BoolAST>(result);
-        if (syntax_tree->evaluate()) {
-            fprintf(output_file, "Result: True!\n");
-        } else {
-            fprintf(output_file, "Result: False!\n");
-        }
+        main_loop(output_file, expression);
     }
     fclose(output_file);
 }

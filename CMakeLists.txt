@@ -1,11 +1,19 @@
 cmake_minimum_required(VERSION 3.21)
 project(ccalc)
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(CMAKE_INSTALL_PREFIX "/usr/local")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(CMAKE_INSTALL_PREFIX "/usr")
+else()
+    message(FATAL_ERROR "Unsupported operating system!")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_library(GMP_LIBRARIES NAMES gmp libgmp)
+find_library(GMP_LIBRARIES NAMES gmp libgmp gmpxx)
 find_library(MPFR_LIBRARIES NAMES mpfr libmpfr)
 
 if(NOT GMP_LIBRARIES)
@@ -41,9 +49,7 @@ target_link_libraries(ccalc PRIVATE
 )
 
 if(MSVC)
-    target_compile_options(ccalc PRIVATE 
-        /O2 /W4
-    )
+    message(FATAL_ERROR "MSVC is not supported. Please use WSL.")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(ccalc PRIVATE 
         -g 
@@ -72,3 +78,7 @@ else()
     )
 endif()
 #Use this command to build: cmake -B build && make -C build
+
+install(TARGETS ccalc
+    DESTINATION bin
+)

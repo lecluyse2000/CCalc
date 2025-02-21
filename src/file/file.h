@@ -12,7 +12,7 @@ namespace File {
 
 void output_history(const std::vector<std::pair<std::string, std::string> >& history, 
                     std::ofstream& output_file) noexcept;
-void initiate_file_mode() noexcept;
+void initiate_file_mode();
 
 }  // namespace File
 

@@ -60,7 +60,7 @@ Exiting...
 ### Flags
 
 - Without any flags, the program will expect a boolean or arithmetic expression as the input. For example: `ccalc 'T & F'` or `ccalc '2 + 2'`
-- With the `-c` or `--continuous` flag, the program will run in continuous mode. The user will be prompted for boolean expressions to evaluate until exiting the program by typing `exit`, `quit`, or `q`. Passing in any other arguments along with `-c` will result in an error and the program will not run.
+- With the `-c` or `--continuous` flag, the program will run in continuous mode. The user will be prompted for expressions to evaluate until exiting the program by typing `exit`, `quit`, or `q`. Passing in any other arguments along with `-c` will result in an error and the program will not run.
 - The flag `-f` or `--file` runs the program in file mode. Launching the program in this mode will take a list of expressions from `expressions.txt` and place the results in `results.txt`. The `expressions.txt` file must be placed in the current working directory.
 - With the `-v` or `--version` flag. The program simply displays the version information of the program.    
 - The `--help` flag prints a screen explaining all the flags and general program usage.
@@ -100,13 +100,13 @@ sudo pacman -S base-devel cmake gmp mpfr
 Build    
 
 ```bash
-cmake -B build && cmake --build build
+cmake -B build && sudo cmake --build build --target install
 ```
 
 Run    
 
 ```bash
-build/ccalc
+ccalc
 ```
 
 ### macOS
@@ -121,13 +121,13 @@ brew install cmake gmp mpfr
 Build
 
 ```bash
-cmake -B build && cmake --build build
+cmake -B build && cmake --build build --target install
 ```
 
 Run
 
 ```bash
-build/ccalc
+ccalc
 ```
 
 ### Windows
