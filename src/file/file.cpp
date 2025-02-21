@@ -13,8 +13,8 @@
 #include <unistd.h>
 #include <vector>
 
-#include "../ast/ast.h"
-#include "../parser/parser.h"
+#include "ast/ast.h"
+#include "parser/parser.h"
 
 namespace File {
 

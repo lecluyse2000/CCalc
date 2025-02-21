@@ -16,10 +16,10 @@
 #include <unistd.h>
 #include <vector>
 
-#include "../ast/ast.h"
-#include "../file/file.h"
-#include "../parser/parser.h"
-#include "../version.hpp"
+#include "ast/ast.h"
+#include "file/file.h"
+#include "parser/parser.h"
+#include "version.hpp"
 
 namespace UI {
 

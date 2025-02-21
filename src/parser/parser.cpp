@@ -9,8 +9,8 @@
 #include <string_view>
 #include <utility>
 
-#include "../error.hpp"
-#include "../types.hpp"
+#include "error.hpp"
+#include "types.hpp"
 
 namespace Parse {
 

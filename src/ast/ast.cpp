@@ -7,7 +7,7 @@
 #include <mpfr.h>
 #include <string_view>
 
-#include "../types.hpp"
+#include "types.hpp"
 #include "node.h"
 
 std::unique_ptr<BoolNode> BoolAST::build_ast() noexcept {
