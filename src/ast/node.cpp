@@ -47,7 +47,13 @@ BoolNode::BoolNode(const char token) noexcept : key(token){}
         case '*':
             return left_value * right_value;
         default:
-            return left_value ^ right_value;
+            if (right_value == 0) return 1;
+            if (right_value == 1) return left_value;
+            mpz_class retval = left_value;
+            for (int i = 0; i < right_value - 1; ++i) {
+                retval *= left_value;
+            }
+            return retval;
     }
 }
 

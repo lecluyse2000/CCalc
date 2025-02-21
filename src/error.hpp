@@ -115,7 +115,8 @@ constexpr std::optional<std::string> check_missing_operand_math(const char curre
     if ((current_token == '+' && previous_token =='*') || (current_token == '*' && previous_token == '*') ||
          (current_token == '-' && previous_token == '/') || (Types::is_math_operator(current_token) && previous_token == ')') ||
          (current_token == '*' && previous_token == '/') || (current_token == '/' && previous_token == '*') ||
-         (current_token == '(' && (Types::is_math_operator(previous_token) && previous_token != '+' && previous_token != '-' && previous_token != '~'))){
+         (current_token == '(' && (Types::is_math_operator(previous_token) && previous_token != '+' && previous_token != '-' && previous_token != '~')) ||
+         (current_token == '/' && previous_token == '/') || (current_token == '^' && previous_token == '^')){
         return std::optional<std::string>("Missing operand!\n");
     }
     return std::nullopt;
