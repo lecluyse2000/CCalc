@@ -60,7 +60,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         -Wconversion 
         -Wpedantic
         -fno-fast-math
-        -fcomplex-arithmetic=full
     )
 else()
     target_compile_options(ccalc PRIVATE 
