@@ -121,7 +121,7 @@ brew install cmake gmp mpfr
 Build
 
 ```bash
-cmake -B build && cmake --build build --target install
+cmake -B build && sudo cmake --build build --target install
 ```
 
 Run

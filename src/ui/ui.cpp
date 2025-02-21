@@ -23,6 +23,9 @@
 
 namespace UI {
 
+inline constexpr std::size_t buffer_size = 256;
+
+
 void print_excessive_arguments(const int arguments) {
     std::cerr << "Expected 1 argument, received " << arguments
               << ". Use the --help flag to see all flags, or pass in an expression.\n"
@@ -142,28 +145,41 @@ enum class InputResult {
     return InputResult::CONTINUE_TO_EVALUATE;
 }
 
-int print_mpfr(const mpfr_t& final_value) {
-    const int is_int = mpfr_integer_p(final_value);
-    if (is_int) {
-        mpfr_printf("Result: %.0Rf\n", final_value);
-    } else {
-        mpfr_printf("Result: %.12Rf\n", final_value);
+constexpr void trim_leading_zero_mpfr(std::vector<char>& buffer) {
+    for (auto itr = buffer.rbegin(); itr != buffer.rend(); ++itr) {
+        if (*itr == '0') {
+            buffer.erase(itr.base());
+        } else if (*itr == '.') {
+            buffer.erase(itr.base());
+        } else {
+            return;
+        }
     }
-    return is_int;
 }
 
-void add_mpfr_history(std::string& orig_input, const mpfr_t& final_value, const int is_int, auto& history) {
-    static constexpr std::size_t buffer_size = 256;
-    std::vector<char> buffer(buffer_size);
-    const int snprintf_result = is_int ? mpfr_snprintf(buffer.data(), buffer_size, "%.0Rf", final_value)
-                                       : mpfr_snprintf(buffer.data(), buffer_size, "%.12Rf", final_value);
+constexpr bool convert_mpfr_char_vec(std::vector<char>& buffer, const mpfr_t& val) {
+    const int snprintf_result = mpfr_integer_p(val) ? mpfr_snprintf(buffer.data(), buffer_size, "%.0Rf", val)
+                                                    : mpfr_snprintf(buffer.data(), buffer_size, "%.12Rf", val);
     if (snprintf_result < 0) {
         std::cerr << "Error in mpfr_snprintf!" << std::endl;
-        return;
+        return false;
     } else if (static_cast<std::size_t>(snprintf_result) >= buffer_size) {
         std::cerr << "Warning: Buffer too small for mpfr_snprintf, output may be truncated." << std::endl;
     }
-    history.emplace_back(std::make_pair(std::move(orig_input), std::string(buffer.data())));
+    trim_leading_zero_mpfr(buffer);
+    return true; 
+}
+
+std::string print_mpfr(const mpfr_t& final_value) {
+    std::vector<char> buffer(buffer_size);
+    if(!convert_mpfr_char_vec(buffer, final_value)) return std::string(buffer.data());
+    std::cout << "Result: ";
+    for (const char c : buffer) {
+        std::cout << c;
+    }
+    std::cout << '\n';
+
+    return std::string(buffer.data()); 
 }
 
 void math_procedure(std::string& orig_input, const std::string& result, const bool floating_point, auto& history) {
@@ -171,8 +187,8 @@ void math_procedure(std::string& orig_input, const std::string& result, const bo
     if (floating_point) {
         try {
             const mpfr_t& final_value = tree->evaluate_floating_point();
-            const int is_int = print_mpfr(final_value);
-            add_mpfr_history(orig_input, final_value, is_int, history);
+            std::string final_val = print_mpfr(final_value);
+            history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
         } catch (std::exception& err) {
             std::cerr << "Error: " << err.what() << '\n';
         }

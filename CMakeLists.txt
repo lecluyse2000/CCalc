@@ -15,6 +15,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_library(GMP_LIBRARIES NAMES gmp libgmp gmpxx)
 find_library(MPFR_LIBRARIES NAMES mpfr libmpfr)
+find_path(GMP_INCLUDE_DIR NAMES gmpxx.h gmp.h)
+find_path(MPFR_INCLUDE_DIR NAMES mpfr.h)
+if(NOT GMP_INCLUDE_DIR)
+    message(FATAL_ERROR "GMP headers not found. Please install GMP correctly.")
+endif()
 
 if(NOT GMP_LIBRARIES)
     message(FATAL_ERROR "GMP library not found. Please install GMP.")
@@ -41,6 +46,8 @@ target_include_directories(ccalc PRIVATE
     "src/ast"
     "src/parser"
     "src/file"
+    ${GMP_INCLUDE_DIR}
+    ${MPFR_INCLUDE_DIR}
 )
 
 target_link_libraries(ccalc PRIVATE
