@@ -9,7 +9,7 @@
 #include <string>
 #include <string>
 
-#include "../types/types.hpp"
+#include "../types.hpp"
 
 namespace Error {
 

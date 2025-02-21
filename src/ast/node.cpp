@@ -4,8 +4,9 @@
 
 #include <cctype>
 #include <cmath>
+#include <gmpxx.h>
 #include <memory>
-#include <optional>
+#include <mpfr.h>
 
 BoolNode::BoolNode(const char token) noexcept : key(token){}
 
@@ -30,13 +31,13 @@ BoolNode::BoolNode(const char token) noexcept : key(token){}
 
 [[nodiscard]] bool UnaryBNode::evaluate() const { return !m_left_child->evaluate(); }
 
-[[nodiscard]] long long ValueMNode::evaluate() const { return value_long; }
+[[nodiscard]] mpz_class ValueMNode::evaluate() const { return value_mpz; }
 
-[[nodiscard]] std::optional<long double> ValueMNode::evaluate_float() const { return value_double; }
+[[nodiscard]] mpfr_t& ValueMNode::evaluate_float() { return value_mpfr; }
 
-[[nodiscard]] long long OperationMNode::evaluate() const {
-    const long long left_value = m_left_child->evaluate();
-    const long long right_value = m_right_child->evaluate();
+[[nodiscard]] mpz_class OperationMNode::evaluate() const {
+    const mpz_class left_value = m_left_child->evaluate();
+    const mpz_class right_value = m_right_child->evaluate();
 
     switch(key) {
         case '+':
@@ -46,36 +47,40 @@ BoolNode::BoolNode(const char token) noexcept : key(token){}
         case '*':
             return left_value * right_value;
         default:
-            if (!right_value) return 1;
-            if (right_value == 1) return left_value;
-            long long retval = left_value;
-            for (int i = 0; i < right_value - 1; ++i) {
-                retval *= left_value; 
-            }
-            return retval;
+            return left_value ^ right_value;
     }
 }
 
-[[nodiscard]] std::optional<long double> OperationMNode::evaluate_float() const {
-    const auto left_value = m_left_child->evaluate_float();
-    const auto right_value = m_right_child->evaluate_float();
-    if (!left_value || !right_value) return std::nullopt;
+mpfr_t& OperationMNode::evaluate_float() {
+    const mpfr_t& left_value = m_left_child->evaluate_float();
+    const mpfr_t& right_value = m_right_child->evaluate_float();
 
     switch(key) {
         case '+':
-            return *left_value + *right_value;
+            mpfr_add(node_result, left_value, right_value, MPFR_RNDN);
+            return node_result;
         case '-':
-            return *left_value - *right_value;
+            mpfr_sub(node_result, left_value, right_value, MPFR_RNDN);
+            return node_result;
         case '*':
-            return *left_value * *right_value;
+            mpfr_mul(node_result, left_value, right_value, MPFR_RNDN);
+            return node_result;
         case '/':
-            if (*right_value == 0) return std::nullopt;
-            return *left_value / *right_value;
+            if (mpfr_zero_p(right_value)) {
+                throw std::runtime_error("Divide by zero error!");
+            }
+            mpfr_div(node_result, left_value, right_value, MPFR_RNDN);
+            return node_result;
         default:
-            return std::powl(*left_value, *right_value);
+            mpfr_pow(node_result, left_value, right_value, MPFR_RNDN);
+            return node_result;
     }
 }
 
-[[nodiscard]] long long UnaryMNode::evaluate() const { return m_left_child->evaluate() * -1LL; }
+[[nodiscard]] mpz_class UnaryMNode::evaluate() const { return m_left_child->evaluate() * -1; }
 
-[[nodiscard]] std::optional<long double> UnaryMNode::evaluate_float() const { return *(m_left_child->evaluate_float()) * -1.0L; }
+mpfr_t& UnaryMNode::evaluate_float() {
+    const mpfr_t& prev_val = m_left_child->evaluate_float();
+    mpfr_mul_si(node_result, prev_val, -1L, MPFR_RNDN);
+    return node_result;
+}

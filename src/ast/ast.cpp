@@ -3,10 +3,11 @@
 #include "ast.h"
 
 #include <cctype>
-#include <optional>
+#include <gmpxx.h>
+#include <mpfr.h>
 #include <string_view>
 
-#include "../types/types.hpp"
+#include "../types.hpp"
 #include "node.h"
 
 std::unique_ptr<BoolNode> BoolAST::build_ast() noexcept {
@@ -72,7 +73,9 @@ std::unique_ptr<MathNode> MathAST::build_ast() noexcept {
 
 MathAST::MathAST(const std::string_view expression, const bool _floating_point) noexcept :
     m_prefix_expression(expression), m_index(0), m_floating_point(_floating_point),
-    m_root(build_ast()){}
+    m_root(build_ast()) {
+    mpfr_init2(final_result, 256);
+}
 
-[[nodiscard]] long long MathAST::evaluate() const { return m_root->evaluate(); }
-[[nodiscard]] std::optional<long double> MathAST::evaluate_floating_point() const { return m_root->evaluate_float(); }
+[[nodiscard]] mpz_class MathAST::evaluate() const { return m_root->evaluate(); }
+[[nodiscard]] mpfr_t& MathAST::evaluate_floating_point() const { return m_root->evaluate_float(); }

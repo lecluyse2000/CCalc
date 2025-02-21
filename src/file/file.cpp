@@ -3,9 +3,14 @@
 #include "file.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <fstream>
+#include <gmpxx.h>
 #include <iostream>
+#include <mpfr.h>
 #include <string>
+#include <stdio.h>
+#include <unistd.h>
 #include <vector>
 
 #include "../ast/ast.h"
@@ -43,40 +48,46 @@ std::vector<std::string> get_expressions() noexcept {
 
 void initiate_file_mode() noexcept {
     std::vector<std::string> expressions = get_expressions();
-    std::ofstream output_file("results.txt");
+    FILE* output_file;
+    output_file = fopen("expressions.txt", "w");
+    if(!output_file) {
+        std::cerr << "Error opening file!\n";
+        return;
+    }
 
     for (auto& expression : expressions) {
         expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
         const auto [result, success, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
 
-        output_file << "Expression: " << expression << '\n';
+        fprintf(output_file, "Expression: %s\n", expression.c_str());
         if (!success) {
-            output_file << "Error: " << result;
+            fprintf(output_file, "Error: %s", result.c_str());
             continue;
         }
         if(is_math) {
             const auto tree = std::make_unique<MathAST>(result, is_floating_point);
             if (is_floating_point) {
-                const std::optional<long double> final_value = tree->evaluate_floating_point();
-                if (!final_value) {
-                    output_file << "Error: You cannot divide by zero\n";
-                    continue;
+                try {
+                    const mpfr_t& final_value = tree->evaluate_floating_point();
+                    mpfr_fprintf(output_file, "Result: %Rg\n", final_value);
+                } catch (std::exception& err) {
+                    fprintf(output_file, "Error: %s", err.what()); 
                 }
-                output_file<< "Result: " << *final_value;
                 continue;
             }
-            const long long final_value = tree->evaluate();
-            output_file << "Result: " << final_value;
+            const mpz_class final_value = tree->evaluate();
+            gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
             continue;
         }
 
         const auto syntax_tree = std::make_unique<BoolAST>(result);
         if (syntax_tree->evaluate()) {
-            output_file << "Result: True!\n";
+            fprintf(output_file, "Result: True!\n");
         } else {
-            output_file << "Result: False!\n";
+            fprintf(output_file, "Result: False!\n");
         }
     }
+    fclose(output_file);
 }
 
 }  // namespace File

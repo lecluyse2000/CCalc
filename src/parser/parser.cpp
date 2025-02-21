@@ -1,7 +1,6 @@
 // Author: Caden LeCluyse
 #include "parser.h"
 
-#include <iostream>
 #include <algorithm>
 #include <cctype>
 #include <optional>
@@ -10,8 +9,8 @@
 #include <string_view>
 #include <utility>
 
-#include "../error/error.hpp"
-#include "../types/types.hpp"
+#include "../error.hpp"
+#include "../types.hpp"
 
 namespace Parse {
 

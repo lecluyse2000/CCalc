@@ -3,9 +3,11 @@
 #ifndef NODE_H
 #define NODE_H
 
+#include <gmpxx.h>
+#include <stdexcept>
 #include <string>
 #include <memory>
-#include <optional>
+#include <mpfr.h>
 
 struct BoolNode {
     explicit BoolNode(const char token) noexcept;
@@ -34,32 +36,49 @@ struct UnaryBNode : public BoolNode {
 struct MathNode {
     MathNode() = default;
     virtual ~MathNode() = default;
-    [[nodiscard]] virtual long long evaluate() const = 0;
-    [[nodiscard]] virtual std::optional<long double> evaluate_float() const = 0;
+    [[nodiscard]] virtual mpz_class evaluate() const = 0;
+    virtual mpfr_t& evaluate_float() = 0;
     std::unique_ptr<MathNode> m_left_child;
     std::unique_ptr<MathNode> m_right_child;
 };
 
 struct ValueMNode : public MathNode {
-    explicit ValueMNode(const std::string& _value_long, const std::string& _value_double) :
-        value_long(std::stoll(_value_long)), value_double(std::stold(_value_double)) {}
-    [[nodiscard]] long long evaluate() const override;
-    [[nodiscard]] std::optional<long double> evaluate_float() const override;
-    const long long value_long;
-    const long double value_double;
+    explicit ValueMNode(const std::string& _value_mpz, const std::string& _value_mpf) :
+        value_mpz(_value_mpz) {
+        mpfr_init2(value_mpfr, 256);
+        const int successful = mpfr_set_str(value_mpfr, _value_mpf.c_str(), 10, MPFR_RNDN);
+        if (successful != 0) {
+            mpfr_clear(value_mpfr);
+            throw std::invalid_argument("Invalid floating point: " + _value_mpf);
+        }
+    }
+    ~ValueMNode() { mpfr_clear(value_mpfr); }
+
+    [[nodiscard]] mpz_class evaluate() const override;
+    mpfr_t& evaluate_float() override;
+    mpz_class value_mpz;
+    mpfr_t value_mpfr;
 };
 
 struct OperationMNode : public MathNode {
-    explicit OperationMNode(const char token) : key(token) {}
-    [[nodiscard]] long long evaluate() const override;
-    [[nodiscard]] std::optional<long double> evaluate_float() const override;
+    explicit OperationMNode(const char token) : key(token) {
+        mpfr_init2(node_result, 256);
+    }
+    ~OperationMNode() { mpfr_clear(node_result); }
+    [[nodiscard]] mpz_class evaluate() const override;
+    mpfr_t& evaluate_float() override;
+    mpfr_t node_result;
     const char key;
 };
 
 struct UnaryMNode : public MathNode {
-    explicit UnaryMNode(){}
-    [[nodiscard]] long long evaluate() const override;
-    [[nodiscard]] std::optional<long double> evaluate_float() const override;
+    explicit UnaryMNode() {
+        mpfr_init2(node_result, 256);
+    }
+    ~UnaryMNode() { mpfr_clear(node_result); }
+    [[nodiscard]] mpz_class evaluate() const override;
+    mpfr_t& evaluate_float() override;
+    mpfr_t node_result;
 };
 
 #endif
