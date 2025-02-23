@@ -87,7 +87,6 @@ void main_loop(FILE*& output_file, std::string& expression) {
     } else {
         bool_procedure(output_file, result);
     }
-
 }
 
 }  // namespace

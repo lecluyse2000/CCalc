@@ -228,7 +228,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
     std::vector<std::pair<std::string, std::string> > program_history;
 
     while (true) {
-        std::cout << "Please enter your boolean expression, or enter help to see all available commands: ";
+        std::cout << "Please enter your expression, or enter help to see all available commands: ";
 
         // If the input fails for some reason
         if (!std::getline(std::cin, input_expression)) [[unlikely]] {

@@ -133,14 +133,14 @@ std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& re
     const auto num_check = check_for_number(state, result.is_floating_point); 
     if (num_check && *num_check == "") {
         state.previous_token = state.current_token;
-        return std::optional<std::string>("");
+        return std::nullopt;
     } else if (num_check && *num_check != "") return num_check;
     const auto checker_result = Error::error_math(state.current_token, state.previous_token);
     if (checker_result) return checker_result;
 
     if (Types::is_math_operator(state.current_token)) {
         const bool cont = math_operator_found(state, result, infix_expression, op_stack);
-        if (cont) return std::optional<std::string>("");
+        if (cont) return std::nullopt; 
     } else if (state.current_token == ')') {
         closing_parentheses_math(state, result.result, op_stack);
     } else if (state.current_token == '(') {
@@ -162,7 +162,7 @@ std::optional<std::string> parse_math(std::string& infix_expression, ParseResult
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         state.itr = itr;
         const auto loop_result = math_loop_body(state, result, infix_expression, operator_stack);
-        if (loop_result && !loop_result->empty()) return loop_result;
+        if (loop_result) return loop_result;
     }
     if (state.in_number) result.result += state.num_buffer;
     return std::nullopt;
