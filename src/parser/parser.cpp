@@ -51,13 +51,14 @@ check_for_number(std::string& num_buffer, const char current_token, bool& in_num
 
 constexpr void 
 check_for_unary(const auto itr, char& current_token, const char previous_token) {
-    if (((Types::is_math_operand(previous_token) || previous_token == '(') && *(itr + 1) == '(') ||
-         Types::is_math_operator(*(itr + 1))) {
+    const char next_token = *(itr + 1);
+    if (((Types::is_math_operand(previous_token) || previous_token == '(') && next_token == '(') ||
+         Types::is_math_operator(next_token)) {
         current_token = '~';
     }
 }
 
-void check_for_floating_point(const char current_token, auto reverse_itr, std::string& infix_expression,
+constexpr void check_for_floating_point(const char current_token, const auto reverse_itr, std::string& infix_expression,
                                         bool& floating_point) {
     if (current_token == '/') {
         floating_point = true;
@@ -74,8 +75,8 @@ void check_for_floating_point(const char current_token, auto reverse_itr, std::s
     }
 }
 
-inline void closing_parentheses_math(const char current_token, bool& in_number, std::string& prefix_expression, std::string& num_buffer,
-                              std::stack<char>& op_stack) {
+inline void closing_parentheses_math(const char current_token, bool& in_number, std::string& prefix_expression,
+                                     std::string& num_buffer,std::stack<char>& op_stack) {
     if (in_number) {
         prefix_expression += num_buffer + ',';
         clear_num_buffer(num_buffer, in_number);
@@ -84,6 +85,7 @@ inline void closing_parentheses_math(const char current_token, bool& in_number, 
 }
 
 // When parsing a math expression a comma is used as a delimiter
+[[nodiscard]]
 std:: optional<std::string> open_parentheses_math(bool& in_number, std::string& prefix_expression,
                                                   std::string& num_buffer, std::stack<char>& op_stack) {
     if (in_number) {
@@ -123,6 +125,39 @@ bool math_operator_found(const char current_token, bool& floating_point, bool& i
 }
 
 [[nodiscard]]
+std::optional<std::string> math_loop_body(char& current_token, char& previous_token, bool& floating_point,
+                                          bool& in_number, std::string& prefix_expression,
+                                          std::string& infix_expression, auto itr, std::string& num_buffer,
+                                          std::stack<char>& op_stack) {
+    current_token = *itr;
+    if (current_token == '!') return std::optional<std::string>("! operator is not supported yet!\n");
+    
+    if (current_token == '-') check_for_unary(itr, current_token, previous_token);
+    const auto num_check = check_for_number(num_buffer, current_token, in_number, floating_point); 
+    if (num_check && *num_check == "") {
+        previous_token = current_token;
+        return std::optional<std::string>("");
+    } else if (num_check && *num_check != "") return num_check;
+    const auto checker_result = Error::error_math(current_token, previous_token);
+    if (checker_result) return checker_result;
+
+    if (Types::is_math_operator(current_token)) {
+        const bool cont = math_operator_found(current_token, floating_point, in_number, prefix_expression,
+                                              infix_expression, itr, num_buffer, op_stack);
+        if (cont) return std::optional<std::string>("");
+    } else if (current_token == ')') {
+        closing_parentheses_math(current_token, in_number, prefix_expression, num_buffer, op_stack);
+    } else if (current_token == '(') {
+        const auto result = open_parentheses_math(in_number, prefix_expression, num_buffer, op_stack);
+        if (result) return result;
+    } else {
+        return Error::invalid_character_error_math(current_token);
+    }
+    previous_token = current_token;
+    return std::nullopt;
+}
+
+[[nodiscard]]
 std::optional<std::string> parse_math(std::string& infix_expression, std::string& prefix_expression,
                                            std::stack<char>& operator_stack, bool& floating_point) {
     std::string num_buffer;
@@ -132,77 +167,62 @@ std::optional<std::string> parse_math(std::string& infix_expression, std::string
     if (infix_expression[0] == '-') infix_expression[0] = '~';
     
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
-        if (*itr == '!') return std::optional<std::string>("! operator is not supported yet!\n");
-        
-        current_token = *itr;
-        if (current_token == '-') check_for_unary(itr, current_token, previous_token);
-        const auto num_check = check_for_number(num_buffer, current_token, in_number, floating_point); 
-        if (num_check && *num_check == "") {
-            previous_token = current_token;
-            continue;
-        } else if (num_check && *num_check != "") return num_check;
-        const auto checker_result = Error::error_math(current_token, previous_token);
-        if (checker_result) return checker_result;
-
-        if (Types::is_math_operator(current_token)) {
-            const bool cont = math_operator_found(current_token, floating_point, in_number, prefix_expression,
-                                                  infix_expression, itr, num_buffer, operator_stack);
-            if (cont) continue;
-        } else if (current_token == ')') {
-            closing_parentheses_math(current_token, in_number, prefix_expression, num_buffer, operator_stack);
-        } else if (current_token == '(') {
-            const auto result = open_parentheses_math(in_number, prefix_expression, num_buffer, operator_stack);
-            if (result) return result;
-        } else {
-            return Error::invalid_character_error_math(current_token);
-        }
-        previous_token = current_token;
+        const auto loop_result = math_loop_body(current_token, previous_token, floating_point, in_number,
+                                                prefix_expression, infix_expression, itr, num_buffer, operator_stack);
+        if (loop_result && !loop_result->empty() ) return loop_result;
     }
     if (in_number) prefix_expression += num_buffer;
     return std::nullopt;
 }
 
 [[nodiscard]]
+std::optional<std::string> bool_loop_body(char& current_token, char& previous_token, auto itr,
+                                          std::string& prefix_expression, std::stack<char>& operator_stack) {
+    // Grab the current token
+    // If the token is an operand, simply add it to the string
+    // if the token is an operator or a closing parentheses, add it to the stack
+    // If the token is an open parentheses, pop from the stack and add to the string until a closing parentheses is
+    // found
+    current_token = *itr;
+    // Check for various errors
+    const auto checker_result = Error::error_bool(current_token, previous_token);
+    if (checker_result) {
+        return checker_result;
+    }
+
+    if (Types::isoperand(current_token)) {
+        prefix_expression.push_back(current_token);
+    } else if (Types::isnot(current_token) || Types::isoperator(current_token) || current_token == ')') {
+        operator_stack.push(current_token);
+    } else if (current_token == '(') {
+        while (!operator_stack.empty() && operator_stack.top() != ')') {
+            prefix_expression.push_back(operator_stack.top());
+            operator_stack.pop();
+        }
+
+        // Pop the closing parentheses off the stack
+        if (!operator_stack.empty()) {
+            operator_stack.pop();
+        } else {
+            return std::optional<std::string>("Missing closing parentheses!\n");
+        }
+    } else {
+        return Error::invalid_character_error_bool(current_token);
+    }
+    previous_token = current_token;
+    return std::nullopt;
+}
+
+[[nodiscard]]
 std::optional<std::string> parse_bool(const std::string_view infix_expression, std::string& prefix_expression,
-                                 std::stack<char>& operator_stack) {
+                                      std::stack<char>& operator_stack) {
     char current_token = '\0';
     char previous_token = '\0';
 
     // Traverse the string in reverse
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
-        // Grab the current token
-        // If the token is an operand, simply add it to the string
-        // if the token is an operator or a closing parentheses, add it to the stack
-        // If the token is an open parentheses, pop from the stack and add to the string until a closing parentheses is
-        // found
-        current_token = *itr;
-
-        // Check for various errors
-        const auto checker_result = Error::error_bool(current_token, previous_token);
-        if (checker_result) {
-            return checker_result;
-        }
-
-        if (Types::isoperand(current_token)) {
-            prefix_expression.push_back(current_token);
-        } else if (Types::isnot(current_token) || Types::isoperator(current_token) || current_token == ')') {
-            operator_stack.push(current_token);
-        } else if (current_token == '(') {
-            while (!operator_stack.empty() && operator_stack.top() != ')') {
-                prefix_expression.push_back(operator_stack.top());
-                operator_stack.pop();
-            }
-
-            // Pop the closing parentheses off the stack
-            if (!operator_stack.empty()) {
-                operator_stack.pop();
-            } else {
-                return std::optional<std::string>("Missing closing parentheses!\n");
-            }
-        } else {
-            return Error::invalid_character_error_bool(current_token);
-        }
-        previous_token = current_token;
+        const auto loop_result = bool_loop_body(current_token, previous_token, itr, prefix_expression, operator_stack);
+        if (loop_result) return loop_result;
     }
 
     return std::nullopt;
@@ -222,6 +242,7 @@ clear_stack(std::string& prefix_expression, std::stack<char>& operator_stack, co
 
     return std::nullopt;
 }
+
 }
 
 [[nodiscard]]
