@@ -7,7 +7,6 @@
 #include <stack>
 #include <string>
 #include <string_view>
-#include <utility>
 
 #include "error.hpp"
 #include "types.hpp"
@@ -31,17 +30,17 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
 } 
 
 [[nodiscard]] constexpr std::optional<std::string>
-check_for_number(std::string& num_buffer, const char current_token, bool& in_number, bool& floating_point) {
-    if (std::isdigit(current_token)) {
-        in_number = true;
-        num_buffer += current_token;
+check_for_number(MathParseState& state,  bool& floating_point) {
+    if (std::isdigit(state.current_token)) {
+        state.in_number = true;
+        state.num_buffer += state.current_token;
         return std::optional<std::string>("");
-    } else if (current_token == '.') {
-        if (num_buffer.find('.') != std::string::npos) {
-            return std::optional<std::string>("Multiple decimal points in number!");
+    } else if (state.current_token == '.') {
+        if (state.num_buffer.find('.') != std::string::npos) {
+            return std::optional<std::string>("Multiple decimal points in number!\n");
         }
-        in_number = true;
-        num_buffer += current_token;
+        state.in_number = true;
+        state.num_buffer += state.current_token;
         floating_point = true;
         return std::optional<std::string>("");
     }
@@ -50,22 +49,22 @@ check_for_number(std::string& num_buffer, const char current_token, bool& in_num
 }
 
 constexpr void 
-check_for_unary(const auto itr, char& current_token, const char previous_token) {
-    const char next_token = *(itr + 1);
-    if (((Types::is_math_operand(previous_token) || previous_token == '(') && next_token == '(') ||
+check_for_unary(MathParseState& state) {
+    const char next_token = *(state.itr + 1);
+    if (((Types::is_math_operand(state.previous_token) || state.previous_token == '(') && next_token == '(') ||
          Types::is_math_operator(next_token)) {
-        current_token = '~';
+        state.current_token = '~';
     }
 }
 
-constexpr void check_for_floating_point(const char current_token, const auto reverse_itr, std::string& infix_expression,
+constexpr void check_for_floating_point(MathParseState& state, std::string& infix_expression,
                                         bool& floating_point) {
-    if (current_token == '/') {
+    if (state.current_token == '/') {
         floating_point = true;
         return;
     }
-    if (current_token == '^') {
-        for (auto new_itr = reverse_itr.base(); new_itr != infix_expression.end(); ++new_itr) {
+    if (state.current_token == '^') {
+        for (auto new_itr = state.itr.base(); new_itr != infix_expression.end(); ++new_itr) {
             if (*new_itr == '-' || *new_itr == '~') {
                 floating_point = true;
                 return;
@@ -75,22 +74,22 @@ constexpr void check_for_floating_point(const char current_token, const auto rev
     }
 }
 
-inline void closing_parentheses_math(const char current_token, bool& in_number, std::string& prefix_expression,
-                                     std::string& num_buffer,std::stack<char>& op_stack) {
-    if (in_number) {
-        prefix_expression += num_buffer + ',';
-        clear_num_buffer(num_buffer, in_number);
+inline void closing_parentheses_math(MathParseState& state, std::string& prefix_expression,
+                                     std::stack<char>& op_stack) {
+    if (state.in_number) {
+        prefix_expression += state.num_buffer + ',';
+        clear_num_buffer(state);
     }
-    op_stack.push(current_token);
+    op_stack.push(state.current_token);
 }
 
 // When parsing a math expression a comma is used as a delimiter
 [[nodiscard]]
-std:: optional<std::string> open_parentheses_math(bool& in_number, std::string& prefix_expression,
-                                                  std::string& num_buffer, std::stack<char>& op_stack) {
-    if (in_number) {
-        prefix_expression += num_buffer + ',';
-        clear_num_buffer(num_buffer, in_number);
+std:: optional<std::string> open_parentheses_math(MathParseState& state, std::string& prefix_expression,
+                                                  std::stack<char>& op_stack) {
+    if (state.in_number) {
+        prefix_expression += state.num_buffer + ',';
+        clear_num_buffer(state);
     }
     while (!op_stack.empty() && op_stack.top() != ')') {
         prefix_expression.push_back(op_stack.top());
@@ -105,96 +104,90 @@ std:: optional<std::string> open_parentheses_math(bool& in_number, std::string& 
     return std::nullopt;
 }
 
-bool math_operator_found(const char current_token, bool& floating_point, bool& in_number, std::string& prefix_expression,
-                         std::string& infix_expression, auto itr, std::string& num_buffer,
-                         std::stack<char>& op_stack) {
-    if (in_number) {
-        prefix_expression += num_buffer + ',';
-        clear_num_buffer(num_buffer, in_number);
-        if (current_token == '+' && (Types::is_math_operator(*(itr + 1)) || *(itr + 1) == '(')) return true;
+bool math_operator_found(MathParseState& state, ParseResult& result,
+                         std::string& infix_expression, std::stack<char>& op_stack) {
+    if (state.in_number) {
+        result.result += state.num_buffer + ',';
+        clear_num_buffer(state);
+        if (state.current_token == '+' && (Types::is_math_operator(*(state.itr + 1)) || *(state.itr + 1) == '(')) return true;
     }
-    check_for_floating_point(current_token, itr, infix_expression, floating_point);
+    check_for_floating_point(state, infix_expression, result.is_floating_point);
     while (!op_stack.empty() && op_stack.top() != ')' && 
-           Types::get_precedence(op_stack.top()) > Types::get_precedence(current_token)) {
-        prefix_expression.push_back(op_stack.top());
-        prefix_expression.push_back(',');
+           Types::get_precedence(op_stack.top()) > Types::get_precedence(state.current_token)) {
+        result.result.push_back(op_stack.top());
+        result.result.push_back(',');
         op_stack.pop();
     }
-    op_stack.push(current_token);
+    op_stack.push(state.current_token);
     return false;
 }
 
 [[nodiscard]]
-std::optional<std::string> math_loop_body(char& current_token, char& previous_token, bool& floating_point,
-                                          bool& in_number, std::string& prefix_expression,
-                                          std::string& infix_expression, auto itr, std::string& num_buffer,
+std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& result,
+                                          std::string& infix_expression,
                                           std::stack<char>& op_stack) {
-    current_token = *itr;
-    if (current_token == '!') return std::optional<std::string>("! operator is not supported yet!\n");
+    state.current_token = *state.itr;
+    if (state.current_token == '!') return std::optional<std::string>("! operator is not supported yet!\n");
     
-    if (current_token == '-') check_for_unary(itr, current_token, previous_token);
-    const auto num_check = check_for_number(num_buffer, current_token, in_number, floating_point); 
+    if (state.current_token == '-') check_for_unary(state);
+    const auto num_check = check_for_number(state, result.is_floating_point); 
     if (num_check && *num_check == "") {
-        previous_token = current_token;
+        state.previous_token = state.current_token;
         return std::optional<std::string>("");
     } else if (num_check && *num_check != "") return num_check;
-    const auto checker_result = Error::error_math(current_token, previous_token);
+    const auto checker_result = Error::error_math(state.current_token, state.previous_token);
     if (checker_result) return checker_result;
 
-    if (Types::is_math_operator(current_token)) {
-        const bool cont = math_operator_found(current_token, floating_point, in_number, prefix_expression,
-                                              infix_expression, itr, num_buffer, op_stack);
+    if (Types::is_math_operator(state.current_token)) {
+        const bool cont = math_operator_found(state, result, infix_expression, op_stack);
         if (cont) return std::optional<std::string>("");
-    } else if (current_token == ')') {
-        closing_parentheses_math(current_token, in_number, prefix_expression, num_buffer, op_stack);
-    } else if (current_token == '(') {
-        const auto result = open_parentheses_math(in_number, prefix_expression, num_buffer, op_stack);
-        if (result) return result;
+    } else if (state.current_token == ')') {
+        closing_parentheses_math(state, result.result, op_stack);
+    } else if (state.current_token == '(') {
+        const auto open_parenthese_result = open_parentheses_math(state, result.result, op_stack);
+        if (open_parenthese_result) return open_parenthese_result;
     } else {
-        return Error::invalid_character_error_math(current_token);
+        return Error::invalid_character_error_math(state.current_token);
     }
-    previous_token = current_token;
+    state.previous_token = state.current_token;
     return std::nullopt;
 }
 
 [[nodiscard]]
-std::optional<std::string> parse_math(std::string& infix_expression, std::string& prefix_expression,
-                                           std::stack<char>& operator_stack, bool& floating_point) {
-    std::string num_buffer;
-    char current_token = '\0';
-    char previous_token = '\0';
-    bool in_number = false;
+std::optional<std::string> parse_math(std::string& infix_expression, ParseResult& result,
+                                      std::stack<char>& operator_stack) {
+    MathParseState state;
     if (infix_expression[0] == '-') infix_expression[0] = '~';
     
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
-        const auto loop_result = math_loop_body(current_token, previous_token, floating_point, in_number,
-                                                prefix_expression, infix_expression, itr, num_buffer, operator_stack);
-        if (loop_result && !loop_result->empty() ) return loop_result;
+        state.itr = itr;
+        const auto loop_result = math_loop_body(state, result, infix_expression, operator_stack);
+        if (loop_result && !loop_result->empty()) return loop_result;
     }
-    if (in_number) prefix_expression += num_buffer;
+    if (state.in_number) result.result += state.num_buffer;
     return std::nullopt;
 }
 
 [[nodiscard]]
-std::optional<std::string> bool_loop_body(char& current_token, char& previous_token, auto itr,
-                                          std::string& prefix_expression, std::stack<char>& operator_stack) {
+std::optional<std::string> bool_loop_body(BoolParseState state, std::string& prefix_expression,
+                                          std::stack<char>& operator_stack) {
     // Grab the current token
     // If the token is an operand, simply add it to the string
     // if the token is an operator or a closing parentheses, add it to the stack
     // If the token is an open parentheses, pop from the stack and add to the string until a closing parentheses is
     // found
-    current_token = *itr;
+    state.current_token = *state.itr;
     // Check for various errors
-    const auto checker_result = Error::error_bool(current_token, previous_token);
+    const auto checker_result = Error::error_bool(state.current_token, state.previous_token);
     if (checker_result) {
         return checker_result;
     }
 
-    if (Types::isoperand(current_token)) {
-        prefix_expression.push_back(current_token);
-    } else if (Types::isnot(current_token) || Types::isoperator(current_token) || current_token == ')') {
-        operator_stack.push(current_token);
-    } else if (current_token == '(') {
+    if (Types::isoperand(state.current_token)) {
+        prefix_expression.push_back(state.current_token);
+    } else if (Types::isnot(state.current_token) || Types::isoperator(state.current_token) || state.current_token == ')') {
+        operator_stack.push(state.current_token);
+    } else if (state.current_token == '(') {
         while (!operator_stack.empty() && operator_stack.top() != ')') {
             prefix_expression.push_back(operator_stack.top());
             operator_stack.pop();
@@ -207,21 +200,21 @@ std::optional<std::string> bool_loop_body(char& current_token, char& previous_to
             return std::optional<std::string>("Missing closing parentheses!\n");
         }
     } else {
-        return Error::invalid_character_error_bool(current_token);
+        return Error::invalid_character_error_bool(state.current_token);
     }
-    previous_token = current_token;
+    state.previous_token = state.current_token;
     return std::nullopt;
 }
 
 [[nodiscard]]
 std::optional<std::string> parse_bool(const std::string_view infix_expression, std::string& prefix_expression,
                                       std::stack<char>& operator_stack) {
-    char current_token = '\0';
-    char previous_token = '\0';
+    BoolParseState state;
 
     // Traverse the string in reverse
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
-        const auto loop_result = bool_loop_body(current_token, previous_token, itr, prefix_expression, operator_stack);
+        state.itr = itr;
+        const auto loop_result = bool_loop_body(state, prefix_expression, operator_stack);
         if (loop_result) return loop_result;
     }
 
@@ -248,28 +241,36 @@ clear_stack(std::string& prefix_expression, std::stack<char>& operator_stack, co
 [[nodiscard]]
 ParseResult create_prefix_expression(std::string& infix_expression) {
     std::stack<char> operator_stack;
-    std::string prefix_expression;
-    bool floating_point = false;
+    ParseResult parse_result; 
 
     const auto is_math = is_math_equation(infix_expression);
-    if (!is_math) return ParseResult(std::string_view("No valid operators detected!\n"), false, false, floating_point);
+    if (!is_math) {
+        parse_result.result = "No valid operators detected!\n";
+        return parse_result;
+    }
 
     const auto initial_checks = Error::initial_checks(infix_expression, *is_math);
     if (initial_checks) {
-        return ParseResult(*initial_checks, false, *is_math, floating_point);
+        parse_result.result = *initial_checks;
+        return parse_result;
     }
-    const auto parse_result = *is_math ? parse_math(infix_expression, prefix_expression, operator_stack, floating_point)
-                                       : parse_bool(infix_expression, prefix_expression, operator_stack);
-    if (parse_result) {
-        return ParseResult(*parse_result, false, *is_math, floating_point); 
+    const auto error_parsing = *is_math ? parse_math(infix_expression, parse_result, operator_stack)
+                                        : parse_bool(infix_expression, parse_result.result, operator_stack);
+    if (error_parsing) {
+        parse_result.result = *error_parsing;
+        return parse_result;
     }
-    const auto stack_result = clear_stack(prefix_expression, operator_stack, *is_math);
+    const auto stack_result = clear_stack(parse_result.result, operator_stack, *is_math);
     if (stack_result) {
-        return ParseResult(*stack_result, false, *is_math, floating_point); 
+        parse_result.result = *stack_result;
+        parse_result.is_math = *is_math;
+        return parse_result; 
     }
-    std::ranges::reverse(prefix_expression);
 
-    return ParseResult(std::move(prefix_expression),true, *is_math, floating_point);
+    std::ranges::reverse(parse_result.result);
+    parse_result.success = true;
+    parse_result.is_math = *is_math;
+    return parse_result;
 }
 
 }
