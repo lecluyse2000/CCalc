@@ -25,7 +25,6 @@ namespace UI {
 
 inline constexpr std::size_t buffer_size = 256;
 
-
 void print_excessive_arguments(const int arguments) {
     std::cerr << "Expected 1 argument, received " << arguments
               << ". Use the --help flag to see all flags, or pass in an expression.\n"
@@ -119,7 +118,6 @@ enum class InputResult {
             std::cerr << "You haven't evaluated any expressions yet!\n";
             return InputResult::CONTINUE;
         }
-
         print_history(program_history);
         return InputResult::CONTINUE;
     } else if (input_expression == "save") {
@@ -145,41 +143,39 @@ enum class InputResult {
     return InputResult::CONTINUE_TO_EVALUATE;
 }
 
-constexpr void trim_leading_zero_mpfr(std::vector<char>& buffer) {
-    for (auto itr = buffer.rbegin(); itr != buffer.rend(); ++itr) {
-        if (*itr == '0') {
-            buffer.erase(itr.base());
-        } else if (*itr == '.') {
-            buffer.erase(itr.base());
-        } else {
-            return;
-        }
-    }
+void trim_leading_zero_mpfr(std::vector<char>& buffer) {
+    const auto last_non_zero = std::find_if(buffer.rbegin(), buffer.rend(), [](const char c) {
+        return c != '0' && c != '.';
+    });
+    if (last_non_zero != buffer.rend()) {
+        buffer.erase(last_non_zero.base(), buffer.end());
+    } 
 }
 
-constexpr bool convert_mpfr_char_vec(std::vector<char>& buffer, const mpfr_t& val) {
+[[nodiscard]] bool convert_mpfr_char_vec(std::vector<char>& buffer, const mpfr_t& val) {
     const int snprintf_result = mpfr_integer_p(val) ? mpfr_snprintf(buffer.data(), buffer_size, "%.0Rf", val)
                                                     : mpfr_snprintf(buffer.data(), buffer_size, "%.12Rf", val);
     if (snprintf_result < 0) {
-        std::cerr << "Error in mpfr_snprintf!" << std::endl;
+        std::cerr << "Error in mpfr_snprintf!\n";
         return false;
     } else if (static_cast<std::size_t>(snprintf_result) >= buffer_size) {
-        std::cerr << "Warning: Buffer too small for mpfr_snprintf, output may be truncated." << std::endl;
+        std::cerr << "Warning: Buffer too small for mpfr_snprintf, output may be truncated.\n";
     }
+    buffer.resize(static_cast<std::size_t>(snprintf_result));
     trim_leading_zero_mpfr(buffer);
     return true; 
 }
 
 std::string print_mpfr(const mpfr_t& final_value) {
     std::vector<char> buffer(buffer_size);
-    if(!convert_mpfr_char_vec(buffer, final_value)) return std::string(buffer.data());
+    if(!convert_mpfr_char_vec(buffer, final_value)) return std::string("");
     std::cout << "Result: ";
     for (const char c : buffer) {
         std::cout << c;
     }
     std::cout << '\n';
 
-    return std::string(buffer.data()); 
+    return std::string(buffer.begin(), buffer.end()); 
 }
 
 void math_procedure(std::string& orig_input, const std::string& result, const bool floating_point, auto& history) {
@@ -188,6 +184,7 @@ void math_procedure(std::string& orig_input, const std::string& result, const bo
         try {
             const mpfr_t& final_value = tree->evaluate_floating_point();
             std::string final_val = print_mpfr(final_value);
+            if (final_val == "") return;
             history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
         } catch (std::exception& err) {
             std::cerr << "Error: " << err.what() << '\n';
@@ -255,7 +252,6 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
             default:
                 evaluate_expression(orig_input, input_expression, program_history);
         }
-
     }
 }
 
@@ -300,7 +296,7 @@ void print_invalid_flag(const std::string_view expression) {
 
 namespace {
 
-void math_procedure(const std::string& result, const bool floating_point) {
+void math_procedure(std::string_view result, const bool floating_point) {
     const auto tree = std::make_unique<MathAST>(result, floating_point);
     if (floating_point) {
         try {
@@ -315,7 +311,7 @@ void math_procedure(const std::string& result, const bool floating_point) {
     std::cout << "Result: " << final_value.get_str() << '\n';
 }
 
-void bool_procedure(const std::string& result) {
+void bool_procedure(std::string_view result) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {

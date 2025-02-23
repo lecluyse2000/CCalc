@@ -44,7 +44,7 @@ std::unique_ptr<MathNode> MathAST::build_ast() noexcept {
         std::string current_num;
         current_num += current_token;
         while (m_index < m_prefix_expression.length()) {
-            char next_token = m_prefix_expression[m_index];
+            const char next_token = m_prefix_expression[m_index];
             if (next_token == ',') {
                 m_index++;
                 break;

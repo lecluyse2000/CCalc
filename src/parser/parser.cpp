@@ -57,8 +57,71 @@ check_for_unary(const auto itr, char& current_token, const char previous_token) 
     }
 }
 
+void check_for_floating_point(const char current_token, auto reverse_itr, std::string& infix_expression,
+                                        bool& floating_point) {
+    if (current_token == '/') {
+        floating_point = true;
+        return;
+    }
+    if (current_token == '^') {
+        for (auto new_itr = reverse_itr.base(); new_itr != infix_expression.end(); ++new_itr) {
+            if (*new_itr == '-' || *new_itr == '~') {
+                floating_point = true;
+                return;
+            } else if(*new_itr == '(') continue;
+            return;
+        }
+    }
+}
+
+inline void closing_parentheses_math(const char current_token, bool& in_number, std::string& prefix_expression, std::string& num_buffer,
+                              std::stack<char>& op_stack) {
+    if (in_number) {
+        prefix_expression += num_buffer + ',';
+        clear_num_buffer(num_buffer, in_number);
+    }
+    op_stack.push(current_token);
+}
+
 // When parsing a math expression a comma is used as a delimiter
-// This function sucks right now I know
+std:: optional<std::string> open_parentheses_math(bool& in_number, std::string& prefix_expression,
+                                                  std::string& num_buffer, std::stack<char>& op_stack) {
+    if (in_number) {
+        prefix_expression += num_buffer + ',';
+        clear_num_buffer(num_buffer, in_number);
+    }
+    while (!op_stack.empty() && op_stack.top() != ')') {
+        prefix_expression.push_back(op_stack.top());
+        prefix_expression.push_back(',');
+        op_stack.pop();
+    }
+    if (!op_stack.empty()) {
+        op_stack.pop();
+    } else {
+        return std::optional<std::string>("Missing closing parentheses!\n");
+    }
+    return std::nullopt;
+}
+
+bool math_operator_found(const char current_token, bool& floating_point, bool& in_number, std::string& prefix_expression,
+                         std::string& infix_expression, auto itr, std::string& num_buffer,
+                         std::stack<char>& op_stack) {
+    if (in_number) {
+        prefix_expression += num_buffer + ',';
+        clear_num_buffer(num_buffer, in_number);
+        if (current_token == '+' && (Types::is_math_operator(*(itr + 1)) || *(itr + 1) == '(')) return true;
+    }
+    check_for_floating_point(current_token, itr, infix_expression, floating_point);
+    while (!op_stack.empty() && op_stack.top() != ')' && 
+           Types::get_precedence(op_stack.top()) > Types::get_precedence(current_token)) {
+        prefix_expression.push_back(op_stack.top());
+        prefix_expression.push_back(',');
+        op_stack.pop();
+    }
+    op_stack.push(current_token);
+    return false;
+}
+
 [[nodiscard]]
 std::optional<std::string> parse_math(std::string& infix_expression, std::string& prefix_expression,
                                            std::stack<char>& operator_stack, bool& floating_point) {
@@ -82,49 +145,14 @@ std::optional<std::string> parse_math(std::string& infix_expression, std::string
         if (checker_result) return checker_result;
 
         if (Types::is_math_operator(current_token)) {
-            if (in_number) {
-                prefix_expression += num_buffer + ',';
-                clear_num_buffer(num_buffer, in_number);
-                if (current_token == '+' && (Types::is_math_operator(*(itr + 1)) || *(itr + 1) == '(')) continue;
-            }
-            if (current_token == '/') floating_point = true;
-            if (current_token == '^') {
-                for (auto new_itr = itr.base(); new_itr != infix_expression.end(); ++new_itr) {
-                    if (*new_itr == '-' || *new_itr == '~') {
-                        floating_point = true;
-                        break;
-                    } else if(*new_itr == '(') continue;
-                    break;
-                }
-            }
-            while (!operator_stack.empty() && operator_stack.top() != ')' && 
-                   Types::get_precedence(operator_stack.top()) > Types::get_precedence(current_token)) {
-                prefix_expression.push_back(operator_stack.top());
-                prefix_expression.push_back(',');
-                operator_stack.pop();
-            }
-            operator_stack.push(current_token);
+            const bool cont = math_operator_found(current_token, floating_point, in_number, prefix_expression,
+                                                  infix_expression, itr, num_buffer, operator_stack);
+            if (cont) continue;
         } else if (current_token == ')') {
-            if (in_number) {
-                prefix_expression += num_buffer + ',';
-                clear_num_buffer(num_buffer, in_number);
-            }
-            operator_stack.push(current_token);
+            closing_parentheses_math(current_token, in_number, prefix_expression, num_buffer, operator_stack);
         } else if (current_token == '(') {
-            if (in_number) {
-                prefix_expression += num_buffer + ',';
-                clear_num_buffer(num_buffer, in_number);
-            }
-            while (!operator_stack.empty() && operator_stack.top() != ')') {
-                prefix_expression.push_back(operator_stack.top());
-                prefix_expression.push_back(',');
-                operator_stack.pop();
-            }
-            if (!operator_stack.empty()) {
-                operator_stack.pop();
-            } else {
-                return std::optional<std::string>("Missing closing parentheses!\n");
-            }
+            const auto result = open_parentheses_math(in_number, prefix_expression, num_buffer, operator_stack);
+            if (result) return result;
         } else {
             return Error::invalid_character_error_math(current_token);
         }
