@@ -20,7 +20,7 @@ namespace Types {
 }
 
 [[nodiscard]] inline constexpr bool is_math_operator(const char token) noexcept {
-    return token == '+' || token == '-' || token == '*' || token == '/' || token == '^' || token == '~';
+    return token == '+' || token == '-' || token == '*' || token == '/' || token == '^' || token == '~' || token =='!';
 }
 
 [[nodiscard]] inline constexpr bool is_bool_operator(const char token) noexcept {
@@ -45,6 +45,8 @@ namespace Types {
             return 3;
         case '~':
             return 4;
+        case '!':
+            return 5;
         default:
             return 0;
     }

@@ -144,6 +144,10 @@ enum class InputResult {
 }
 
 void trim_leading_zero_mpfr(std::vector<char>& buffer) {
+    const auto find_decimal = std::ranges::find_if(buffer, [](const char c) {
+        return c == '.';
+    });
+    if (find_decimal == buffer.end()) return;
     const auto last_non_zero = std::find_if(buffer.rbegin(), buffer.rend(), [](const char c) {
         return c != '0' && c != '.';
     });
@@ -178,22 +182,38 @@ std::string print_mpfr(const mpfr_t& final_value) {
     return std::string(buffer.begin(), buffer.end()); 
 }
 
-void math_procedure(std::string& orig_input, const std::string& result, const bool floating_point, auto& history) {
-    const auto tree = std::make_unique<MathAST>(result, floating_point);
-    if (floating_point) {
-        try {
-            const mpfr_t& final_value = tree->evaluate_floating_point();
-            std::string final_val = print_mpfr(final_value);
-            if (final_val == "") return;
-            history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
-        } catch (std::exception& err) {
-            std::cerr << "Error: " << err.what() << '\n';
-        }
-        return;
+void math_float_procedure(std::string& orig_input, const std::string& result, auto& history) {
+    try {
+        const auto tree = std::make_unique<MathAST>(result, true);
+        const mpfr_t& final_value = tree->evaluate_floating_point();
+        std::string final_val = print_mpfr(final_value);
+        if (final_val.empty()) return;
+        history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
+    } catch (const std::exception& err) {
+        std::cerr << "Error: " << err.what() << '\n';
     }
-    const mpz_class final_value = tree->evaluate();
-    std::cout << "Result: " << final_value.get_str() << '\n';
-    history.emplace_back(std::make_pair(std::move(orig_input), final_value.get_str()));
+    return;
+}
+
+void math_int_procedure(std::string& orig_input, const std::string& result, auto& history) {
+    try {
+        const auto tree = std::make_unique<MathAST>(result, false);
+        const mpz_class final_value = tree->evaluate();
+        std::cout << "Result: " << final_value.get_str() << '\n';
+        history.emplace_back(std::make_pair(std::move(orig_input), final_value.get_str()));
+    } catch (const std::bad_alloc& err) {
+        std::cerr << "Error: The number grew too big!\n";
+    } catch (const std::exception& err) {
+        std::cerr << "Error: " << err.what() << '\n';
+    }
+}
+
+void math_procedure(std::string& orig_input, const std::string& result, const bool floating_point, auto& history) {
+    if (floating_point) {
+        math_float_procedure(orig_input, result, history);
+    } else {
+        math_int_procedure(orig_input, result, history);
+    }
 }
 
 void bool_procedure(std::string& orig_input, const std::string& result, auto& history) {
@@ -261,7 +281,7 @@ void print_version() {
 }
 
 void print_help() {
-    std::cout << " * Available flags:\n"
+    std::cout << "* Available flags:\n"
               << "\t - The [-c|--continuous] flag starts the program in continuous mode. You will be prompted for "
                  "expressions until you exit.\n"
               << "\t - The [-f|--file] flag runs the program in file mode. Launching the program in this mode will "
@@ -270,22 +290,23 @@ void print_help() {
               << std::endl
               << "\t - The [-v|--version] flag prints the version of the program.\n"
               << "\t - The [-h|--help] flag prints this screen.\n\n"
-              << " * If no flags are passed in, the program expects an expression to be passed in. Wrap the expression "
+              << "* If no flags are passed in, the program expects an expression to be passed in. Wrap the expression "
                  "in single quotes.\n"
               << "\t - An expression is any valid combination of parentheses, boolean values or numbers (T and F for True and "
                  "False), and boolean/arithmetic operations.\n\n"
-              << " * Boolean operations:\n"
-              << "\t - AND (&) results in True when both value are True. (T & F = F).\n"
+              << "* Boolean operations:\n"
+              << "\t - AND (&) results in True when both values are True. (T & F = F).\n"
               << "\t - OR (|) returns True when at least one of the values is True. (T | F = T).\n"
               << "\t - XOR ($) reults in True only when one of the values is True. (F $ F = F).\n"
               << "\t - NAND (@) returns True when both values are not True simultaneously. (F @ F = T).\n"
               << "\t - NOT (!) negates the value it is in front of. (!F = T).\n\n"
-              << " * Arithmetic operations:\n"
+              << "* Arithmetic operations:\n"
               << "\t - Addition (+) Adds two numbers together (2 + 2 = 4).\n"
               << "\t - Subtraction (-) Subtracts two numbers (3 - 2 = 1)\n"
-              << "\t - Multiplication (*) Performs repeated addition (3 * 3 = 9)\n"
-              << "\t - Division (/) Performs repeated subtraction (9 / 3 = 3)\n"
-              << "\t - Exponent (^) Multiplies a number by itself a certain number of times (3 ^ 2 = 9)\n"
+              << "\t - Multiplication (*) Performs repeated addition (3 * 3 = 3 + 3 + 3 = 9)\n"
+              << "\t - Division (/) Performs repeated subtraction (9 / 3 = 9 - 3 - 3 = 3)\n"
+              << "\t - Exponent (^) Multiplies a number by itself a certain number of times (3^3 = 3 * 3 * 3 = 27)\n"
+              << "\t - Factorial (!) Multiplies a number by every integer less than itself counting to 1 (4! = 4 * 3 * 2 * 1 = 24)\n"
 
               << std::endl;
 }
@@ -302,13 +323,19 @@ void math_procedure(std::string_view result, const bool floating_point) {
         try {
             const mpfr_t& final_value = tree->evaluate_floating_point();
             print_mpfr(final_value);
-        } catch (std::exception& err) {
+        } catch (const std::exception& err) {
             std::cerr << "Error: " << err.what() << '\n';
         }
         return;
     }
-    const mpz_class final_value = tree->evaluate();
-    std::cout << "Result: " << final_value.get_str() << '\n';
+    try {
+        const mpz_class final_value = tree->evaluate();
+        std::cout << "Result: " << final_value.get_str() << '\n';
+    } catch (const std::bad_alloc& err) {
+        std::cerr << "Error: The number grew too big!\n";
+    } catch (const std::exception& err) {
+        std::cerr << "Error: " << err.what() << '\n';
+    }
 }
 
 void bool_procedure(std::string_view result) {

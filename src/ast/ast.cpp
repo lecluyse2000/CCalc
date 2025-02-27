@@ -44,13 +44,9 @@ std::unique_ptr<MathNode> MathAST::build_ast() noexcept {
         std::string current_num;
         current_num += current_token;
         while (m_index < m_prefix_expression.length()) {
-            const char next_token = m_prefix_expression[m_index];
-            if (next_token == ',') {
-                m_index++;
-                break;
-            }
+            const char next_token = m_prefix_expression[m_index++];
+            if (next_token == ',') break;
             current_num += next_token; 
-            m_index++;
         }
         if (m_floating_point) {
             return std::make_unique<ValueMNode>("0", current_num);
@@ -59,7 +55,10 @@ std::unique_ptr<MathNode> MathAST::build_ast() noexcept {
     }
 
     std::unique_ptr<MathNode> node;
-    if (current_token == '~') {
+    if (current_token == '!') {
+        node = std::make_unique<FactorialNode>();
+        node->m_left_child = build_ast();
+    } else if (current_token == '~') {
         node = std::make_unique<UnaryMNode>();
         node->m_left_child = build_ast();
     } else {

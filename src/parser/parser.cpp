@@ -109,7 +109,8 @@ bool math_operator_found(MathParseState& state, ParseResult& result,
     if (state.in_number) {
         result.result += state.num_buffer + ',';
         clear_num_buffer(state);
-        if (state.current_token == '+' && (Types::is_math_operator(*(state.itr + 1)) || *(state.itr + 1) == '(')) return true;
+        if (state.current_token == '+' &&
+            ((Types::is_math_operator(*(state.itr + 1)) && *(state.itr + 1) != '!') || *(state.itr + 1) == '(')) return true;
     }
     check_for_floating_point(state, infix_expression, result.is_floating_point);
     while (!op_stack.empty() && op_stack.top() != ')' && 
@@ -127,8 +128,6 @@ std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& re
                                           std::string& infix_expression,
                                           std::stack<char>& op_stack) {
     state.current_token = *state.itr;
-    if (state.current_token == '!') return std::optional<std::string>("! operator is not supported yet!\n");
-    
     if (state.current_token == '-') check_for_unary(state);
     const auto num_check = check_for_number(state, result.is_floating_point); 
     if (num_check && *num_check == "") {

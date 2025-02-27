@@ -71,6 +71,16 @@ struct OperationMNode : public MathNode {
     const char key;
 };
 
+struct FactorialNode : public MathNode {
+    FactorialNode() {
+        mpfr_init2(node_result, 256);
+    }
+    ~FactorialNode() { mpfr_clear(node_result); }
+    [[nodiscard]] mpz_class evaluate() const override;
+    mpfr_t& evaluate_float() override;
+    mpfr_t node_result;
+};
+
 struct UnaryMNode : public MathNode {
     explicit UnaryMNode() {
         mpfr_init2(node_result, 256);

@@ -44,23 +44,38 @@ std::vector<std::string> get_expressions() noexcept {
     return expressions;
 }
 
-void math_procedure(FILE*& output_file, const std::string_view result, const bool is_floating_point) {
-    const auto tree = std::make_unique<MathAST>(result, is_floating_point);
-    if (is_floating_point) {
-        try {
-            const mpfr_t& final_value = tree->evaluate_floating_point();
-            if (mpfr_integer_p(final_value)) {
-                mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
-            } else {
-                mpfr_fprintf(output_file, "Result: %.12Rf\n", final_value);
-            }
-        } catch (std::exception& err) {
-            fprintf(output_file, "Error: %s\n", err.what()); 
+void math_float_procedure(FILE*& output_file, const std::string_view result) {
+    try {
+        const auto tree = std::make_unique<MathAST>(result, true);
+        const mpfr_t& final_value = tree->evaluate_floating_point();
+        if (mpfr_integer_p(final_value)) {
+            mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
+        } else {
+            mpfr_fprintf(output_file, "Result: %.12Rf\n", final_value);
         }
-        return;
+    } catch (const std::exception& err) {
+        fprintf(output_file, "Error: %s\n", err.what()); 
     }
-    const mpz_class final_value = tree->evaluate();
-    gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
+}
+
+void math_int_procedure(FILE*& output_file, const std::string_view result) {
+    try {
+        const auto tree = std::make_unique<MathAST>(result, false);
+        const mpz_class final_value = tree->evaluate();
+        gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
+    } catch (const std::bad_alloc& err) {
+        std::cerr << "Error: The number grew too big!\n";
+    } catch (const std::exception& err) {
+        fprintf(output_file, "Error: %s\n", err.what()); 
+    }
+}
+
+void math_procedure(FILE*& output_file, const std::string_view result, const bool is_floating_point) {
+    if (is_floating_point) {
+        math_float_procedure(output_file, result);
+    } else {
+        math_int_procedure(output_file, result);
+    }
 }
 
 void bool_procedure(FILE*& output_file, const std::string_view result) {

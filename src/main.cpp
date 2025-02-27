@@ -1,5 +1,6 @@
 // Author: Caden LeCluyse
 
+#include <cctype>
 #include <string>
 
 #include "file/file.h"
@@ -26,7 +27,8 @@ int main(const int argc, const char* const argv[]) {
     } else if (expression == "-h" || expression == "--help") {
         UI::print_help();
         return 0;
-    } else if (expression[0] == '-') {
+    } else if (expression[0] == '-' && (expression.size() == 1 ||
+                                       (expression.size() >= 2 && (!std::isdigit(expression[1]) && expression[1] != '(')))) {
         UI::print_invalid_flag(expression);
         return 1;
     }

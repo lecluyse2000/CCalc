@@ -22,6 +22,8 @@ constexpr std::optional<std::string> check_leading(const std::string_view infix_
     }
     if (infix_expression[0] == ')') {
         return std::optional<std::string>("Expression begins with closed parentheses!\n");
+    } else if (infix_expression[0] == '!' && math) {
+        return std::optional<std::string>("Expression begins with factorial!\n");
     }
     for (const auto i : infix_expression) {
         if (!math && std::isdigit(i)) {
@@ -35,16 +37,16 @@ constexpr std::optional<std::string> check_leading(const std::string_view infix_
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_trailing(const std::string_view infix_expression) {
+constexpr std::optional<std::string> check_trailing(const std::string_view infix_expression, const bool math) {
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
-        if (Types::isnot(*itr)) {
+        if (Types::isnot(*itr) && !math) {
             return std::optional<std::string>("Expression ends with NOT!\n");
-        } else if (Types::isoperator(*itr)) {
+        } else if (Types::isoperator(*itr) && (!math && *itr != '!')) {
             return std::optional<std::string>("Expression ends with an operator!\n");
         } else if (*itr == '(') {
             return std::optional<std::string>("Expression ends with open parentheses!\n");
         } else {
-            break;
+            return std::nullopt;
         }
     }
     return std::nullopt;
@@ -90,7 +92,7 @@ constexpr std::optional<std::string> check_not_after_value(const char current_to
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_missing_operator_math(const char current_token, const char previous_token) {
-    if ((current_token == ')' && (Types::isnot(previous_token) || Types::isoperand(previous_token))) ||
+    if ((current_token == ')' && Types::isoperand(previous_token)) ||
         ((Types::isoperand(current_token) && current_token != '~') && previous_token == '(') || 
         (current_token == ')' && previous_token == '(')) {
         return std::optional<std::string>("Missing operator!\n");
@@ -110,10 +112,11 @@ constexpr std::optional<std::string> check_missing_operator_bool(const char curr
     return std::nullopt;
 }
 
+// This function is pretty bad but I don't feel like refactoring
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_missing_operand_math(const char current_token, const char previous_token) {
     if ((current_token == '+' && previous_token =='*') || (current_token == '*' && previous_token == '*') ||
-         (current_token == '-' && previous_token == '/') || (Types::is_math_operator(current_token) && previous_token == ')') ||
+         (current_token == '-' && previous_token == '/') || (Types::is_math_operator(current_token) && current_token != '!' && previous_token == ')') ||
          (current_token == '*' && previous_token == '/') || (current_token == '/' && previous_token == '*') ||
          (current_token == '(' && (Types::is_math_operator(previous_token) && previous_token != '+' && previous_token != '-' && previous_token != '~')) ||
          (current_token == '/' && previous_token == '/') || (current_token == '^' && previous_token == '^')){
@@ -131,6 +134,20 @@ constexpr std::optional<std::string> check_missing_operand_bool(const char curre
 
     return std::nullopt;
 }
+
+[[nodiscard]] inline
+constexpr std::optional<std::string> check_for_factorial_error(const char current_token, const char previous_token) {
+    if (current_token == '!' && std::isdigit(previous_token)) {
+        return std::optional<std::string>("Digit following factorial!\n");
+    } else if(!std::isdigit(current_token) && current_token != ')' && previous_token == '!') {
+        return std::optional<std::string>("Factorial follows a non-number value!\n");
+    } else if(current_token == '!' && previous_token == '!') {
+        return std::optional<std::string>("Consecutive factorials detected!\n");
+    }
+
+    return std::nullopt;
+}
+
 }  // namespace
 
 [[nodiscard]] inline
@@ -138,7 +155,7 @@ constexpr std::optional<std::string> initial_checks(const std::string_view infix
     const auto leading = check_leading(infix_expression, math);
     if (leading) return std::optional<std::string>(*leading);
     
-    const auto trailing = check_trailing(infix_expression);
+    const auto trailing = check_trailing(infix_expression, math);
     if (trailing) return std::optional<std::string>(*trailing);
 
     return std::nullopt;
@@ -147,7 +164,8 @@ constexpr std::optional<std::string> initial_checks(const std::string_view infix
 [[nodiscard]] inline
 constexpr std::optional<std::string> error_math(const char current_token, const char previous_token) {
     std::initializer_list<std::optional<std::string> (*)(const char, const char)> error_checks{
-        check_missing_parentheses,  check_missing_operator_math, check_missing_operand_math};
+        check_missing_parentheses, check_missing_operator_math, check_missing_operand_math, 
+        check_for_factorial_error};
 
     for (auto check : error_checks) {
         const auto result = check(current_token, previous_token);
