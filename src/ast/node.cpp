@@ -36,9 +36,24 @@ BoolNode::BoolNode(const char token) noexcept : key(token){}
 
 [[nodiscard]] mpfr_t& ValueMNode::evaluate_float() { return value_mpfr; }
 
+static inline mpz_class mpz_exponent(mpz_class& left_value, mpz_class& right_value) {
+    if (right_value == 0) return 1;
+    if (right_value == 1) return left_value;
+    mpz_class retval = 1;
+    while (right_value > 0) {
+        if (right_value % 2 == 1) {
+            retval *= left_value;
+        }
+        left_value *= left_value;
+        right_value /= 2;
+    }
+    
+    return retval;
+}
+
 [[nodiscard]] mpz_class OperationMNode::evaluate() const {
-    const mpz_class left_value = m_left_child->evaluate();
-    const mpz_class right_value = m_right_child->evaluate();
+    mpz_class left_value = m_left_child->evaluate();
+    mpz_class right_value = m_right_child->evaluate();
 
     switch(key) {
         case '+':
@@ -48,13 +63,7 @@ BoolNode::BoolNode(const char token) noexcept : key(token){}
         case '*':
             return left_value * right_value;
         default:
-            if (right_value == 0) return 1;
-            if (right_value == 1) return left_value;
-            mpz_class retval = left_value;
-            for (int i = 0; i < right_value - 1; ++i) {
-                retval *= left_value;
-            }
-            return retval;
+            return mpz_exponent(left_value, right_value);
     }
 }
 

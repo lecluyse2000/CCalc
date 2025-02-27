@@ -53,6 +53,7 @@ void print_history(const auto& history) {
     std::cout << std::endl;
 }
 
+// This function grabs the filename the user wants to print to
 [[nodiscard]] std::optional<std::string> get_filename() {
     std::string filename;
     char filename_flag = 'f';
@@ -64,6 +65,7 @@ void print_history(const auto& history) {
             return std::nullopt;
         }
 
+        // Verify the input
         std::cout << "You entered " << filename << " is this correct? (Y/N): ";
         if (!std::cin.get(filename_flag)) [[unlikely]] {
             std::cerr << "Unable to receive input! Aborting...\n\n";
@@ -71,22 +73,21 @@ void print_history(const auto& history) {
         }
 
         while (toupper(filename_flag) != 'Y' && toupper(filename_flag) != 'N') {
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            clear_input_stream();
             std::cout << "Incorrect input. Try again (Y/N): ";
             if (!std::cin.get(filename_flag)) [[unlikely]] {
                 std::cerr << "Unable to receive input! Aborting...\n\n";
                 return std::nullopt;
             }
         }
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        clear_input_stream();
     }
 
     return std::optional<std::string>(filename);
 }
 
 [[nodiscard]] bool save_history(const auto& history) {
+    // Get the file from the user, then output the history to it
     const std::optional<std::string> filename = get_filename();
     if (!filename) [[unlikely]] {
         return false;
@@ -109,6 +110,7 @@ enum class InputResult {
     QUIT_SUCCESS
 };
 
+// Determines the status of the program based on the user input, return an enum defined above
 [[nodiscard]] InputResult handle_input(std::string_view input_expression, auto& program_history) {
     if (input_expression == "help") {
         print_help_continuous();
@@ -143,7 +145,9 @@ enum class InputResult {
     return InputResult::CONTINUE_TO_EVALUATE;
 }
 
-void trim_leading_zero_mpfr(std::vector<char>& buffer) {
+// Remove the trailing zeros from a MPFR float in char vector form
+void trim_trailing_zero_mpfr(std::vector<char>& buffer) {
+    // If there is no decimal, return early
     const auto find_decimal = std::ranges::find_if(buffer, [](const char c) {
         return c == '.';
     });
@@ -156,7 +160,9 @@ void trim_leading_zero_mpfr(std::vector<char>& buffer) {
     } 
 }
 
+// Convert an MPFR to a char vector
 [[nodiscard]] bool convert_mpfr_char_vec(std::vector<char>& buffer, const mpfr_t& val) {
+    // If the float is an integer, don't worry about the precision
     const int snprintf_result = mpfr_integer_p(val) ? mpfr_snprintf(buffer.data(), buffer_size, "%.0Rf", val)
                                                     : mpfr_snprintf(buffer.data(), buffer_size, "%.12Rf", val);
     if (snprintf_result < 0) {
@@ -166,10 +172,11 @@ void trim_leading_zero_mpfr(std::vector<char>& buffer) {
         std::cerr << "Warning: Buffer too small for mpfr_snprintf, output may be truncated.\n";
     }
     buffer.resize(static_cast<std::size_t>(snprintf_result));
-    trim_leading_zero_mpfr(buffer);
+    trim_trailing_zero_mpfr(buffer);
     return true; 
 }
 
+// Prints an MPFR float using the two functions defined above
 std::string print_mpfr(const mpfr_t& final_value) {
     std::vector<char> buffer(buffer_size);
     if(!convert_mpfr_char_vec(buffer, final_value)) return std::string("");
@@ -179,9 +186,11 @@ std::string print_mpfr(const mpfr_t& final_value) {
     }
     std::cout << '\n';
 
+    // Have to return using iterators since it's not null teriminated
     return std::string(buffer.begin(), buffer.end()); 
 }
 
+// Make the tree, evaluate, print the result, then add it to the history
 void math_float_procedure(std::string& orig_input, const std::string& result, auto& history) {
     try {
         const auto tree = std::make_unique<MathAST>(result, true);
@@ -208,6 +217,7 @@ void math_int_procedure(std::string& orig_input, const std::string& result, auto
     }
 }
 
+// Calls the float or int procedure based on float_point status
 void math_procedure(std::string& orig_input, const std::string& result, const bool floating_point, auto& history) {
     if (floating_point) {
         math_float_procedure(orig_input, result, history);
@@ -216,6 +226,7 @@ void math_procedure(std::string& orig_input, const std::string& result, const bo
     }
 }
 
+// Bool is easier than math, just solve and add to history
 void bool_procedure(std::string& orig_input, const std::string& result, auto& history) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     std::cout << "Result: ";
@@ -241,7 +252,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
     }
 }
 
-}  // namespace
+}  // Anon namespace, all these functions are essentially defined as static 
 
 [[nodiscard]] int program_loop() {
     std::string input_expression;
@@ -259,9 +270,11 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
             continue;
         }
         std::string orig_input = input_expression;
+        // Remove spaces from the user's input
         input_expression.erase(remove(input_expression.begin(), input_expression.end(), ' '), input_expression.end());
         const InputResult result = handle_input(input_expression, program_history);
 
+        // Based upon the input the program exits, continues, or evaluates the expression
         switch (result) {
             case InputResult::QUIT_SUCCESS:
                 return 0;
@@ -315,9 +328,11 @@ void print_invalid_flag(const std::string_view expression) {
     std::cerr << "Error: " << expression << " is an invalid flag!\n\n";
 }
 
+// Overloaded functions for when the program is not in continuous mode
+// When just passing expressions in at runtime there is no need to worry about the history
 namespace {
 
-void math_procedure(std::string_view result, const bool floating_point) {
+void math_procedure(const std::string_view result, const bool floating_point) {
     const auto tree = std::make_unique<MathAST>(result, floating_point);
     if (floating_point) {
         try {
@@ -338,7 +353,7 @@ void math_procedure(std::string_view result, const bool floating_point) {
     }
 }
 
-void bool_procedure(std::string_view result) {
+void bool_procedure(const std::string_view result) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
@@ -350,6 +365,7 @@ void bool_procedure(std::string_view result) {
 
 }
 
+// Non continuous mode
 void evaluate_expression(std::string& expression) {
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
     const auto [result, status, is_math, is_floating_point] = Parse::create_prefix_expression(expression);

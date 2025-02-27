@@ -33,6 +33,8 @@ struct UnaryBNode : public BoolNode {
     [[nodiscard]] bool evaluate() const override;
 };
 
+// According to the MPFR docs, when using c++ you should try to avoid making copies whenever possible,
+// so evaluate_float returns a reference to a node_result, which is initialized in the constructor of the node
 struct MathNode {
     MathNode() = default;
     virtual ~MathNode() = default;

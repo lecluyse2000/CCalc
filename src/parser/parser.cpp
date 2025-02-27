@@ -29,6 +29,8 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
     return std::nullopt;
 } 
 
+// Checks if the parser is currently in a number based on if the current token is a digit or decimal
+// If a decimal place is found, the program goes into floating point mode
 [[nodiscard]] constexpr std::optional<std::string>
 check_for_number(MathParseState& state,  bool& floating_point) {
     if (std::isdigit(state.current_token)) {
@@ -48,6 +50,7 @@ check_for_number(MathParseState& state,  bool& floating_point) {
     return std::nullopt;
 }
 
+// Unary cases: 1) (-(    2) (-[operator]    3)  [operator]- 
 constexpr void 
 check_for_unary(MathParseState& state) {
     const char next_token = *(state.itr + 1);
@@ -57,6 +60,7 @@ check_for_unary(MathParseState& state) {
     }
 }
 
+// If there is division or an exponent raised to a negative power, go into floating point mode
 constexpr void check_for_floating_point(MathParseState& state, std::string& infix_expression,
                                         bool& floating_point) {
     if (state.current_token == '/') {
@@ -123,10 +127,16 @@ bool math_operator_found(MathParseState& state, ParseResult& result,
     return false;
 }
 
+// Main body of the loop for parsing math equations
 [[nodiscard]]
 std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& result,
                                           std::string& infix_expression,
                                           std::stack<char>& op_stack) {
+    // Grab the current token
+    // If the token is an operand, simply add it to the string
+    // if the token is an operator or a closing parentheses, add it to the stack
+    // If the token is an open parentheses, pop from the stack and add to the string until a closing parentheses is
+    // found, or an operator with a higher precedence
     state.current_token = *state.itr;
     if (state.current_token == '-') check_for_unary(state);
     const auto num_check = check_for_number(state, result.is_floating_point); 
@@ -158,6 +168,8 @@ std::optional<std::string> parse_math(std::string& infix_expression, ParseResult
     MathParseState state;
     if (infix_expression[0] == '-') infix_expression[0] = '~';
     
+    // All the algorithms I discovered for converting to prefix started by reversing the string,
+    // so I thought why not just parse from right to left so we don't have to reverse
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         state.itr = itr;
         const auto loop_result = math_loop_body(state, result, infix_expression, operator_stack);
@@ -237,6 +249,8 @@ clear_stack(std::string& prefix_expression, std::stack<char>& operator_stack, co
 
 }
 
+// Takes in a standard expression string in infix form, and converts it to prefix
+// This is the Shunting yard algorithm, invented by Dijkstra in 1961
 [[nodiscard]]
 ParseResult create_prefix_expression(std::string& infix_expression) {
     std::stack<char> operator_stack;

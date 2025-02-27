@@ -64,7 +64,7 @@ void math_int_procedure(FILE*& output_file, const std::string_view result) {
         const mpz_class final_value = tree->evaluate();
         gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
     } catch (const std::bad_alloc& err) {
-        std::cerr << "Error: The number grew too big!\n";
+        fprintf(output_file, "Error: The number grew too big!\n"); 
     } catch (const std::exception& err) {
         fprintf(output_file, "Error: %s\n", err.what()); 
     }
