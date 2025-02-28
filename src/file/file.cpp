@@ -13,16 +13,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <vector>
-//for _NSGetExecutablePath and PATH_MAX
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#include <sys/syslimits.h>
-#endif
-
-//for PATH_MAX
-#ifdef __linux__
-#include <linux/limits.h>
-#endif
 
 #include "ast/ast.h"
 #include "parser/parser.h"
@@ -31,43 +21,18 @@
 
 namespace File {
 
-inline constexpr std::string_view ini_name = "settings.ini";
+inline constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
 
-
-[[nodiscard]] static std::filesystem::path get_executable_path() {
-    
-char buffer[PATH_MAX];
-#ifdef __linux__
-    const ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
-    
-    if (len == -1) {
-        std::cerr << "Failed to get executable path\n";
-        return "";
-    }
-    
-    buffer[len] = '\0';
-#elif defined(__APPLE__)
-    std::uint32_t size = sizeof(buffer);
-    if (_NSGetExecutablePath(buffer, &size) != 0) {
-        std::cerr << "Failed to get executable path\n";
-        return "";
-    }
-#else
-    #error "Unsupported platform"
-#endif
-
-    const std::string_view path(buffer);
-    const std::size_t last_slash = path.find_last_of('/');
-    if (last_slash != std::string::npos) {
-        return std::filesystem::path(path.substr(0, last_slash));
-    }
-    
-    return std::filesystem::path(path);
+[[nodiscard]] static std::filesystem::path get_home_path() {
+    const char* const home_path = getenv("HOME");
+    if (!home_path) return "";
+    return std::filesystem::path(home_path);
 }
 
-[[nodiscard]] static bool create_ini() {
+[[nodiscard]] static bool create_ini(const auto& full_path) {
     try {
-        std::ofstream file(get_executable_path() / ini_name);
+        std::filesystem::create_directories(full_path.parent_path());
+        std::ofstream file(full_path);
         if (file.is_open()) {
             file << "[Settings]\n";
             file << "precision=" << Util::default_precision << "\n";
@@ -83,17 +48,17 @@ char buffer[PATH_MAX];
 
 std::vector<std::string> source_ini() noexcept {
     std::vector<std::string> retval;
-    retval.reserve(2);
-    const auto ini_path = get_executable_path() / ini_name;
-    const bool settings_exists = std::filesystem::exists(ini_path);
+    const std::filesystem::path full_path = get_home_path() / ini_path;
+    const bool settings_exists = std::filesystem::exists(full_path);
     if (!settings_exists) {
-        const bool success = create_ini();
+        const bool success = create_ini(full_path);
         if (!success) {
             std::cerr << "Unable to create settings.ini\n";
         }
         return Util::create_default_settings_vec();
     }
-    std::ifstream input_file(ini_path);
+    std::ifstream input_file(full_path);
+    if (!input_file) [[unlikely]] return retval;
     std::string line;
     while (std::getline(input_file, line)) {
         retval.emplace_back(std::move(line));
