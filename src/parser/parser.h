@@ -3,7 +3,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <stack>
 #include <string>
 #include <string_view>
 
@@ -29,12 +28,6 @@ namespace Parse {
         bool is_floating_point = false;
     };
 
-    inline void empty_stack(std::stack<char>& operator_stack) noexcept {
-        while (!operator_stack.empty()) {
-            operator_stack.pop();
-        }
-    }
-    
     inline void clear_num_buffer(MathParseState& state) noexcept {
         state.in_number = false;
         state.num_buffer.clear();

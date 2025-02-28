@@ -3,17 +3,10 @@
 #ifndef UI_H
 #define UI_H
 
-#include <iostream>
-#include <limits>
 #include <string>
 #include <string_view>
 
 namespace UI {
-
-inline void clear_input_stream() {
-    std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-}
 
 void print_excessive_arguments(const int arguments);
 void print_insufficient_arguments();

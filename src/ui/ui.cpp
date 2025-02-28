@@ -7,7 +7,6 @@
 #include <fstream>
 #include <gmpxx.h>
 #include <iostream>
-#include <limits>
 #include <memory>
 #include <mpfr.h>
 #include <optional>
@@ -19,6 +18,7 @@
 #include "ast/ast.h"
 #include "file/file.h"
 #include "parser/parser.h"
+#include "util.hpp"
 #include "version.hpp"
 
 namespace UI {
@@ -73,14 +73,14 @@ void print_history(const auto& history) {
         }
 
         while (toupper(filename_flag) != 'Y' && toupper(filename_flag) != 'N') {
-            clear_input_stream();
+            Util::clear_input_stream();
             std::cout << "Incorrect input. Try again (Y/N): ";
             if (!std::cin.get(filename_flag)) [[unlikely]] {
                 std::cerr << "Unable to receive input! Aborting...\n\n";
                 return std::nullopt;
             }
         }
-        clear_input_stream();
+        Util::clear_input_stream();
     }
 
     return std::optional<std::string>(filename);

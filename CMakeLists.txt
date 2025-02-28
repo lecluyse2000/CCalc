@@ -20,7 +20,9 @@ find_path(MPFR_INCLUDE_DIR NAMES mpfr.h)
 if(NOT GMP_INCLUDE_DIR)
     message(FATAL_ERROR "GMP headers not found. Please install GMP correctly.")
 endif()
-
+if(NOT MPFR_INCLUDE_DIR)
+    message(FATAL_ERROR "MPFR headers not found. Please install MPFR correctly.")
+endif()
 if(NOT GMP_LIBRARIES)
     message(FATAL_ERROR "GMP library not found. Please install GMP.")
 endif()
@@ -83,7 +85,6 @@ else()
         -fsignaling-nans
     )
 endif()
-#Use this command to build: cmake -B build && make -C build
 
 install(TARGETS ccalc
     DESTINATION bin

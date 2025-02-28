@@ -15,7 +15,7 @@ namespace Error {
 // Declare helper functions in an anonymous namespace
 namespace {
 
-[[nodiscard]] 
+[[nodiscard]] inline
 constexpr std::optional<std::string> check_leading(const std::string_view infix_expression, const bool math) {
     if(Types::isoperator(infix_expression[0]) && infix_expression[0] != '-' && infix_expression[0] != '~') {
         return std::optional<std::string>("Expression begins with an operator!\n");

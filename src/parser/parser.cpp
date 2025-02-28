@@ -10,6 +10,7 @@
 
 #include "error.hpp"
 #include "types.hpp"
+#include "util.hpp"
 
 namespace Parse {
 
@@ -236,7 +237,7 @@ std::optional<std::string> parse_bool(const std::string_view infix_expression, s
 clear_stack(std::string& prefix_expression, std::stack<char>& operator_stack, const bool is_math) {
     while (!operator_stack.empty()) {
         if (operator_stack.top() == ')') {
-            empty_stack(operator_stack);
+            Util::empty_stack(operator_stack);
             return std::optional<std::string_view>("Missing open parentheses!\n");
         }
         prefix_expression.push_back(operator_stack.top());
