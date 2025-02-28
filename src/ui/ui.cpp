@@ -103,7 +103,7 @@ void print_history(const auto& history) {
     return true;
 }
 
-enum class InputResult {
+enum struct InputResult {
     CONTINUE_TO_EVALUATE,
     CONTINUE,
     QUIT_FAILURE,
@@ -191,9 +191,9 @@ std::string print_mpfr(const mpfr_t& final_value) {
 }
 
 // Make the tree, evaluate, print the result, then add it to the history
-void math_float_procedure(std::string& orig_input, const std::string& result, auto& history) {
+void math_float_procedure(std::string& orig_input, const std::string_view prefix_input, auto& history) {
     try {
-        const auto tree = std::make_unique<MathAST>(result, true);
+        const auto tree = std::make_unique<MathAST>(prefix_input, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         std::string final_val = print_mpfr(final_value);
         if (final_val.empty()) return;
@@ -204,9 +204,9 @@ void math_float_procedure(std::string& orig_input, const std::string& result, au
     return;
 }
 
-void math_int_procedure(std::string& orig_input, const std::string& result, auto& history) {
+void math_int_procedure(std::string& orig_input, const std::string_view prefix_input, auto& history) {
     try {
-        const auto tree = std::make_unique<MathAST>(result, false);
+        const auto tree = std::make_unique<MathAST>(prefix_input, false);
         const mpz_class final_value = tree->evaluate();
         std::cout << "Result: " << final_value.get_str() << '\n';
         history.emplace_back(std::make_pair(std::move(orig_input), final_value.get_str()));
@@ -218,17 +218,17 @@ void math_int_procedure(std::string& orig_input, const std::string& result, auto
 }
 
 // Calls the float or int procedure based on float_point status
-void math_procedure(std::string& orig_input, const std::string& result, const bool floating_point, auto& history) {
+void math_procedure(std::string& orig_input, const std::string_view prefix_input, const bool floating_point, auto& history) {
     if (floating_point) {
-        math_float_procedure(orig_input, result, history);
+        math_float_procedure(orig_input, prefix_input, history);
     } else {
-        math_int_procedure(orig_input, result, history);
+        math_int_procedure(orig_input, prefix_input, history);
     }
 }
 
 // Bool is easier than math, just solve and add to history
-void bool_procedure(std::string& orig_input, const std::string& result, auto& history) {
-    const auto syntax_tree = std::make_unique<BoolAST>(result);
+void bool_procedure(std::string& orig_input, const std::string_view prefix_input, auto& history) {
+    const auto syntax_tree = std::make_unique<BoolAST>(prefix_input);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
         std::cout << "True!\n";
