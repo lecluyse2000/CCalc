@@ -3,7 +3,6 @@
 #include "node.h"
 
 #include <cctype>
-#include <cmath>
 #include <gmpxx.h>
 #include <limits>
 #include <memory>

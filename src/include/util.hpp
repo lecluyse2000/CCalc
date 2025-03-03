@@ -2,7 +2,6 @@
 #define UTIL_HPP
 
 #include <array>
-#include <cmath>
 #include <mpfr.h>
 #include <iostream>
 #include <limits>
@@ -12,13 +11,13 @@
 
 namespace Util {
 
-inline constexpr std::array<std::string, 2> settings_keys = {"precision", "display_digits"};
+inline constexpr std::array<std::string_view, 2> settings_keys = {"precision", "display_digits"};
 inline constexpr long default_precision = 320;
 inline constexpr long default_digits = 20;
 
 inline std::unordered_map<std::string, long> create_default_settings_map() {
-    return { {settings_keys[0], default_precision},
-             {settings_keys[1], default_digits} };
+    return { {std::string(settings_keys[0]), default_precision},
+             {std::string(settings_keys[1]), default_digits} };
 }
 
 inline void clear_input_stream() {

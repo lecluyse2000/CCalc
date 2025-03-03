@@ -75,8 +75,8 @@ bool create_ini(const auto& full_path) {
         create_ini(full_path);
         return false;
     }
-    for (const auto& key : Util::settings_keys) {
-        if (!map.contains(key)) {
+    for (const auto key : Util::settings_keys) {
+        if (!map.contains(std::string(key))) {
             create_ini(full_path);
             return false;
         }
