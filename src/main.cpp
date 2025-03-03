@@ -3,15 +3,9 @@
 #include <cctype>
 #include <mpfr.h>
 #include <string>
-#include <utility>
-#include <vector>
 
 #include "file/file.h"
 #include "ui/ui.h"
-
-std::pair<mpfr_prec_t, mp_prec_t> get_settings() {
-    std::vector<std::string> settings = File::source_ini();
-}
 
 int main(const int argc, const char* const argv[]) {
     if (argc > 2) {

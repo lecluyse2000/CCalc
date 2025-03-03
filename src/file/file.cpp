@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <filesystem>
 #include <fstream>
 #include <gmpxx.h>
 #include <iostream>
@@ -12,59 +11,15 @@
 #include <string>
 #include <stdio.h>
 #include <unistd.h>
+#include <unordered_map>
 #include <vector>
 
 #include "ast/ast.h"
 #include "parser/parser.h"
-#include "util.hpp"
+#include "startup/startup.h"
 
 
 namespace File {
-
-inline constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
-
-[[nodiscard]] static std::filesystem::path get_home_path() {
-    const char* const home_path = getenv("HOME");
-    if (!home_path) return "";
-    return std::filesystem::path(home_path);
-}
-
-[[nodiscard]] static bool create_ini(const auto& full_path) {
-    try {
-        std::filesystem::create_directories(full_path.parent_path());
-        std::ofstream file(full_path);
-        if (file.is_open()) {
-            file << "[Settings]\n";
-            file << "precision=" << Util::default_precision << "\n";
-            file << "display_digits=" << Util::default_digits << "\n";
-            file.close();
-            return true;
-        }
-        return false;
-    } catch (...) {
-        return false;
-    }
-}
-
-std::vector<std::string> source_ini() noexcept {
-    std::vector<std::string> retval;
-    const std::filesystem::path full_path = get_home_path() / ini_path;
-    const bool settings_exists = std::filesystem::exists(full_path);
-    if (!settings_exists) {
-        const bool success = create_ini(full_path);
-        if (!success) {
-            std::cerr << "Unable to create settings.ini\n";
-        }
-        return Util::create_default_settings_vec();
-    }
-    std::ifstream input_file(full_path);
-    if (!input_file) [[unlikely]] return retval;
-    std::string line;
-    while (std::getline(input_file, line)) {
-        retval.emplace_back(std::move(line));
-    }
-    return retval;
-}
 
 void output_history(const std::vector<std::pair<std::string, std::string> >& history, 
                     std::ofstream& output_file) noexcept {
@@ -92,23 +47,23 @@ std::vector<std::string> get_expressions() noexcept {
     return expressions;
 }
 
-void math_float_procedure(FILE*& output_file, const std::string_view result) {
+void math_float_procedure(FILE*& output_file, const std::string_view result, const auto& settings) {
     try {
-        const auto tree = std::make_unique<MathAST>(result, true);
+        const auto tree = std::make_unique<MathAST>(result, static_cast<mpfr_prec_t>(settings.at("precision")), true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         if (mpfr_integer_p(final_value)) {
             mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
         } else {
-            mpfr_fprintf(output_file, "Result: %.12Rf\n", final_value);
+            mpfr_fprintf(output_file, "Result: %.*Rf\n", static_cast<mpfr_prec_t>(settings.at("display_digits")), final_value);
         }
     } catch (const std::exception& err) {
         fprintf(output_file, "Error: %s\n", err.what()); 
     }
 }
 
-void math_int_procedure(FILE*& output_file, const std::string_view result) {
+void math_int_procedure(FILE*& output_file, const std::string_view result, const auto& settings) {
     try {
-        const auto tree = std::make_unique<MathAST>(result, false);
+        const auto tree = std::make_unique<MathAST>(result, static_cast<mpfr_prec_t>(settings.at("precision")), false);
         const mpz_class final_value = tree->evaluate();
         gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
     } catch (const std::bad_alloc& err) {
@@ -119,10 +74,11 @@ void math_int_procedure(FILE*& output_file, const std::string_view result) {
 }
 
 void math_procedure(FILE*& output_file, const std::string_view result, const bool is_floating_point) {
+    static const std::unordered_map<std::string, long> settings = Startup::source_ini();
     if (is_floating_point) {
-        math_float_procedure(output_file, result);
+        math_float_procedure(output_file, result, settings);
     } else {
-        math_int_procedure(output_file, result);
+        math_int_procedure(output_file, result, settings);
     }
 }
 

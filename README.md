@@ -65,6 +65,12 @@ Exiting...
 - With the `-v` or `--version` flag. The program simply displays the version information of the program.    
 - The `--help` flag prints a screen explaining all the flags and general program usage.
 
+### Configuration
+
+- All configuration is done in `~/.config/ccalc/settings.ini`
+- The `precision=` field is set in bits, and it modifies the precision of internal computations (default = 320).
+- The `display_digits=` field is set in digits, and it modifies the precision when printing the result (default = 20).
+
 ## Building from source
 
 ### Required dependencies

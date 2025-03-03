@@ -7,7 +7,7 @@
 #include <mpfr.h>
 #include <string_view>
 
-#include "types.hpp"
+#include "include/types.hpp"
 #include "node.h"
 
 std::unique_ptr<BoolNode> BoolAST::build_ast() noexcept {
@@ -49,20 +49,20 @@ std::unique_ptr<MathNode> MathAST::build_ast() noexcept {
             current_num += next_token; 
         }
         if (m_floating_point) {
-            return std::make_unique<ValueMNode>("0", current_num);
+            return std::make_unique<ValueMNode>("0", current_num, m_float_precision);
         }
-        return std::make_unique<ValueMNode>(current_num, "0");
+        return std::make_unique<ValueMNode>(current_num, "0", m_float_precision);
     }
 
     std::unique_ptr<MathNode> node;
     if (current_token == '!') {
-        node = std::make_unique<FactorialNode>();
+        node = std::make_unique<FactorialNode>(m_float_precision);
         node->m_left_child = build_ast();
     } else if (current_token == '~') {
-        node = std::make_unique<UnaryMNode>();
+        node = std::make_unique<UnaryMNode>(m_float_precision);
         node->m_left_child = build_ast();
     } else {
-        node = std::make_unique<OperationMNode>(current_token);
+        node = std::make_unique<OperationMNode>(current_token, m_float_precision);
         node->m_left_child = build_ast();
         node->m_right_child = build_ast();
     }
@@ -70,8 +70,8 @@ std::unique_ptr<MathNode> MathAST::build_ast() noexcept {
     return node;
 }
 
-MathAST::MathAST(const std::string_view expression, const bool _floating_point) noexcept :
-    m_prefix_expression(expression), m_index(0), m_floating_point(_floating_point),
+MathAST::MathAST(const std::string_view expression, const mpfr_prec_t _float_precision, const bool _floating_point) noexcept :
+    m_prefix_expression(expression), m_index(0), m_float_precision(_float_precision), m_floating_point(_floating_point),
     m_root(build_ast()) {
 }
 

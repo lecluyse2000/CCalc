@@ -39,6 +39,7 @@ target_sources(ccalc PRIVATE
     "src/ast/node.cpp"
     "src/parser/parser.cpp"
     "src/file/file.cpp"
+    "src/startup/startup.cpp"
 )
 
 #Includes the header files from src
@@ -48,6 +49,8 @@ target_include_directories(ccalc PRIVATE
     "src/ast"
     "src/parser"
     "src/file"
+    "src/startup"
+    "src/include"
     ${GMP_INCLUDE_DIR}
     ${MPFR_INCLUDE_DIR}
 )

@@ -10,7 +10,6 @@
 
 namespace File {
 
-std::vector<std::string> source_ini() noexcept;
 void output_history(const std::vector<std::pair<std::string, std::string> >& history, 
                     std::ofstream& output_file) noexcept;
 void initiate_file_mode();

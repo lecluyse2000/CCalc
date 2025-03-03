@@ -45,9 +45,9 @@ struct MathNode {
 };
 
 struct ValueMNode : public MathNode {
-    explicit ValueMNode(const std::string& _value_mpz, const std::string& _value_mpf) :
+    explicit ValueMNode(const std::string& _value_mpz, const std::string& _value_mpf, const mpfr_prec_t precision) :
         value_mpz(_value_mpz) {
-        mpfr_init2(value_mpfr, 256);
+        mpfr_init2(value_mpfr, precision);
         const int successful = mpfr_set_str(value_mpfr, _value_mpf.c_str(), 10, MPFR_RNDN);
         if (successful != 0) {
             mpfr_clear(value_mpfr);
@@ -63,8 +63,8 @@ struct ValueMNode : public MathNode {
 };
 
 struct OperationMNode : public MathNode {
-    explicit OperationMNode(const char token) : key(token) {
-        mpfr_init2(node_result, 256);
+    explicit OperationMNode(const char token, const mpfr_prec_t precision) : key(token) {
+        mpfr_init2(node_result, precision);
     }
     ~OperationMNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
@@ -74,8 +74,8 @@ struct OperationMNode : public MathNode {
 };
 
 struct FactorialNode : public MathNode {
-    FactorialNode() {
-        mpfr_init2(node_result, 256);
+    explicit FactorialNode(const mpfr_prec_t precision) {
+        mpfr_init2(node_result, precision);
     }
     ~FactorialNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
@@ -84,8 +84,8 @@ struct FactorialNode : public MathNode {
 };
 
 struct UnaryMNode : public MathNode {
-    explicit UnaryMNode() {
-        mpfr_init2(node_result, 256);
+    explicit UnaryMNode(const mpfr_prec_t precision) {
+        mpfr_init2(node_result, precision);
     }
     ~UnaryMNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
