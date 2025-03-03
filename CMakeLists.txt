@@ -6,7 +6,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_INSTALL_PREFIX "/usr")
 else()
-    message(FATAL_ERROR "Unsupported operating system!")
+    set(CMAKE_INSTALL_PREFIX "C:\\Program Files\\ccalc")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -61,7 +61,11 @@ target_link_libraries(ccalc PRIVATE
 )
 
 if(MSVC)
-    message(FATAL_ERROR "MSVC is not supported. Please use WSL.")
+    target_compile_options(ccalc PRIVATE 
+        /02
+        /fp:strict
+    )
+    message(WARNING "MSVC is not explicitly supported.")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(ccalc PRIVATE 
         -g 

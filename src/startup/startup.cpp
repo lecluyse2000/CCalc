@@ -2,11 +2,11 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string_view>
 #include <iostream>
-#include <unistd.h>
 #include <unordered_map>
 
 #include "include/util.hpp"
@@ -15,10 +15,15 @@ namespace Startup {
 
 namespace {
 
-inline constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
+[[maybe_unused]] inline constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
+[[maybe_unused]] inline constexpr std::string_view ini_path_windows = "AppData\\Local\\ccalc\\settings.ini";
 
 [[nodiscard]] std::filesystem::path get_home_path() {
-    const char* const home_path = getenv("HOME");
+    #ifdef _WIN32
+        const char* const home_path = getenv("USERPROFILE");
+    #else
+        const char* const home_path = getenv("HOME");
+    #endif
     if (!home_path) return "";
     return std::filesystem::path(home_path);
 }
@@ -85,7 +90,11 @@ std::unordered_map<std::string, long> source_ini() noexcept {
     std::unordered_map<std::string, long> retval;
     const std::filesystem::path parent_path = get_home_path();
     if (parent_path == "") return Util::create_default_settings_map();
-    const std::filesystem::path full_path = get_home_path() / ini_path;
+    #ifdef _WIN32
+        const std::filesystem::path full_path = get_home_path() / ini_path_windows;
+    #else
+        const std::filesystem::path full_path = get_home_path() / ini_path;
+    #endif
 
     const bool settings_exists = std::filesystem::exists(full_path);
     if (!settings_exists) {

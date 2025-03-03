@@ -7,6 +7,7 @@ CCalc is a CLI tool capable of solving both boolean and arithmetic expressions.
 - [Installation](#installation)
 - [Quickstart Guide](#start-guide)
   * [Flags](#flags)
+  * [Configuration](#configuration)
 - [Build from Source](#building-from-source)
   * [Dependencies](#required-dependencies)
   * [Linux](#linux)
@@ -139,3 +140,5 @@ ccalc
 ### Windows
 
 Use [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) and install via [Linux](#Debian)    
+Windows is not officially supported, but I have made an effort for it to work     
+If wsl is not an option, CMake, Clang, and Ninja might work    

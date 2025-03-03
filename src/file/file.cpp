@@ -10,7 +10,6 @@
 #include <mpfr.h>
 #include <string>
 #include <stdio.h>
-#include <unistd.h>
 #include <unordered_map>
 #include <vector>
 
