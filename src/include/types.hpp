@@ -4,8 +4,21 @@
 #define TYPES_HPP
 
 #include <cctype>
+#include <string_view>
 
 namespace Types {
+
+enum struct Setting {
+    PRECISION,
+    DISPLAY_PREC,
+    INVALID
+};
+
+[[nodiscard]] inline constexpr Setting string_to_settings_enum(const std::string_view string) {
+    if (string == "precision") return Setting::PRECISION;
+    if (string == "display_digits") return Setting::DISPLAY_PREC;
+    return Setting::INVALID;
+}
 
 [[nodiscard]] inline constexpr bool is_math_operand(const char token) noexcept {
     return std::isdigit(token) || token == '.';

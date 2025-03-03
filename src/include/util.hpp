@@ -6,18 +6,19 @@
 #include <iostream>
 #include <limits>
 #include <stack>
-#include <string>
 #include <unordered_map>
+
+#include "include/types.hpp"
 
 namespace Util {
 
-inline constexpr std::array<std::string_view, 2> settings_keys = {"precision", "display_digits"};
+inline constexpr std::array<Types::Setting, 2> setting_keys = {Types::Setting::PRECISION, Types::Setting::DISPLAY_PREC};
 inline constexpr long default_precision = 320;
 inline constexpr long default_digits = 20;
 
-inline std::unordered_map<std::string, long> create_default_settings_map() {
-    return { {std::string(settings_keys[0]), default_precision},
-             {std::string(settings_keys[1]), default_digits} };
+inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
+    return { {setting_keys[0], default_precision},
+             {setting_keys[1], default_digits} };
 }
 
 inline void clear_input_stream() {

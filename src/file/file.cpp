@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "ast/ast.h"
+#include "include/types.hpp"
 #include "parser/parser.h"
 #include "startup/startup.h"
 
@@ -48,12 +49,12 @@ std::vector<std::string> get_expressions() noexcept {
 
 void math_float_procedure(FILE*& output_file, const std::string_view result, const auto& settings) {
     try {
-        const auto tree = std::make_unique<MathAST>(result, static_cast<mpfr_prec_t>(settings.at("precision")), true);
+        const auto tree = std::make_unique<MathAST>(result, static_cast<mpfr_prec_t>(settings.at(Types::Setting::PRECISION)), true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         if (mpfr_integer_p(final_value)) {
             mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
         } else {
-            mpfr_fprintf(output_file, "Result: %.*Rf\n", static_cast<mpfr_prec_t>(settings.at("display_digits")), final_value);
+            mpfr_fprintf(output_file, "Result: %.*Rf\n", static_cast<mpfr_prec_t>(settings.at(Types::Setting::DISPLAY_PREC)), final_value);
         }
     } catch (const std::exception& err) {
         fprintf(output_file, "Error: %s\n", err.what()); 
@@ -62,7 +63,7 @@ void math_float_procedure(FILE*& output_file, const std::string_view result, con
 
 void math_int_procedure(FILE*& output_file, const std::string_view result, const auto& settings) {
     try {
-        const auto tree = std::make_unique<MathAST>(result, static_cast<mpfr_prec_t>(settings.at("precision")), false);
+        const auto tree = std::make_unique<MathAST>(result, static_cast<mpfr_prec_t>(settings.at(Types::Setting::PRECISION)), false);
         const mpz_class final_value = tree->evaluate();
         gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
     } catch (const std::bad_alloc& err) {
@@ -73,7 +74,7 @@ void math_int_procedure(FILE*& output_file, const std::string_view result, const
 }
 
 void math_procedure(FILE*& output_file, const std::string_view result, const bool is_floating_point) {
-    static const std::unordered_map<std::string, long> settings = Startup::source_ini();
+    static const std::unordered_map<Types::Setting, long> settings = Startup::source_ini();
     if (is_floating_point) {
         math_float_procedure(output_file, result, settings);
     } else {

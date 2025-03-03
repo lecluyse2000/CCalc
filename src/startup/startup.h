@@ -3,12 +3,13 @@
 
 #include <gmpxx.h>
 #include <mpfr.h>
-#include <string>
 #include <unordered_map>
+
+#include "include/types.hpp"
 
 namespace Startup {
 
-std::unordered_map<std::string, long> source_ini() noexcept;
+std::unordered_map<Types::Setting, long> source_ini() noexcept;
 
 }
 

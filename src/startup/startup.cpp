@@ -9,14 +9,15 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "include/types.hpp"
 #include "include/util.hpp"
 
 namespace Startup {
 
-namespace {
-
 [[maybe_unused]] inline constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
 [[maybe_unused]] inline constexpr std::string_view ini_path_windows = "AppData\\Local\\ccalc\\settings.ini";
+
+namespace {
 
 [[nodiscard]] std::filesystem::path get_home_path() {
     #ifdef _WIN32
@@ -24,6 +25,7 @@ namespace {
     #else
         const char* const home_path = getenv("HOME");
     #endif
+
     if (!home_path) return "";
     return std::filesystem::path(home_path);
 }
@@ -45,13 +47,10 @@ bool create_ini(const auto& full_path) {
     }
 }
 
-[[nodiscard]] bool create_retval(const std::string& line, const auto& full_path, std::unordered_map<std::string, long>& map) {
+[[nodiscard]] bool create_retval(const std::string& line, const auto& full_path, std::unordered_map<Types::Setting, long>& map) {
     const auto equal_pos = line.find('=');
-    if (equal_pos == line.size() - 1) {
+    if (equal_pos == line.size() - 1 || equal_pos == std::string::npos) {
         create_ini(full_path);
-        return false;
-    } else if (equal_pos == std::string::npos) {
-        create_ini(full_path); 
         return false;
     }
 
@@ -66,28 +65,30 @@ bool create_ini(const auto& full_path) {
         create_ini(full_path); 
         return false;
     }
-    map.emplace(std::move(key), value_long);
+    const auto emplace_result = map.try_emplace(Types::string_to_settings_enum(key), value_long);
+    if (!emplace_result.second) {
+        create_ini(full_path);
+        return false;
+    }
     return true;
 }
 
-[[nodiscard]] bool final_verification(const auto& full_path, const std::unordered_map<std::string, long> map) {
+[[nodiscard]] bool final_verification(const auto& full_path, const std::unordered_map<Types::Setting, long>& map) {
     if (map.size() != 2) {
         create_ini(full_path);
         return false;
     }
-    for (const auto key : Util::settings_keys) {
-        if (!map.contains(std::string(key))) {
-            create_ini(full_path);
-            return false;
-        }
+    if (map.contains(Types::Setting::INVALID)) {
+        create_ini(full_path);
+        return false;
     }
     return true;
 }
 
 }
 
-std::unordered_map<std::string, long> source_ini() noexcept {
-    std::unordered_map<std::string, long> retval;
+std::unordered_map<Types::Setting, long> source_ini() noexcept {
+    std::unordered_map<Types::Setting, long> retval;
     const std::filesystem::path parent_path = get_home_path();
     if (parent_path == "") return Util::create_default_settings_map();
     #ifdef _WIN32
@@ -98,15 +99,17 @@ std::unordered_map<std::string, long> source_ini() noexcept {
 
     const bool settings_exists = std::filesystem::exists(full_path);
     if (!settings_exists) {
-        const bool success = create_ini(full_path);
-        if (!success) {
+        if (!create_ini(full_path)) {
             std::cerr << "Unable to create settings.ini\n";
         }
         return Util::create_default_settings_map();
     }
 
     std::ifstream input_file(full_path);
-    if (!input_file) [[unlikely]] return retval;
+    if (!input_file) [[unlikely]] {
+        create_ini(full_path);
+        return Util::create_default_settings_map();
+    }
     std::string line;
     while (std::getline(input_file, line)) {
         if (line == "[Settings]") continue;
