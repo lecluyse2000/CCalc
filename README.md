@@ -6,6 +6,7 @@ CCalc is a CLI tool capable of solving both boolean and arithmetic expressions.
 
 - [Installation](#installation)
 - [Quickstart Guide](#start-guide)
+  * [Operators](#operators)
   * [Flags](#flags)
   * [Configuration](#configuration)
 - [Build from Source](#building-from-source)
@@ -56,6 +57,25 @@ Result: 3
 Please enter your expression, or enter help to see all available commands: quit
 Exiting...
 ```
+
+### Operators
+
+#### Boolean
+
+* & - AND
+* | - OR
+* $ - XOR
+* @ - NAND
+* ! - NOT
+
+#### Arithmetic
+
+* \+ - Addition
+* \- - Subtraction
+* \* - Multiplication
+* / - Division
+* ^ - Exponent
+* ! - Factorial
 
 ### Flags
 
