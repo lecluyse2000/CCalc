@@ -142,3 +142,5 @@ ccalc
 Use [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) and install via [Linux](#Debian)    
 Windows is not officially supported, but I have made an effort for it to work     
 If wsl is not an option, CMake, Clang, and Ninja might work    
+You will also have to figure out how to install and link GMP and MPFR     
+Visual Studio/VScode might make this a lot easier, I am not sure though as I don't use Windows
