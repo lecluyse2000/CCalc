@@ -17,7 +17,7 @@ CCalc is a CLI tool capable of solving both boolean and arithmetic expressions.
 
 ## Installation   
 
-This program requires [building from source](#building-from-source). You can download the latest version from the [release page](https://github.com/YAKU-Student/EECS-348---Group-Project/releases).    
+This program requires [building from source](#building-from-source). You can download the latest version from the [release page]([https://github.com/lecluyse2000/CCalc/releases]).    
 
 ## Start Guide   
 
