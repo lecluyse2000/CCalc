@@ -54,7 +54,7 @@ bool create_ini(const auto& full_path) {
         return false;
     }
 
-    const std::string key = line.substr(0, equal_pos);
+    const std::string_view key = std::string_view(line).substr(0, equal_pos);
     const std::string_view value_string = std::string_view(line).substr(equal_pos + 1);
     if(!std::ranges::all_of(value_string, ::isdigit)) {
         create_ini(full_path); 
@@ -70,6 +70,7 @@ bool create_ini(const auto& full_path) {
         create_ini(full_path);
         return false;
     }
+
     return true;
 }
 
@@ -82,6 +83,7 @@ bool create_ini(const auto& full_path) {
         create_ini(full_path);
         return false;
     }
+
     return true;
 }
 

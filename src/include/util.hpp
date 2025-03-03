@@ -14,7 +14,7 @@ namespace Util {
 
 inline constexpr std::array<Types::Setting, 2> setting_keys = {Types::Setting::PRECISION, Types::Setting::DISPLAY_PREC};
 inline constexpr long default_precision = 320;
-inline constexpr long default_digits = 20;
+inline constexpr long default_digits = 15;
 
 inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
     return { {setting_keys[0], default_precision},

@@ -326,7 +326,7 @@ void print_help() {
               << "* Precision settings:\n"
               << "\t - You can modify the precision of the program by editing ~/.config/ccalc/settings.ini\n"
               << "\t - The 'precision=' field is set in bits, and it modifies the precision of internal computations (default = 320).\n"
-              << "\t - The 'display_digits=' field is set in digits, and it modifies the precision when printing the result (default = 20)."
+              << "\t - The 'display_digits=' field is set in digits, and it modifies the precision when printing the result (default = 15)."
 
               << std::endl;
 }
