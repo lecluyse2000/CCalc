@@ -18,7 +18,13 @@ namespace {
 
 [[nodiscard]]
 constexpr std::optional<bool> is_math_equation(const std::string_view infix_expression) noexcept {
-    for (const auto c : infix_expression) {
+    for (auto itr = infix_expression.begin(); itr != infix_expression.end(); ++itr) {
+        const char c = *itr;
+        if (c == '!' && Types::is_bool_operand(*(itr+1))) {
+            return false;
+        } else if (std::isdigit(c) && *(itr+1) == '!') {
+            return true;
+        }
         if (Types::is_bool_operator(c)) {
             return false;
         } else if (Types::is_math_operator(c)) {

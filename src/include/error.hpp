@@ -17,8 +17,14 @@ namespace {
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_leading(const std::string_view infix_expression, const bool math) {
-    if(Types::isoperator(infix_expression[0]) && infix_expression[0] != '-' && infix_expression[0] != '~') {
-        return std::optional<std::string>("Expression begins with an operator!\n");
+    if (infix_expression.size() == 1) {
+        return std::optional<std::string>("Expression is only one character long!\n");
+    }
+    if (math && Types::is_math_operator(infix_expression[0]) && infix_expression[0] != '-') {
+        return std::optional<std::string>("Math expression begins with an operator!\n");
+    }
+    if (!math && Types::is_bool_operator(infix_expression[0])) {
+        return std::optional<std::string>("Boolean expression begins with an operator!\n");
     }
     if (infix_expression[0] == ')') {
         return std::optional<std::string>("Expression begins with closed parentheses!\n");
@@ -38,16 +44,16 @@ constexpr std::optional<std::string> check_leading(const std::string_view infix_
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_trailing(const std::string_view infix_expression, const bool math) {
-    for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
-        if (Types::isnot(*itr) && !math) {
-            return std::optional<std::string>("Expression ends with NOT!\n");
-        } else if (Types::isoperator(*itr) && (!math && *itr != '!')) {
-            return std::optional<std::string>("Expression ends with an operator!\n");
-        } else if (*itr == '(') {
-            return std::optional<std::string>("Expression ends with open parentheses!\n");
-        } else {
-            return std::nullopt;
-        }
+    if (Types::isnot(*infix_expression.rbegin()) && !math) {
+        return std::optional<std::string>("Expression ends with NOT!\n");
+    } else if (math && Types::is_math_operator(*infix_expression.rbegin()) && *infix_expression.rbegin() != '!') {
+        return std::optional<std::string>("Math expression ends with an operator!\n");
+    } else if (!math && Types::is_bool_operator(*infix_expression.rbegin())) {
+        return std::optional<std::string>("Boolean expression ends with an operator!\n");
+    } else if (*infix_expression.rbegin() == '(') {
+        return std::optional<std::string>("Expression ends with open parentheses!\n");
+    } else {
+        return std::nullopt;
     }
     return std::nullopt;
 }
@@ -153,10 +159,10 @@ constexpr std::optional<std::string> check_for_factorial_error(const char curren
 [[nodiscard]] inline
 constexpr std::optional<std::string> initial_checks(const std::string_view infix_expression, const bool math) {
     const auto leading = check_leading(infix_expression, math);
-    if (leading) return std::optional<std::string>(*leading);
+    if (leading) return leading;
     
     const auto trailing = check_trailing(infix_expression, math);
-    if (trailing) return std::optional<std::string>(*trailing);
+    if (trailing) return trailing;
 
     return std::nullopt;
 }
