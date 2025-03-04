@@ -45,13 +45,13 @@ struct MathNode {
 };
 
 struct ValueMNode : public MathNode {
-    explicit ValueMNode(const std::string& _value_mpz, const std::string& _value_mpf, const mpfr_prec_t precision) :
-        value_mpz(_value_mpz) {
+    explicit ValueMNode(const std::string_view _value_mpz, const std::string_view _value_mpf, const mpfr_prec_t precision) :
+        value_mpz(_value_mpz.data()) {
         mpfr_init2(value_mpfr, precision);
-        const int successful = mpfr_set_str(value_mpfr, _value_mpf.c_str(), 10, MPFR_RNDN);
+        const int successful = mpfr_set_str(value_mpfr, _value_mpf.data(), 10, MPFR_RNDN);
         if (successful != 0) {
             mpfr_clear(value_mpfr);
-            throw std::invalid_argument("Invalid floating point: " + _value_mpf);
+            throw std::invalid_argument("Invalid floating point: " + std::string(_value_mpf));
         }
     }
     ~ValueMNode() { mpfr_clear(value_mpfr); }

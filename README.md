@@ -13,7 +13,6 @@ CCalc is a CLI tool capable of solving both boolean and arithmetic expressions.
   * [Linux](#debian)
   * [macOS](#macos)
   * [Windows](#windows)
-- [Members](#members)
 
 ## Installation   
 
