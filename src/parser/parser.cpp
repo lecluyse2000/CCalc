@@ -125,7 +125,7 @@ bool math_operator_found(MathParseState& state, ParseResult& result,
     }
     check_for_floating_point(state, infix_expression, result.is_floating_point);
     while (!op_stack.empty() && op_stack.top() != ')' && 
-           Types::get_precedence(op_stack.top()) > Types::get_precedence(state.current_token)) {
+           Types::get_precedence(op_stack.top()) >= Types::get_precedence(state.current_token)) {
         result.result.push_back(op_stack.top());
         result.result.push_back(',');
         op_stack.pop();

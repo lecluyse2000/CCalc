@@ -33,7 +33,17 @@ enum struct Setting {
 }
 
 [[nodiscard]] inline constexpr bool is_math_operator(const char token) noexcept {
-    return token == '+' || token == '-' || token == '*' || token == '/' || token == '^' || token == '~' || token =='!';
+    switch (token) {
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '^':
+        case '~':
+        case '!':
+            return true;
+    }
+    return false;
 }
 
 [[nodiscard]] inline constexpr bool is_bool_operator(const char token) noexcept {
@@ -54,9 +64,9 @@ enum struct Setting {
         case '*':
         case '/':
             return 2;
-        case '^':
-            return 3;
         case '~':
+            return 3;
+        case '^':
             return 4;
         case '!':
             return 5;
