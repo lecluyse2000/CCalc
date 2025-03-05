@@ -116,6 +116,7 @@ inline void closing_parentheses_math(MathParseState& state, std::string& prefix_
     }
     op_stack.push(')');
 }
+
 std:: optional<std::string> open_parentheses_math(MathParseState& state, std::string& prefix_expression,
                                                                                    std::stack<char>& op_stack) {
     if (state.in_number) {
@@ -134,6 +135,7 @@ std:: optional<std::string> open_parentheses_math(MathParseState& state, std::st
     }
     return std::nullopt;
 }
+
 bool math_operator_found(MathParseState& state, ParseResult& result,
                                                  const std::string& infix_expression, std::stack<char>& op_stack) {
     if (state.in_number) {
