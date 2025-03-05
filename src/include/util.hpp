@@ -59,7 +59,7 @@ inline bool convert_mpfr_char_vec(std::vector<char>& buffer, const mpfr_t& val, 
     // If the float is an integer, don't worry about the precision
     const int snprintf_result = mpfr_integer_p(val) ? mpfr_snprintf(buffer.data(), buffer_size, "%.0Rf", val)
                                                     : mpfr_snprintf(buffer.data(), buffer_size, "%.*Rf", display_precision, val);
-    if (snprintf_result < 0) {
+    if (snprintf_result < 0) [[unlikely]] {
         std::cerr << "Error in mpfr_snprintf!\n";
         return false;
     } else if (static_cast<std::size_t>(snprintf_result) >= buffer_size) {
@@ -71,12 +71,17 @@ inline bool convert_mpfr_char_vec(std::vector<char>& buffer, const mpfr_t& val, 
 }
 
 // This function grabs the filename the user wants to print to
-[[nodiscard]] inline std::optional<std::string> get_filename() {
+// write indicates if we are reading or writing
+[[nodiscard]] inline std::optional<std::string> get_filename(const bool write) {
     std::string filename;
     char filename_flag = 'f';
 
     while (toupper(filename_flag) != 'Y') {
-        std::cout << "What is the name of the file you would like to save to? ";
+        if (write) {
+            std::cout << "What is the name of the file you would like to save to? ";
+        } else {
+            std::cout << "What is the name of the file you would like to open? ";
+        }
         if (!std::getline(std::cin, filename)) [[unlikely]] {
             std::cerr << "Unable to receive input! Aborting...\n\n";
             return std::nullopt;

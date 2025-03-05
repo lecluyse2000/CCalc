@@ -35,7 +35,7 @@ namespace {
 
 std::vector<std::string> get_expressions() noexcept {
     std::vector<std::string> expressions;
-    const std::optional<std::string> buffer = Util::get_filename();
+    const std::optional<std::string> buffer = Util::get_filename(false);
     if (!buffer) return expressions;
     std::ifstream input_file(*buffer);
     std::string line;
@@ -127,7 +127,7 @@ void main_loop(FILE*& output_file, std::string& expression) {
 void initiate_file_mode() {
     std::vector<std::string> expressions = get_expressions();
     if (expressions.empty()) return;
-    const std::optional<std::string> output_file_name = Util::get_filename();
+    const std::optional<std::string> output_file_name = Util::get_filename(true);
     if (!output_file_name) return;
     FILE* output_file;
     output_file = fopen(output_file_name->c_str(), "w");

@@ -56,7 +56,7 @@ void print_history(const auto& history) {
 
 [[nodiscard]] bool save_history(const auto& history) {
     // Get the file from the user, then output the history to it
-    const std::optional<std::string> filename = Util::get_filename();
+    const std::optional<std::string> filename = Util::get_filename(true);
     if (!filename) [[unlikely]] {
         return false;
     }
