@@ -42,6 +42,7 @@ std::vector<std::string> get_expressions() noexcept {
 
     if (input_file.is_open()) {
         while (std::getline(input_file, line)) {
+            if (line.empty()) continue; // Skip blank lines
             expressions.emplace_back(std::move(line));
         }
     } else {
