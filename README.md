@@ -61,20 +61,20 @@ Exiting...
 
 #### Boolean
 
-& - AND   
-| - OR   
-$ - XOR   
-@ - NAND   
-! - NOT   
+&  AND   
+|  OR   
+$  XOR   
+@  NAND   
+!  NOT   
 
 #### Arithmetic
 
-\+ - Addition   
-\- - Subtraction   
-\* - Multiplication   
-/ - Division   
-^ - Exponent   
-! - Factorial   
+\+  Addition   
+\-  Subtraction   
+\*  Multiplication   
+/  Division   
+^  Exponent   
+!  Factorial   
 
 ### Flags
 

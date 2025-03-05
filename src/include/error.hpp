@@ -3,10 +3,13 @@
 #ifndef ERROR_HPP
 #define ERROR_HPP
 
+#include <array>
 #include <cctype>
+#include <initializer_list>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "include/types.hpp"
 
@@ -14,6 +17,7 @@ namespace Error {
 
 // Declare helper functions in an anonymous namespace
 namespace {
+
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_leading(const std::string_view infix_expression, const bool math) {
@@ -52,8 +56,6 @@ constexpr std::optional<std::string> check_trailing(const std::string_view infix
         return std::optional<std::string>("Boolean expression ends with an operator!\n");
     } else if (*infix_expression.rbegin() == '(') {
         return std::optional<std::string>("Expression ends with open parentheses!\n");
-    } else {
-        return std::nullopt;
     }
     return std::nullopt;
 }
@@ -118,15 +120,26 @@ constexpr std::optional<std::string> check_missing_operator_bool(const char curr
     return std::nullopt;
 }
 
-// This function is pretty bad but I don't feel like refactoring
+// I was going to use a map, but that wouldn't be constexpr compatible
+inline constexpr std::initializer_list<char> math_ops_no_add_sub = {'*', '/', '^', '!', ')'};
+inline constexpr std::initializer_list<char> math_ops = {'+', '-', '*', '/', '^', '!', ')'};
+inline constexpr
+std::array<std::pair<char, std::initializer_list<char> >, 7 > invalid_math_operator_sequences{std::make_pair('+', math_ops_no_add_sub),
+                                                                                              std::make_pair('-', math_ops_no_add_sub),
+                                                                                              std::make_pair('*', math_ops),
+                                                                                              std::make_pair('/', math_ops),
+                                                                                              std::make_pair('^', math_ops_no_add_sub), 
+                                                                                              std::make_pair('(', math_ops_no_add_sub) };
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_missing_operand_math(const char current_token, const char previous_token) {
-    if ((current_token == '+' && previous_token =='*') || (current_token == '*' && previous_token == '*') ||
-         (current_token == '-' && previous_token == '/') || (Types::is_math_operator(current_token) && current_token != '!' && previous_token == ')') ||
-         (current_token == '*' && previous_token == '/') || (current_token == '/' && previous_token == '*') ||
-         (current_token == '(' && (Types::is_math_operator(previous_token) && previous_token != '+' && previous_token != '-' && previous_token != '~')) ||
-         (current_token == '/' && previous_token == '/') || (current_token == '^' && previous_token == '^')){
-        return std::optional<std::string>("Missing operand!\n");
+    for (const auto& [token, prev_tokens] : invalid_math_operator_sequences) {
+        if (current_token == token) {
+            for (const auto c : prev_tokens) {
+                if (previous_token == c) {
+                    return std::optional<std::string>("Missing operand!\n");
+                }
+            }
+        }
     }
     return std::nullopt;
 }

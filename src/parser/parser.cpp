@@ -57,10 +57,10 @@ check_for_number(MathParseState& state,  bool& floating_point) {
     return std::nullopt;
 }
 
-// Unary cases: 1) [not operand] - (
+// Unary cases: 1) [not operand or close paren] - (
 constexpr bool unary_first_case(MathParseState& state, const std::string& infix) {
     const char next_token = (state.itr + 1 != infix.rend()) ? *(state.itr + 1) : '\0';
-    return state.previous_token == '(' && !Types::isoperand(next_token);
+    return state.previous_token == '(' && !Types::isoperand(next_token) && next_token != ')';
 }
 
 // 2) ( - [operand]
@@ -114,7 +114,7 @@ inline void closing_parentheses_math(MathParseState& state, std::string& prefix_
         prefix_expression += state.num_buffer + ',';
         clear_num_buffer(state);
     }
-    op_stack.push(')'); // Push '(' - Corrected to push '('
+    op_stack.push(')');
 }
 std:: optional<std::string> open_parentheses_math(MathParseState& state, std::string& prefix_expression,
                                                                                    std::stack<char>& op_stack) {
@@ -122,16 +122,15 @@ std:: optional<std::string> open_parentheses_math(MathParseState& state, std::st
         prefix_expression += state.num_buffer + ',';
         clear_num_buffer(state);
     }
-    // Corrected condition: Pop until we find '(' (reversed infix '(')
     while (!op_stack.empty() && op_stack.top() != ')') {
         prefix_expression.push_back(op_stack.top());
         prefix_expression.push_back(',');
         op_stack.pop();
     }
     if (!op_stack.empty()) {
-        op_stack.pop(); // Pop the '('
+        op_stack.pop();
     } else {
-        return std::optional<std::string>("Missing opening parentheses!\n"); // Error message should still refer to original infix '(', not reversed ')'
+        return std::optional<std::string>("Missing closing parentheses!\n");
     }
     return std::nullopt;
 }
