@@ -25,7 +25,6 @@
 
 namespace UI {
 
-inline constexpr std::size_t buffer_size = 256;
 
 void print_excessive_arguments(const int arguments) {
     std::cerr << "Expected 1 argument, received " << arguments
@@ -55,42 +54,9 @@ void print_history(const auto& history) {
     std::cout << std::endl;
 }
 
-// This function grabs the filename the user wants to print to
-[[nodiscard]] std::optional<std::string> get_filename() {
-    std::string filename;
-    char filename_flag = 'f';
-
-    while (toupper(filename_flag) != 'Y') {
-        std::cout << "What is the name of the file you would like to save to? ";
-        if (!std::getline(std::cin, filename)) [[unlikely]] {
-            std::cerr << "Unable to receive input! Aborting...\n\n";
-            return std::nullopt;
-        }
-
-        // Verify the input
-        std::cout << "You entered " << filename << " is this correct? (Y/N): ";
-        if (!std::cin.get(filename_flag)) [[unlikely]] {
-            std::cerr << "Unable to receive input! Aborting...\n\n";
-            return std::nullopt;
-        }
-
-        while (toupper(filename_flag) != 'Y' && toupper(filename_flag) != 'N') {
-            Util::clear_input_stream();
-            std::cout << "Incorrect input. Try again (Y/N): ";
-            if (!std::cin.get(filename_flag)) [[unlikely]] {
-                std::cerr << "Unable to receive input! Aborting...\n\n";
-                return std::nullopt;
-            }
-        }
-        Util::clear_input_stream();
-    }
-
-    return std::optional<std::string>(filename);
-}
-
 [[nodiscard]] bool save_history(const auto& history) {
     // Get the file from the user, then output the history to it
-    const std::optional<std::string> filename = get_filename();
+    const std::optional<std::string> filename = Util::get_filename();
     if (!filename) [[unlikely]] {
         return false;
     }
@@ -147,41 +113,10 @@ enum struct InputResult {
     return InputResult::CONTINUE_TO_EVALUATE;
 }
 
-// Remove the trailing zeros from a MPFR float in char vector form
-void trim_trailing_zero_mpfr(std::vector<char>& buffer) {
-    // If there is no decimal, return early
-    const auto find_decimal = std::ranges::find_if(buffer, [](const char c) {
-        return c == '.';
-    });
-    if (find_decimal == buffer.end()) return;
-    const auto last_non_zero = std::find_if(buffer.rbegin(), buffer.rend(), [](const char c) {
-        return c != '0' && c != '.';
-    });
-    if (last_non_zero != buffer.rend()) {
-        buffer.erase(last_non_zero.base(), buffer.end());
-    } 
-}
-
-// Convert an MPFR to a char vector
-[[nodiscard]] bool convert_mpfr_char_vec(std::vector<char>& buffer, const mpfr_t& val, const mpfr_prec_t display_precision) {
-    // If the float is an integer, don't worry about the precision
-    const int snprintf_result = mpfr_integer_p(val) ? mpfr_snprintf(buffer.data(), buffer_size, "%.0Rf", val)
-                                                    : mpfr_snprintf(buffer.data(), buffer_size, "%.*Rf", display_precision, val);
-    if (snprintf_result < 0) {
-        std::cerr << "Error in mpfr_snprintf!\n";
-        return false;
-    } else if (static_cast<std::size_t>(snprintf_result) >= buffer_size) {
-        std::cerr << "Warning: Buffer too small for mpfr_snprintf, output may be truncated.\n";
-    }
-    buffer.resize(static_cast<std::size_t>(snprintf_result));
-    trim_trailing_zero_mpfr(buffer);
-    return true; 
-}
-
 // Prints an MPFR float using the two functions defined above
 std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_precision) {
-    std::vector<char> buffer(buffer_size);
-    if(!convert_mpfr_char_vec(buffer, final_value, display_precision)) return std::string("");
+    std::vector<char> buffer(Util::buffer_size);
+    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) return std::string("");
     std::cout << "Result: ";
     for (const char c : buffer) {
         std::cout << c;

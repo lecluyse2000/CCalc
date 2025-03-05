@@ -8,6 +8,7 @@
 #include <gmpxx.h>
 #include <iostream>
 #include <mpfr.h>
+#include <optional>
 #include <string>
 #include <stdio.h>
 #include <unordered_map>
@@ -15,10 +16,11 @@
 
 #include "ast/ast.h"
 #include "include/types.hpp"
+#include "include/util.hpp"
 #include "parser/parser.h"
 #include "startup/startup.h"
 
-
+// We have to use C style file output here since mpfr is a C library
 namespace File {
 
 void output_history(const std::vector<std::pair<std::string, std::string> >& history, 
@@ -33,18 +35,29 @@ namespace {
 
 std::vector<std::string> get_expressions() noexcept {
     std::vector<std::string> expressions;
-    std::ifstream input_file("expressions.txt");
-    std::string current_expression;
+    const std::optional<std::string> buffer = Util::get_filename();
+    if (!buffer) return expressions;
+    std::ifstream input_file(*buffer);
+    std::string line;
 
     if (input_file.is_open()) {
-        while (std::getline(input_file, current_expression)) {
-            expressions.emplace_back(std::move(current_expression));
+        while (std::getline(input_file, line)) {
+            expressions.emplace_back(std::move(line));
         }
     } else {
         std::cout << "Couldn't find expressions.txt!\n";
     }
 
     return expressions;
+}
+
+
+// Prints an MPFR float using the two functions defined above
+bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec_t display_precision) {
+    std::vector<char> buffer(Util::buffer_size);
+    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) return false;
+    fprintf(output_file, "Result: %s\n", buffer.data());
+    return true;
 }
 
 void math_float_procedure(FILE*& output_file, const std::string_view result, const auto& settings) {
@@ -54,7 +67,7 @@ void math_float_procedure(FILE*& output_file, const std::string_view result, con
         if (mpfr_integer_p(final_value)) {
             mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
         } else {
-            mpfr_fprintf(output_file, "Result: %.*Rf\n", static_cast<mpfr_prec_t>(settings.at(Types::Setting::DISPLAY_PREC)), final_value);
+            if(!mpfr_to_file(output_file, final_value, static_cast<mpfr_prec_t>(settings.at(Types::Setting::DISPLAY_PREC)))) return;
         }
     } catch (const std::exception& err) {
         fprintf(output_file, "Error: %s\n", err.what()); 
@@ -113,8 +126,10 @@ void main_loop(FILE*& output_file, std::string& expression) {
 void initiate_file_mode() {
     std::vector<std::string> expressions = get_expressions();
     if (expressions.empty()) return;
+    const std::optional<std::string> output_file_name = Util::get_filename();
+    if (!output_file_name) return;
     FILE* output_file;
-    output_file = fopen("results.txt", "w");
+    output_file = fopen(output_file_name->c_str(), "w");
     if(!output_file) [[unlikely]] {
         std::cerr << "Error opening file!\n";
         return;
