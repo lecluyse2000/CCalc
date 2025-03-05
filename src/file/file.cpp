@@ -46,7 +46,7 @@ std::vector<std::string> get_expressions() noexcept {
             expressions.emplace_back(std::move(line));
         }
     } else {
-        std::cout << "Couldn't find expressions.txt!\n";
+        std::cout << "Couldn't find " << *buffer << '\n';
     }
 
     return expressions;
@@ -61,23 +61,23 @@ bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec
     return true;
 }
 
-void math_float_procedure(FILE*& output_file, const std::string_view result, const auto& settings) {
+void math_float_procedure(FILE*& output_file, const std::string_view result) {
     try {
-        const auto tree = std::make_unique<MathAST>(result, static_cast<mpfr_prec_t>(settings.at(Types::Setting::PRECISION)), true);
+        const auto tree = std::make_unique<MathAST>(result, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         if (mpfr_integer_p(final_value)) {
             mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
         } else {
-            if(!mpfr_to_file(output_file, final_value, static_cast<mpfr_prec_t>(settings.at(Types::Setting::DISPLAY_PREC)))) return;
+            if(!mpfr_to_file(output_file, final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)))) return;
         }
     } catch (const std::exception& err) {
         fprintf(output_file, "Error: %s\n", err.what()); 
     }
 }
 
-void math_int_procedure(FILE*& output_file, const std::string_view result, const auto& settings) {
+void math_int_procedure(FILE*& output_file, const std::string_view result) {
     try {
-        const auto tree = std::make_unique<MathAST>(result, static_cast<mpfr_prec_t>(settings.at(Types::Setting::PRECISION)), false);
+        const auto tree = std::make_unique<MathAST>(result, false);
         const mpz_class final_value = tree->evaluate();
         gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
     } catch (const std::bad_alloc& err) {
@@ -90,18 +90,18 @@ void math_int_procedure(FILE*& output_file, const std::string_view result, const
 void math_procedure(FILE*& output_file, const std::string_view result, const bool is_floating_point) {
     static const std::unordered_map<Types::Setting, long> settings = Startup::source_ini();
     if (is_floating_point) {
-        math_float_procedure(output_file, result, settings);
+        math_float_procedure(output_file, result);
     } else {
-        math_int_procedure(output_file, result, settings);
+        math_int_procedure(output_file, result);
     }
 }
 
 void bool_procedure(FILE*& output_file, const std::string_view result) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     if (syntax_tree->evaluate()) {
-        fprintf(output_file, "Result: True!\n");
+        fprintf(output_file, "Result: True\n");
     } else {
-        fprintf(output_file, "Result: False!\n");
+        fprintf(output_file, "Result: False\n");
     }
 }
 

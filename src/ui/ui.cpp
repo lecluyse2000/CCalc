@@ -128,11 +128,11 @@ std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_prec
 }
 
 // Make the tree, evaluate, print the result, then add it to the history
-void math_float_procedure(std::string& orig_input, const std::string_view prefix_input, const auto& settings, auto& history) {
+void math_float_procedure(std::string& orig_input, const std::string_view prefix_input, auto& history) {
     try {
-        const auto tree = std::make_unique<MathAST>(prefix_input, static_cast<mpfr_prec_t>(settings.at(Types::Setting::PRECISION)), true);
+        const auto tree = std::make_unique<MathAST>(prefix_input,true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
-        std::string final_val = print_mpfr(final_value, static_cast<mpfr_prec_t>(settings.at(Types::Setting::DISPLAY_PREC)));
+        std::string final_val = print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
         if (final_val.empty()) return;
         history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
     } catch (const std::exception& err) {
@@ -141,9 +141,9 @@ void math_float_procedure(std::string& orig_input, const std::string_view prefix
     return;
 }
 
-void math_int_procedure(std::string& orig_input, const std::string_view prefix_input, const auto& settings, auto& history) {
+void math_int_procedure(std::string& orig_input, const std::string_view prefix_input, auto& history) {
     try {
-        const auto tree = std::make_unique<MathAST>(prefix_input, static_cast<mpfr_prec_t>(settings.at(Types::Setting::PRECISION)), false);
+        const auto tree = std::make_unique<MathAST>(prefix_input, false);
         const mpz_class final_value = tree->evaluate();
         std::cout << "Result: " << final_value.get_str() << '\n';
         history.emplace_back(std::make_pair(std::move(orig_input), final_value.get_str()));
@@ -156,11 +156,10 @@ void math_int_procedure(std::string& orig_input, const std::string_view prefix_i
 
 // Calls the float or int procedure based on float_point status
 void math_procedure(std::string& orig_input, const std::string_view prefix_input, const bool floating_point, auto& history) {
-    static const std::unordered_map<Types::Setting, long> settings = Startup::source_ini();
     if (floating_point) {
-        math_float_procedure(orig_input, prefix_input, settings, history);
+        math_float_procedure(orig_input, prefix_input, history);
     } else {
-        math_int_procedure(orig_input, prefix_input, settings, history);
+        math_int_procedure(orig_input, prefix_input, history);
     }
 }
 
@@ -169,10 +168,10 @@ void bool_procedure(std::string& orig_input, const std::string_view prefix_input
     const auto syntax_tree = std::make_unique<BoolAST>(prefix_input);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
-        std::cout << "True!\n";
+        std::cout << "True\n";
         history.emplace_back(std::make_pair(std::move(orig_input), "True"));
     } else {
-        std::cout << "False!\n";
+        std::cout << "False\n";
         history.emplace_back(std::make_pair(std::move(orig_input), "False"));
     }
 }
@@ -275,7 +274,7 @@ void print_invalid_flag(const std::string_view expression) {
 namespace {
 
 void math_procedure(const std::string_view result, const auto& settings, const bool floating_point) {
-    const auto tree = std::make_unique<MathAST>(result, static_cast<mpfr_prec_t>(settings.at(Types::Setting::PRECISION)), floating_point);
+    const auto tree = std::make_unique<MathAST>(result, floating_point);
     if (floating_point) {
         try {
             const mpfr_t& final_value = tree->evaluate_floating_point();

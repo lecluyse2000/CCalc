@@ -9,6 +9,8 @@
 #include <memory>
 #include <mpfr.h>
 
+#include "startup/startup.h"
+
 struct BoolNode {
     explicit BoolNode(const char token) noexcept;
     virtual ~BoolNode() = default;
@@ -45,9 +47,9 @@ struct MathNode {
 };
 
 struct ValueMNode : public MathNode {
-    explicit ValueMNode(const std::string_view _value_mpz, const std::string_view _value_mpf, const mpfr_prec_t precision) :
+    explicit ValueMNode(const std::string_view _value_mpz, const std::string_view _value_mpf) :
         value_mpz(_value_mpz.data()) {
-        mpfr_init2(value_mpfr, precision);
+        mpfr_init2(value_mpfr, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
         const int successful = mpfr_set_str(value_mpfr, _value_mpf.data(), 10, MPFR_RNDN);
         if (successful != 0) {
             mpfr_clear(value_mpfr);
@@ -63,8 +65,8 @@ struct ValueMNode : public MathNode {
 };
 
 struct OperationMNode : public MathNode {
-    explicit OperationMNode(const char token, const mpfr_prec_t precision) : key(token) {
-        mpfr_init2(node_result, precision);
+    explicit OperationMNode(const char token) : key(token) {
+        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
     }
     ~OperationMNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
@@ -74,8 +76,8 @@ struct OperationMNode : public MathNode {
 };
 
 struct FactorialNode : public MathNode {
-    explicit FactorialNode(const mpfr_prec_t precision) {
-        mpfr_init2(node_result, precision);
+    explicit FactorialNode() {
+        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
     }
     ~FactorialNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
@@ -84,8 +86,8 @@ struct FactorialNode : public MathNode {
 };
 
 struct UnaryMNode : public MathNode {
-    explicit UnaryMNode(const mpfr_prec_t precision) {
-        mpfr_init2(node_result, precision);
+    explicit UnaryMNode() {
+        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
     }
     ~UnaryMNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
