@@ -19,12 +19,14 @@ struct ParseResult {
 enum struct Setting {
     PRECISION,
     DISPLAY_PREC,
+    MAX_HISTORY,
     INVALID
 };
 
 [[nodiscard]] inline constexpr Setting string_to_settings_enum(const std::string_view string) {
     if (string == "precision") return Setting::PRECISION;
     if (string == "display_digits") return Setting::DISPLAY_PREC;
+    if (string == "max_history") return Setting::MAX_HISTORY;
     return Setting::INVALID;
 }
 

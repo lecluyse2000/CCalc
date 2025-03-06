@@ -18,13 +18,16 @@ namespace Util {
 
 inline constexpr std::size_t buffer_size = 256;
 
-inline constexpr std::array<Types::Setting, 2> setting_keys = {Types::Setting::PRECISION, Types::Setting::DISPLAY_PREC};
+inline constexpr std::array<Types::Setting, 3> setting_keys = {Types::Setting::PRECISION, Types::Setting::DISPLAY_PREC,
+                                                               Types::Setting::MAX_HISTORY};
 inline constexpr long default_precision = 320;
 inline constexpr long default_digits = 15;
+inline constexpr long default_history_max = 50;
 
 inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
     return { {setting_keys[0], default_precision},
-             {setting_keys[1], default_digits} };
+             {setting_keys[1], default_digits},
+             {setting_keys[2], default_history_max} };
 }
 
 inline void clear_input_stream() {

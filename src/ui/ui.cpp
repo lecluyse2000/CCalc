@@ -127,14 +127,28 @@ std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_prec
     return std::string(buffer.begin(), buffer.end()); 
 }
 
+inline void add_to_history(std::string& orig_input, std::string& final_val, auto& history) {
+    history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
+    if (history.size() >= static_cast<std::size_t>(Startup::settings.at(Types::Setting::MAX_HISTORY))) {
+        history.erase(history.begin()); 
+    }
+}
+
+inline void add_to_history(std::string& orig_input, std::string&& final_val, auto& history) {
+    history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
+    if (history.size() >= static_cast<std::size_t>(Startup::settings.at(Types::Setting::MAX_HISTORY))) {
+        history.erase(history.begin()); 
+    }
+}
+
 // Make the tree, evaluate, print the result, then add it to the history
 void math_float_procedure(std::string& orig_input, const std::string_view prefix_input, auto& history) {
     try {
-        const auto tree = std::make_unique<MathAST>(prefix_input,true);
+        const auto tree = std::make_unique<MathAST>(prefix_input, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         std::string final_val = print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
         if (final_val.empty()) return;
-        history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
+        add_to_history(orig_input, final_val, history);
     } catch (const std::exception& err) {
         std::cerr << "Error: " << err.what() << '\n';
     }
@@ -146,7 +160,7 @@ void math_int_procedure(std::string& orig_input, const std::string_view prefix_i
         const auto tree = std::make_unique<MathAST>(prefix_input, false);
         const mpz_class final_value = tree->evaluate();
         std::cout << "Result: " << final_value.get_str() << '\n';
-        history.emplace_back(std::make_pair(std::move(orig_input), final_value.get_str()));
+        add_to_history(orig_input, final_value.get_str(), history);
     } catch (const std::bad_alloc& err) {
         std::cerr << "Error: The number grew too big!\n";
     } catch (const std::exception& err) {
@@ -169,10 +183,10 @@ void bool_procedure(std::string& orig_input, const std::string_view prefix_input
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
         std::cout << "True\n";
-        history.emplace_back(std::make_pair(std::move(orig_input), "True"));
+        add_to_history(orig_input, "True", history);
     } else {
         std::cout << "False\n";
-        history.emplace_back(std::make_pair(std::move(orig_input), "False"));
+        add_to_history(orig_input, "False", history);
     }
 }
 
@@ -193,7 +207,8 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
 
 [[nodiscard]] int program_loop() {
     std::string input_expression;
-    std::vector<std::pair<std::string, std::string> > program_history;
+    std::vector<std::pair<std::string, std::string> >
+    program_history(static_cast<std::size_t>(Startup::settings.at(Types::Setting::MAX_HISTORY)));
 
     while (true) {
         std::cout << "Please enter your expression, or enter help to see all available commands: ";

@@ -36,8 +36,9 @@ bool create_ini(const auto& full_path) {
         std::ofstream file(full_path, std::ios::trunc);
         if (file.is_open()) {
             file << "[Settings]\n";
-            file << "precision=" << Util::default_precision << "\n";
-            file << "display_digits=" << Util::default_digits << "\n";
+            file << "precision=" << Util::default_precision << '\n';
+            file << "display_digits=" << Util::default_digits << '\n';
+            file << "max_history=" << Util::default_history_max << '\n';
             file.close();
             return true;
         }
@@ -47,41 +48,42 @@ bool create_ini(const auto& full_path) {
     }
 }
 
+inline bool create_ini_return_false(const auto& full_path) {
+    if (!create_ini(full_path)) {
+        std::cerr << "Unable to create settings.ini\n";
+    }
+    return false;
+}
+
 [[nodiscard]] bool create_retval(const std::string& line, const auto& full_path, std::unordered_map<Types::Setting, long>& map) {
     const auto equal_pos = line.find('=');
     if (equal_pos == line.size() - 1 || equal_pos == std::string::npos) {
-        create_ini(full_path);
-        return false;
+        create_ini_return_false(full_path);
     }
 
     const std::string_view key = std::string_view(line).substr(0, equal_pos);
     const std::string_view value_string = std::string_view(line).substr(equal_pos + 1);
     if(!std::ranges::all_of(value_string, ::isdigit)) {
-        create_ini(full_path); 
-        return false;
+        return create_ini_return_false(full_path);
     }
     const long value_long = std::stol(value_string.data());
     if (value_long < 0) {
-        create_ini(full_path); 
-        return false;
+        return create_ini_return_false(full_path);
     }
     const auto emplace_result = map.try_emplace(Types::string_to_settings_enum(key), value_long);
     if (!emplace_result.second) {
-        create_ini(full_path);
-        return false;
+        return create_ini_return_false(full_path);
     }
 
     return true;
 }
 
 [[nodiscard]] bool final_verification(const auto& full_path, const std::unordered_map<Types::Setting, long>& map) {
-    if (map.size() != 2) {
-        create_ini(full_path);
-        return false;
+    if (map.size() != Util::setting_keys.size()) {
+        return create_ini_return_false(full_path);
     }
     if (map.contains(Types::Setting::INVALID)) {
-        create_ini(full_path);
-        return false;
+        return create_ini_return_false(full_path);
     }
 
     return true;

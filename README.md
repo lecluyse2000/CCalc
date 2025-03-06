@@ -61,20 +61,20 @@ Exiting...
 
 #### Boolean
 
-&  AND   
-|  OR   
-$  XOR   
-@  NAND   
-!  NOT   
+&   AND   
+|   OR   
+$   XOR   
+@   NAND   
+!   NOT   
 
 #### Arithmetic
 
-\+  Addition   
-\-  Subtraction   
-\*  Multiplication   
-/  Division   
-^  Exponent   
-!  Factorial   
+\+   Addition   
+\-   Subtraction   
+\*   Multiplication   
+/   Division   
+^   Exponent   
+!   Factorial   
 
 ### Flags
 
@@ -89,6 +89,7 @@ $  XOR
 - All configuration is done in `~/.config/ccalc/settings.ini`
 - The `precision=` field is set in bits, and it modifies the precision of internal computations (default = 320).
 - The `display_digits=` field is set in digits, and it modifies the precision when printing the result (default = 15).
+- The `max_history=` field is set using a positive integer, and it modifies how many entries you can store in the program history.
 
 ## Building from source
 
