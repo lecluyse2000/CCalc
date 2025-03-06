@@ -32,10 +32,11 @@ check_for_number(MathParseState& state,  bool& floating_point) {
     return std::nullopt;
 }
 
-// Unary cases: 1) [not operand or close paren] - (
+// Unary cases: 1) [not operand, close paren, or factorial] - (
 constexpr bool unary_first_case(MathParseState& state, const std::string& infix) {
     const char next_token = (state.itr + 1 != infix.rend()) ? *(state.itr + 1) : '\0';
-    return state.previous_token == '(' && !Types::isoperand(next_token) && next_token != ')';
+    return state.previous_token == '(' && !Types::isoperand(next_token) && next_token != ')' &&
+           next_token != '!';
 }
 
 // 2) ( - [operand]
@@ -84,7 +85,7 @@ constexpr void check_for_floating_point(MathParseState& state, const std::string
 }
 
 inline void closing_parentheses_math(MathParseState& state, std::string& prefix_expression,
-                                                                         std::stack<char>& op_stack) {
+                                     std::stack<char>& op_stack) {
     if (state.in_number) {
         prefix_expression += state.num_buffer + ',';
         clear_num_buffer(state);
@@ -93,7 +94,7 @@ inline void closing_parentheses_math(MathParseState& state, std::string& prefix_
 }
 
 std:: optional<std::string> open_parentheses_math(MathParseState& state, std::string& prefix_expression,
-                                                                                   std::stack<char>& op_stack) {
+                                                  std::stack<char>& op_stack) {
     if (state.in_number) {
         prefix_expression += state.num_buffer + ',';
         clear_num_buffer(state);
@@ -112,7 +113,7 @@ std:: optional<std::string> open_parentheses_math(MathParseState& state, std::st
 }
 
 bool math_operator_found(MathParseState& state, Types::ParseResult& result,
-                                                 const std::string& infix_expression, std::stack<char>& op_stack) {
+                         const std::string& infix_expression, std::stack<char>& op_stack) {
     if (state.in_number) {
         result.result += state.num_buffer + ',';
         clear_num_buffer(state);
@@ -125,7 +126,7 @@ bool math_operator_found(MathParseState& state, Types::ParseResult& result,
         return false;
     }
 
-    while (!op_stack.empty() && op_stack.top() != ')' &&
+     while (!op_stack.empty() && op_stack.top() != ')' &&
            Types::get_precedence(op_stack.top()) > Types::get_precedence(state.current_token)) {
         result.result.push_back(op_stack.top());
         result.result.push_back(',');

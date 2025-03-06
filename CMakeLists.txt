@@ -82,7 +82,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 else()
     target_compile_options(ccalc PRIVATE 
         -g 
-        -O2 
+        -O2
         -Wall 
         -Wextra 
         -Wshadow 

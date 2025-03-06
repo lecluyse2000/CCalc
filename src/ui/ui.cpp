@@ -207,8 +207,8 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
 
 [[nodiscard]] int program_loop() {
     std::string input_expression;
-    std::vector<std::pair<std::string, std::string> >
-    program_history(static_cast<std::size_t>(Startup::settings.at(Types::Setting::MAX_HISTORY)));
+    std::vector<std::pair<std::string, std::string> > program_history;
+    program_history.reserve(static_cast<std::size_t>(Startup::settings.at(Types::Setting::MAX_HISTORY)));
 
     while (true) {
         std::cout << "Please enter your expression, or enter help to see all available commands: ";
