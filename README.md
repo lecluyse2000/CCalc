@@ -178,7 +178,7 @@ You will also have to figure out how to install GMP and MPFR. Visual Studio/VSco
 * Add the ability to store values in a variable
 * Give the user the ability to print in scientific notation
 * Add modulus support
-* Intoduce the ability for the program to generate truth tables
+* Introduce the ability for the program to generate truth tables
 * Develop equation solving capabilities (probably won't happen)
 * Add support for higher level calculus concepts like integrals (also probably won't happen)
 * Add more options to settings to make the program as customizable as possible
