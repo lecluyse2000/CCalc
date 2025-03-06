@@ -1,6 +1,6 @@
 # CCalc - Caden's Calculator
 
-CCalc is a CLI tool capable of solving both boolean and arithmetic expressions.
+CCalc is a powerful CLI tool capable of solving both boolean and arithmetic expressions.
 
 ## Quick Links   
 
@@ -75,6 +75,7 @@ $   XOR
 /   Division   
 ^   Exponent   
 !   Factorial   
+Why no sqrt? Because sqrt(x) = x^(1/2)
 
 ### Flags
 
@@ -90,6 +91,13 @@ $   XOR
 - The `precision=` field is set in bits, and it modifies the precision of internal computations (default = 320).
 - The `display_digits=` field is set in digits, and it modifies the precision when printing the result (default = 15).
 - The `max_history=` field is set using a positive integer, and it modifies how many entries you can store in the program history (default = 50).
+
+```ini
+[Settings]
+precision=320
+display_digits=15
+max_history=50
+```
 
 ## Building from source
 
@@ -159,7 +167,18 @@ ccalc
 ### Windows
 
 Use [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) and install via [Linux](#Debian)    
-Windows is not officially supported, but I have made an effort for it to work     
-If wsl is not an option, CMake, Clang, and Ninja might work    
-You will also have to figure out how to install and link GMP and MPFR     
-Visual Studio/VScode might make this a lot easier, I am not sure though as I don't use Windows
+Windows is not officially supported, but I have made an effort for it to work. If wsl is not an option, CMake, Clang, and Ninja might work.
+You will also have to figure out how to install GMP and MPFR. Visual Studio/VScode might make this a lot easier, I am not sure though as I don't use Windows.
+
+## TODO
+
+* Implement trig function support (degrees and rads)
+* Include e and pi as predefined variables
+* Add an 'ans' variable that stores the previous answer
+* Add the ability to store values in a variable
+* Give the user the ability to print in scientific notation
+* Add modulus support
+* Intoduce the ability for the program to generate truth tables
+* Develop equation solving capabilities (probably won't happen)
+* Add support for higher level calculus concepts like integrals (also probably won't happen)
+* Add more options to settings to make the program as customizable as possible
