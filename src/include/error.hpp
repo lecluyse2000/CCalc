@@ -124,12 +124,15 @@ constexpr std::optional<std::string> check_missing_operator_bool(const char curr
 static inline constexpr std::initializer_list<char> math_ops_no_add_sub = {'*', '/', '^', '!', ')'};
 static inline constexpr std::initializer_list<char> math_ops = {'+', '-', '*', '/', '^', '!', ')'};
 static inline constexpr
-std::array<std::pair<char, std::initializer_list<char> >, 7 > invalid_math_operator_sequences{std::make_pair('+', math_ops_no_add_sub),
-                                                                                              std::make_pair('-', math_ops_no_add_sub),
-                                                                                              std::make_pair('*', math_ops),
-                                                                                              std::make_pair('/', math_ops),
-                                                                                              std::make_pair('^', math_ops_no_add_sub), 
-                                                                                              std::make_pair('(', math_ops_no_add_sub) };
+std::array<std::pair<char, std::initializer_list<char> >, 7 > invalid_math_operator_sequences {
+    std::make_pair('+', math_ops_no_add_sub),
+    std::make_pair('-', math_ops_no_add_sub),
+    std::make_pair('*', math_ops),
+    std::make_pair('/', math_ops),
+    std::make_pair('^', math_ops_no_add_sub), 
+    std::make_pair('(', math_ops_no_add_sub)
+};
+
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_missing_operand_math(const char current_token, const char previous_token) {
     for (const auto& [token, prev_tokens] : invalid_math_operator_sequences) {

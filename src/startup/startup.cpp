@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <string>
 #include <string_view>
 #include <iostream>
 #include <unordered_map>
@@ -36,9 +37,9 @@ bool create_ini(const auto& full_path) {
         std::ofstream file(full_path, std::ios::trunc);
         if (file.is_open()) {
             file << "[Settings]\n";
-            file << "precision=" << Util::default_precision << '\n';
-            file << "display_digits=" << Util::default_digits << '\n';
-            file << "max_history=" << Util::default_history_max << '\n';
+            for (std::size_t i = 0; i < Util::num_settings; ++i) {
+                file << Util::setting_fields[i] << Util::default_setting_values[i] << '\n'; 
+            }
             file.close();
             return true;
         }
@@ -91,10 +92,11 @@ inline bool create_ini_return_false(const auto& full_path) {
 
 }
 
-std::unordered_map<Types::Setting, long> source_ini() noexcept {
+[[nodiscard]] std::unordered_map<Types::Setting, long> source_ini() noexcept {
     std::unordered_map<Types::Setting, long> retval;
     const std::filesystem::path parent_path = get_home_path();
     if (parent_path == "") return Util::create_default_settings_map();
+
     #ifdef _WIN32
         const std::filesystem::path full_path = get_home_path() / ini_path_windows;
     #else

@@ -89,7 +89,7 @@ $   XOR
 - All configuration is done in `~/.config/ccalc/settings.ini`
 - The `precision=` field is set in bits, and it modifies the precision of internal computations (default = 320).
 - The `display_digits=` field is set in digits, and it modifies the precision when printing the result (default = 15).
-- The `max_history=` field is set using a positive integer, and it modifies how many entries you can store in the program history.
+- The `max_history=` field is set using a positive integer, and it modifies how many entries you can store in the program history (default = 50).
 
 ## Building from source
 
