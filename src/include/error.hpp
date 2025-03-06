@@ -121,9 +121,9 @@ constexpr std::optional<std::string> check_missing_operator_bool(const char curr
 }
 
 // I was going to use a map, but that wouldn't be constexpr compatible
-inline constexpr std::initializer_list<char> math_ops_no_add_sub = {'*', '/', '^', '!', ')'};
-inline constexpr std::initializer_list<char> math_ops = {'+', '-', '*', '/', '^', '!', ')'};
-inline constexpr
+static inline constexpr std::initializer_list<char> math_ops_no_add_sub = {'*', '/', '^', '!', ')'};
+static inline constexpr std::initializer_list<char> math_ops = {'+', '-', '*', '/', '^', '!', ')'};
+static inline constexpr
 std::array<std::pair<char, std::initializer_list<char> >, 7 > invalid_math_operator_sequences{std::make_pair('+', math_ops_no_add_sub),
                                                                                               std::make_pair('-', math_ops_no_add_sub),
                                                                                               std::make_pair('*', math_ops),

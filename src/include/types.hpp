@@ -4,9 +4,17 @@
 #define TYPES_HPP
 
 #include <cctype>
+#include <string>
 #include <string_view>
 
 namespace Types {
+
+struct ParseResult {
+    std::string result;
+    bool success = false;
+    bool is_math = false;
+    bool is_floating_point = false;
+};
 
 enum struct Setting {
     PRECISION,

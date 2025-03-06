@@ -177,7 +177,7 @@ void bool_procedure(std::string& orig_input, const std::string_view prefix_input
 }
 
 void evaluate_expression(std::string& orig_input, std::string& expression, auto& history) {
-    Parse::ParseResult result = Parse::create_prefix_expression(expression);
+    Types::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
         std::cerr << "Error: " << result.result;
         return;

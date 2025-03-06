@@ -38,6 +38,8 @@ target_sources(ccalc PRIVATE
     "src/ast/ast.cpp"
     "src/ast/node.cpp"
     "src/parser/parser.cpp"
+    "src/parser/boolparse.cpp"
+    "src/parser/mathparse.cpp"
     "src/file/file.cpp"
     "src/startup/startup.cpp"
 )

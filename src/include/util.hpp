@@ -95,7 +95,7 @@ inline bool convert_mpfr_char_vec(std::vector<char>& buffer, const mpfr_t& val, 
         }
 
         while (toupper(filename_flag) != 'Y' && toupper(filename_flag) != 'N') {
-            Util::clear_input_stream();
+            clear_input_stream();
             std::cout << "Incorrect input. Try again (Y/N): ";
             if (!std::cin.get(filename_flag)) [[unlikely]] {
                 std::cerr << "Unable to receive input! Aborting...\n\n";
