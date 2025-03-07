@@ -103,7 +103,8 @@ constexpr std::optional<std::string> check_missing_operator_math(const char curr
     if ((current_token == ')' && Types::isoperand(previous_token)) ||
         ((Types::isoperand(current_token) && current_token != '~') && previous_token == '(') || 
         (current_token == ')' && previous_token == '(')) {
-        return std::optional<std::string>("Missing operator!\n");
+        return std::optional<std::string>("Missing operator between " + std::string{current_token}
+                                  + " and " + std::string{previous_token} + "\n");
     }
 
     return std::nullopt;
@@ -114,23 +115,25 @@ constexpr std::optional<std::string> check_missing_operator_bool(const char curr
     if ((current_token == ')' && (Types::isnot(previous_token) || Types::isoperand(previous_token))) ||
         (Types::isoperand(current_token) && (previous_token == '(' || Types::isnot(previous_token))) ||
         (current_token == ')' && previous_token == '(')) {
-        return std::optional<std::string>("Missing operator!\n");
+        return std::optional<std::string>("Missing operator between " + std::string{current_token}
+                                  + " and " + std::string{previous_token} + "\n");
+
     }
 
     return std::nullopt;
 }
 
 // I was going to use a map, but that wouldn't be constexpr compatible
-static inline constexpr std::initializer_list<char> math_ops_no_add_sub = {'*', '/', '^', '!', ')'};
-static inline constexpr std::initializer_list<char> math_ops = {'+', '-', '*', '/', '^', '!', ')'};
+static inline constexpr std::initializer_list<char> invalid_tokens_no_add_sub = {'*', '/', '^', '!', ')'};
+static inline constexpr std::initializer_list<char> invalid_tokens = {'+', '-', '*', '/', '^', '!', ')'};
 static inline constexpr
 std::array<std::pair<char, std::initializer_list<char> >, 7 > invalid_math_operator_sequences {
-    std::make_pair('+', math_ops_no_add_sub),
-    std::make_pair('-', math_ops_no_add_sub),
-    std::make_pair('*', math_ops),
-    std::make_pair('/', math_ops),
-    std::make_pair('^', math_ops_no_add_sub), 
-    std::make_pair('(', math_ops_no_add_sub)
+    std::make_pair('+', invalid_tokens_no_add_sub),
+    std::make_pair('-', invalid_tokens_no_add_sub),
+    std::make_pair('*', invalid_tokens),
+    std::make_pair('/', invalid_tokens),
+    std::make_pair('^', invalid_tokens_no_add_sub), 
+    std::make_pair('(', invalid_tokens_no_add_sub)
 };
 
 [[nodiscard]] inline
@@ -139,7 +142,8 @@ constexpr std::optional<std::string> check_missing_operand_math(const char curre
         if (current_token == token) {
             for (const auto c : prev_tokens) {
                 if (previous_token == c) {
-                    return std::optional<std::string>("Missing operand!\n");
+                    return std::optional<std::string>("Missing operand between " + std::string{current_token}
+                                                      + " and " + std::string{previous_token} + "\n");
                 }
             }
         }
@@ -151,7 +155,8 @@ constexpr std::optional<std::string> check_missing_operand_math(const char curre
 constexpr std::optional<std::string> check_missing_operand_bool(const char current_token, const char previous_token) {
     if ((current_token == '(' && Types::is_bool_operator(previous_token)) ||
         (Types::is_bool_operator(current_token) && previous_token == ')')) {
-        return std::optional<std::string>("Missing an operand!\n");
+        return std::optional<std::string>("Missing operand between " + std::string{current_token}
+                                          + " and " + std::string{previous_token} + "\n");
     }
 
     return std::nullopt;
@@ -210,9 +215,7 @@ constexpr std::optional<std::string> error_bool(const char current_token, const 
 }
 
 [[nodiscard]] inline constexpr std::string invalid_character_error_math(const char token) {
-    if (isalnum(token)) {
-        return "Expected a number, received: " + std::string(1, token) + "\n";
-    } else if (token == ']' || token == '[') {
+    if (token == ']' || token == '[') {
         return "Invalid use of brackets detected! Just use parentheses please.\n";
     }
     return "Expected +, -, *, /, ^, received: " + std::string(1, token) + "\n";
