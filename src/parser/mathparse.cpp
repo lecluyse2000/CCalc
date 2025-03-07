@@ -150,10 +150,10 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
     state.current_token = *state.itr;
     if (state.current_token == '-') check_for_unary(state, infix_expression);
     const auto num_check = check_for_number(state, result.is_floating_point); 
-    if (num_check && *num_check == "") {
+    if (num_check && num_check->empty()) {
         state.previous_token = state.current_token;
         return std::nullopt;
-    } else if (num_check && *num_check != "") return num_check;
+    } else if (num_check && num_check->empty()) return num_check;
     const auto checker_result = Error::error_math(state.current_token, state.previous_token);
     if (checker_result) return checker_result;
 

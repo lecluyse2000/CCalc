@@ -95,7 +95,7 @@ inline bool create_ini_return_false(const auto& full_path) {
 [[nodiscard]] std::unordered_map<Types::Setting, long> source_ini() noexcept {
     std::unordered_map<Types::Setting, long> retval;
     const std::filesystem::path parent_path = get_home_path();
-    if (parent_path == "") return Util::create_default_settings_map();
+    if (parent_path.empty()) return Util::create_default_settings_map();
 
     #ifdef _WIN32
         const std::filesystem::path full_path = get_home_path() / ini_path_windows;
