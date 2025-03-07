@@ -44,7 +44,7 @@ clear_stack(std::string& prefix_expression, std::stack<char>& operator_stack, co
     while (!operator_stack.empty()) {
         if (operator_stack.top() == ')') {
             Util::empty_stack(operator_stack);
-            return std::optional<std::string_view>("Missing open parentheses!\n");
+            return std::optional<std::string_view>("Missing open parentheses\n");
         }
         prefix_expression.push_back(operator_stack.top());
         if(is_math) prefix_expression.push_back(',');
@@ -65,7 +65,7 @@ Types::ParseResult create_prefix_expression(std::string& infix_expression) {
 
     const auto is_math = is_math_equation(infix_expression);
     if (!is_math) {
-        parse_result.result = "No valid operators detected!\n";
+        parse_result.result = "No valid operators detected\n";
         return parse_result;
     }
 

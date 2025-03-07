@@ -82,7 +82,7 @@ mpfr_t& OperationMNode::evaluate_float() {
             return node_result;
         case '/':
             if (mpfr_zero_p(right_value)) {
-                throw std::runtime_error("Divide by zero error!");
+                throw std::runtime_error("Divide by zero error");
             }
             mpfr_div(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
@@ -97,9 +97,9 @@ mpfr_t& OperationMNode::evaluate_float() {
 mpfr_t& FactorialNode::evaluate_float() {
     const mpfr_t& prev_val = m_left_child->evaluate_float();
     if (!mpfr_integer_p(prev_val)) {
-        throw std::runtime_error("Factorial called on non integer value!");
+        throw std::runtime_error("Factorial called on non integer value");
     } else if (mpfr_sgn(prev_val) < 0) {
-        throw std::runtime_error("Factorial called on negative integer value!");
+        throw std::runtime_error("Factorial called on negative integer value");
     }
     const unsigned long int prev_val_int = mpfr_get_ui(prev_val, MPFR_RNDN);
     if (prev_val_int == std::numeric_limits<unsigned long int>::max() ||

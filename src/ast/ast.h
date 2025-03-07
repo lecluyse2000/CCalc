@@ -24,12 +24,12 @@ class BoolAST {
 
 class MathAST {
    public:
-    MathAST(const std::string_view expression, const bool _floating_point) noexcept;
+    MathAST(const std::string_view expression, const bool _floating_point);
     [[nodiscard]] mpz_class evaluate() const;
     [[nodiscard]] mpfr_t& evaluate_floating_point() const;
 
    private:
-    std::unique_ptr<MathNode> build_ast() noexcept;
+    std::unique_ptr<MathNode> build_ast();
     const std::string_view m_prefix_expression;
     std::size_t m_index;
     const bool m_floating_point;

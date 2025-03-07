@@ -85,25 +85,25 @@ enum struct InputResult {
         return InputResult::CONTINUE;
     } else if (input_expression == "history") {
         if (program_history.empty()) {
-            std::cerr << "You haven't evaluated any expressions yet!\n";
+            std::cerr << "You haven't evaluated any expressions yet\n";
             return InputResult::CONTINUE;
         }
         print_history(program_history);
         return InputResult::CONTINUE;
     } else if (input_expression == "save") {
         if (program_history.empty()) {
-            std::cerr << "You haven't evaluated any expressions yet!\n";
+            std::cerr << "You haven't evaluated any expressions yet\n";
             return InputResult::CONTINUE;
         }
 
         if (!save_history(program_history)) {
             return InputResult::QUIT_FAILURE;
         }
-        std::cout << "History saved!\n";
+        std::cout << "History saved\n";
         return InputResult::CONTINUE;
     } else if (input_expression == "clear") {
         program_history.clear();
-        std::cout << "History cleared!\n";
+        std::cout << "History cleared\n";
         return InputResult::CONTINUE;
     } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
         std::cout << "Exiting...\n" << std::endl;
@@ -162,7 +162,7 @@ void math_int_procedure(std::string& orig_input, const std::string_view prefix_i
         std::cout << "Result: " << final_value.get_str() << '\n';
         add_to_history(orig_input, final_value.get_str(), history);
     } catch (const std::bad_alloc& err) {
-        std::cerr << "Error: The number grew too big!\n";
+        std::cerr << "Error: The number grew too big\n";
     } catch (const std::exception& err) {
         std::cerr << "Error: " << err.what() << '\n';
     }
@@ -218,7 +218,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
             std::cerr << "Unknown error ocurred in receiving input. Aborting...\n\n";
             return 1;
         } else if (input_expression.empty()) {
-            std::cerr << "Error: Empty expression received!\n";
+            std::cerr << "Error: Empty expression received\n";
             continue;
         }
         std::string orig_input = input_expression;
@@ -281,7 +281,7 @@ void print_help() {
 }
 
 void print_invalid_flag(const std::string_view expression) {
-    std::cerr << "Error: " << expression << " is an invalid flag!\n\n";
+    std::cerr << "Error: " << expression << " is an invalid flag\n\n";
 }
 
 // Overloaded functions for when the program is not in continuous mode

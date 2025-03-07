@@ -40,7 +40,7 @@ std::optional<std::string> bool_loop_body(BoolParseState state, std::string& pre
         if (!operator_stack.empty()) {
             operator_stack.pop();
         } else {
-            return std::optional<std::string>("Missing closing parentheses!\n");
+            return std::optional<std::string>("Missing closing parentheses\n");
         }
     } else {
         return Error::invalid_character_error_bool(state.current_token);

@@ -34,7 +34,7 @@ BoolAST::BoolAST(const std::string_view expression) noexcept :  m_prefix_express
 
 [[nodiscard]] bool BoolAST::evaluate() const { return m_root->evaluate(); }
 
-std::unique_ptr<MathNode> MathAST::build_ast() noexcept {
+std::unique_ptr<MathNode> MathAST::build_ast() {
     char current_token = m_prefix_expression[m_index++];
     if (current_token == ',') {
         current_token = m_prefix_expression[m_index++];
@@ -70,7 +70,7 @@ std::unique_ptr<MathNode> MathAST::build_ast() noexcept {
     return node;
 }
 
-MathAST::MathAST(const std::string_view expression, const bool _floating_point) noexcept :
+MathAST::MathAST(const std::string_view expression, const bool _floating_point) :
     m_prefix_expression(expression), m_index(0), m_floating_point(_floating_point),
     m_root(build_ast()) {
 }
