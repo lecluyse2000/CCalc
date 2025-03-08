@@ -12,7 +12,7 @@ namespace BoolParse {
 namespace {
 
 [[nodiscard]]
-std::optional<std::string> bool_loop_body(BoolParseState state, std::string& prefix_expression,
+std::optional<std::string> bool_loop_body(BoolParseState& state, std::string& prefix_expression,
                                           std::stack<char>& operator_stack) {
     // Grab the current token
     // If the token is an operand, simply add it to the string

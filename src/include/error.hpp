@@ -70,8 +70,8 @@ constexpr std::optional<std::string> check_missing_parentheses(const char curren
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_consecutive_operands(const char current_token, const char previous_token) {
-    if (Types::isoperator(current_token) && Types::isoperator(previous_token)) {
+constexpr std::optional<std::string> check_consecutive_operators(const char current_token, const char previous_token) {
+    if (Types::isoperator(current_token) && Types::isoperator(previous_token) && !Types::isnot(previous_token)) {
         return std::optional<std::string>("Two consecutive operators detected: " + std::string(1, current_token) + " and " +
                 std::string(1, previous_token) + "\n");
     }
@@ -80,7 +80,7 @@ constexpr std::optional<std::string> check_consecutive_operands(const char curre
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_consecutive_operators(const char current_token, const char previous_token) {
+constexpr std::optional<std::string> check_consecutive_operands(const char current_token, const char previous_token) {
     if (Types::isoperand(current_token) && Types::isoperand(previous_token)) {
         return std::optional<std::string>("Two consecutive operands detected: " + std::string(1, current_token) + " and " +
                 std::string(1, previous_token) + "\n");
