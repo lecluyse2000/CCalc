@@ -71,9 +71,9 @@ constexpr std::optional<std::string> check_missing_parentheses(const char curren
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_consecutive_operators(const char current_token, const char previous_token) {
-    if (Types::isoperator(current_token) && Types::isoperator(previous_token) && !Types::isnot(previous_token)) {
-        return std::optional<std::string>("Two consecutive operators detected: " + std::string(1, current_token) + " and " +
-                std::string(1, previous_token) + "\n");
+    if (Types::is_bool_operator(current_token) && Types::is_bool_operator(previous_token)) {
+        return std::optional<std::string>("Two consecutive operators detected: " + std::string{current_token} + " and " +
+                std::string{previous_token} + "\n");
     }
 
     return std::nullopt;
@@ -82,8 +82,8 @@ constexpr std::optional<std::string> check_consecutive_operators(const char curr
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_consecutive_operands(const char current_token, const char previous_token) {
     if (Types::isoperand(current_token) && Types::isoperand(previous_token)) {
-        return std::optional<std::string>("Two consecutive operands detected: " + std::string(1, current_token) + " and " +
-                std::string(1, previous_token) + "\n");
+        return std::optional<std::string>("Two consecutive operands detected: " + std::string{current_token} + " and " +
+                std::string{previous_token} + "\n");
     }
 
     return std::nullopt;
@@ -100,8 +100,8 @@ constexpr std::optional<std::string> check_not_after_value(const char current_to
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_missing_operator_math(const char current_token, const char previous_token) {
-    if ((current_token == ')' && Types::isoperand(previous_token)) ||
-        ((Types::isoperand(current_token) && current_token != '~') && previous_token == '(') || 
+    if ((current_token == ')' && Types::is_math_operand(previous_token)) ||
+        ((Types::is_math_operand(current_token) && current_token != '~') && previous_token == '(') || 
         (current_token == ')' && previous_token == '(')) {
         return std::optional<std::string>("Missing operator between " + std::string{current_token}
                                   + " and " + std::string{previous_token} + "\n");
@@ -112,8 +112,8 @@ constexpr std::optional<std::string> check_missing_operator_math(const char curr
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_missing_operator_bool(const char current_token, const char previous_token) {
-    if ((current_token == ')' && (Types::isnot(previous_token) || Types::isoperand(previous_token))) ||
-        (Types::isoperand(current_token) && (previous_token == '(' || Types::isnot(previous_token))) ||
+    if ((current_token == ')' && (Types::isnot(previous_token) || Types::is_bool_operand(previous_token))) ||
+        (Types::is_bool_operand(current_token) && (previous_token == '(' || Types::isnot(previous_token))) ||
         (current_token == ')' && previous_token == '(')) {
         return std::optional<std::string>("Missing operator between " + std::string{current_token}
                                   + " and " + std::string{previous_token} + "\n");
@@ -166,7 +166,7 @@ constexpr std::optional<std::string> check_missing_operand_bool(const char curre
 constexpr std::optional<std::string> check_for_factorial_error(const char current_token, const char previous_token) {
     if (current_token == '!' && std::isdigit(previous_token)) {
         return std::optional<std::string>("Digit following factorial\n");
-    } else if(!std::isdigit(current_token) && current_token != ')' && previous_token == '!') {
+    } else if(!std::isdigit(current_token) && current_token != ')' && current_token != '!' && previous_token == '!') {
         return std::optional<std::string>("Factorial follows a non-number value\n");
     } else if(current_token == '!' && previous_token == '!') {
         return std::optional<std::string>("Consecutive factorials detected\n");
@@ -218,16 +218,16 @@ constexpr std::optional<std::string> error_bool(const char current_token, const 
     if (token == ']' || token == '[') {
         return "Invalid use of brackets detected! Just use parentheses please.\n";
     }
-    return "Expected +, -, *, /, ^, received: " + std::string(1, token) + "\n";
+    return "Expected +, -, *, /, ^, received: " + std::string{token} + "\n";
 }
 
 [[nodiscard]] inline constexpr std::string invalid_character_error_bool(const char token) {
     if (isalnum(token)) {
-        return "Expected T or F, received: " + std::string(1, token) + "\n";
+        return "Expected T or F, received: " + std::string{token} + "\n";
     } else if (token == ']' || token == '[') {
         return "Invalid use of brackets detected! Just use parentheses please.\n";
     }
-    return "Expected &, |, !, @, $, received: " + std::string(1, token) + "\n";
+    return "Expected &, |, !, @, $, received: " + std::string{token} + "\n";
 }
 
 }  // namespace Error

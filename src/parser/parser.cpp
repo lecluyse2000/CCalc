@@ -24,7 +24,8 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
         const char c = *itr;
         if (c == '!' && itr + 1 != infix_expression.end() && Types::is_bool_operand(*(itr+1))) {
             return false;
-        } else if (std::isdigit(c) && itr + 1 != infix_expression.end() && *(itr+1) == '!') {
+            // I think this is a more robust check than just looking for a digit
+        } else if (std::isdigit(c) && itr + 1 != infix_expression.end() && (*(itr+1) == '!' || *(itr+1) == ')')) {
             return true;
         }
         if (Types::is_bool_operator(c)) {

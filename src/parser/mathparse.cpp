@@ -11,6 +11,15 @@ namespace MathParse {
 
 namespace {
 
+constexpr void add_mult_signs(std::string& infix) {
+    for (auto itr = infix.begin(); itr < infix.end(); ++itr) {
+            const char current_token = *itr;
+            const char next_token = (itr + 1 != infix.end()) ? *(itr + 1) : '\0';
+            if (current_token == ')' && next_token == '(') infix.insert(itr + 1, '*');
+            if (current_token == '!' && std::isdigit(next_token)) infix.insert(itr + 1, '*');
+        }
+}
+
 // Checks if the parser is currently in a number based on if the current token is a digit or decimal
 // If a decimal place is found, the program goes into floating point mode
 [[nodiscard]] constexpr std::optional<std::string>
@@ -179,6 +188,7 @@ std::optional<std::string> parse_math(std::string& infix_expression, Types::Pars
                                       std::stack<char>& operator_stack) {
     MathParseState state;
     if (infix_expression[0] == '-') infix_expression[0] = '~';
+    add_mult_signs(infix_expression);
     
     // All the algorithms I discovered for converting to prefix started by reversing the string,
     // so I thought why not just parse from right to left so we don't have to reverse

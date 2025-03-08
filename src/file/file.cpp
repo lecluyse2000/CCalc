@@ -92,7 +92,6 @@ void math_int_procedure(FILE*& output_file, const std::string_view result) {
 }
 
 void math_procedure(FILE*& output_file, const std::string_view result, const bool is_floating_point) {
-    static const std::unordered_map<Types::Setting, long> settings = Startup::source_ini();
     if (is_floating_point) {
         math_float_procedure(output_file, result);
     } else {
