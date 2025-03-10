@@ -24,13 +24,13 @@ constexpr void add_mult_signs(std::string& infix) {
 // If a decimal place is found, the program goes into floating point mode
 [[nodiscard]] constexpr std::optional<std::string>
 check_for_number(MathParseState& state,  bool& floating_point) {
-    if (std::isdigit(state.current_token)) {
+    if (std::isdigit(static_cast<char>(state.current_token))) {
         state.in_number = true;
-        state.num_buffer.push_back(static_cast<Types::Token>(state.current_token));
+        state.num_buffer.push_back(state.current_token);
         return std::optional<std::string>("");
-    } else if (state.current_token == '.') {
+    } else if (state.current_token == Types::Token::DOT) {
         state.in_number = true;
-        state.num_buffer.push_back(static_cast<Types::Token>(state.current_token));
+        state.num_buffer.push_back(state.current_token);
         floating_point = true;
         return std::optional<std::string>("");
     }
@@ -40,46 +40,50 @@ check_for_number(MathParseState& state,  bool& floating_point) {
 
 // Unary cases: 1) [not operand, close paren, or factorial] - (
 constexpr bool unary_first_case(MathParseState& state, const std::string& infix) {
-    const char next_token = (state.itr + 1 != infix.rend()) ? *(state.itr + 1) : '\0';
-    return state.previous_token == '(' && !Types::isoperand(next_token) && next_token != ')' &&
-           next_token != '!';
+    const Types::Token next_token = (state.itr + 1 != infix.rend()) ? static_cast<Types::Token>(*(state.itr + 1))
+                                                                    : Types::Token::NULLCHAR;
+    return state.previous_token == Types::Token::LEFT_PAREN && !Types::isoperand(next_token) &&
+           next_token != Types::Token::RIGHT_PAREN && next_token != Types::Token::FAC;
 }
 
 // 2) ( - [operand]
 constexpr bool unary_second_case(MathParseState& state, const std::string& infix) {
-    const char next_token = (state.itr + 1 != infix.rend()) ? *(state.itr + 1) : '\0';
-    return next_token == '(' && Types::is_math_operand(state.previous_token);
+    const Types::Token next_token = (state.itr + 1 != infix.rend()) ? static_cast<Types::Token>(*(state.itr + 1))
+                                                                    : Types::Token::NULLCHAR;
+    return next_token == Types::Token::LEFT_PAREN && Types::is_math_operand(state.previous_token);
 }
 
 // 3) [not factorial operator] - [operand]
 constexpr bool unary_third_case(MathParseState& state, const std::string& infix) {
-    const char next_token = (state.itr + 1 != infix.rend()) ? *(state.itr + 1) : '\0';
-    return (Types::is_math_operator(next_token) && next_token != '!')
+    const Types::Token next_token = (state.itr + 1 != infix.rend()) ? static_cast<Types::Token>(*(state.itr + 1))
+                                                                    : Types::Token::NULLCHAR;
+    return (Types::is_math_operator(next_token) && next_token != Types::Token::FAC)
             && Types::is_math_operand(state.previous_token);
 }
 
 // 4) Exponent raised to the negative power
 constexpr bool unary_fourth_case(MathParseState& state, const std::string& infix) {
-    const char next_token = (state.itr + 1 != infix.rend()) ? *(state.itr + 1) : '\0';
-    return next_token == '^';
+    const Types::Token next_token = (state.itr + 1 != infix.rend()) ? static_cast<Types::Token>(*(state.itr + 1))
+                                                                    : Types::Token::NULLCHAR;
+    return next_token == Types::Token::POW;
 }
 
 constexpr void 
 check_for_unary(MathParseState& state, const std::string& infix) {
     if (unary_first_case(state, infix) || unary_second_case(state, infix) || unary_third_case(state, infix) ||
         unary_fourth_case(state, infix)) {
-        state.current_token = '~';
+        state.current_token = Types::Token::UNARY;
     }
 }
 
 // If there is division or an exponent raised to a negative power, go into floating point mode
 constexpr void check_for_floating_point(MathParseState& state, const std::string& infix_expression,
                                         bool& floating_point) {
-    if (state.current_token == '/') {
+    if (state.current_token == Types::Token::DIV) {
         floating_point = true;
         return;
     }
-    if (state.current_token == '^') {
+    if (state.current_token == Types::Token::POW) {
         for (auto new_itr = state.itr.base(); new_itr != infix_expression.end(); ++new_itr) {
             if (*new_itr == '-' || *new_itr == '~') {
                 floating_point = true;
@@ -132,17 +136,20 @@ bool math_operator_found(MathParseState& state, Types::ParseResult& result,
         }
         result.result.push_back(Types::Token::COMMA);
         clear_num_buffer(state);
-        if (state.current_token == '+' &&
-            ((Types::is_math_operator(*(state.itr + 1)) && *(state.itr + 1) != '!') || *(state.itr + 1) == '(')) return true;
+        const Types::Token next_token = (state.itr + 1 != infix_expression.rend()) ? static_cast<Types::Token>(*(state.itr + 1))
+                                                                                   : Types::Token::NULLCHAR;
+        if (state.current_token == Types::Token::ADD &&
+            ((Types::is_math_operator(static_cast<Types::Token>(next_token)) && next_token != Types::Token::FAC)
+            || next_token == Types::Token::LEFT_PAREN)) return true;
     }
     check_for_floating_point(state, infix_expression, result.is_floating_point);
-    if (state.current_token == '!') {
+    if (state.current_token == Types::Token::FAC) {
         op_stack.push(static_cast<Types::Token>(state.current_token));
         return false;
     }
 
      while (!op_stack.empty() && op_stack.top() != Types::Token::RIGHT_PAREN &&
-           Types::get_precedence(static_cast<char>(op_stack.top())) > Types::get_precedence(state.current_token)) {
+           Types::get_precedence(op_stack.top()) > Types::get_precedence(state.current_token)) {
         result.result.push_back(op_stack.top());
         result.result.push_back(Types::Token::COMMA);
         op_stack.pop();
@@ -162,8 +169,9 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
     // if the token is an operator or a closing parentheses, add it to the stack
     // If the token is an open parentheses, pop from the stack and add to the string until a closing parentheses is
     // found, or an operator with a higher precedence
-    state.current_token = *state.itr;
-    if (state.current_token == '-') check_for_unary(state, infix_expression);
+    if (!Types::is_valid_math_token(*state.itr)) return Error::invalid_character_error_math(*state.itr);
+    state.current_token = static_cast<Types::Token>(*state.itr);
+    if (state.current_token == Types::Token::SUB) check_for_unary(state, infix_expression);
     const auto num_check = check_for_number(state, result.is_floating_point); 
     if (num_check && num_check->empty()) {
         state.previous_token = state.current_token;
@@ -175,14 +183,12 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
     if (Types::is_math_operator(state.current_token)) {
         const bool cont = math_operator_found(state, result, infix_expression, op_stack);
         if (cont) return std::nullopt; 
-    } else if (state.current_token == ')') {
+    } else if (state.current_token == Types::Token::RIGHT_PAREN) {
         closing_parentheses_math(state, result.result, op_stack);
-    } else if (state.current_token == '(') {
+    } else if (state.current_token == Types::Token::LEFT_PAREN) {
         const auto open_parenthese_result = open_parentheses_math(state, result.result, op_stack);
         if (open_parenthese_result) return open_parenthese_result;
-    } else {
-        return Error::invalid_character_error_math(state.current_token);
-    }
+    } 
     state.previous_token = state.current_token;
     return std::nullopt;
 }

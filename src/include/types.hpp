@@ -37,7 +37,7 @@ enum struct Token : char {
     EQUAL = '=',
     SIN = 'S',
     COS = 'C',
-    TAN = 'T',
+    TAN = 'G', //tanGent, T is already used for true
     LOG = 'L',
     LN = 'N', 
     EXP = 'E',
@@ -50,6 +50,61 @@ enum struct Token : char {
     TRUE = 'T',
     FALSE = 'F'
 };
+
+inline constexpr bool is_valid_math_token(const char c) {
+    switch (c) {
+        case '\0':
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '^':
+        case '~':
+        case '!':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case '0':
+        case '(':
+        case ')':
+        case '.':
+        case ',':
+        case '%':
+        case '=':
+        case 'S':
+        case 'C':
+        case 'G':
+        case 'L':
+        case 'N':
+        case 'E':
+        case 'P':
+        case 'A':
+            return true;
+        default:
+            return false;
+    }
+}
+
+inline constexpr bool is_valid_bool_token(const char c) {
+    switch (c) {
+        case '!':
+        case '&':
+        case '|':
+        case '$':
+        case '@':
+        case 'T':
+        case 'F':
+            return true;
+        default:
+            return false;
+    }
+}
 
 struct ParseResult {
     std::vector<Types::Token> result;
@@ -73,62 +128,64 @@ enum struct Setting {
     return Setting::INVALID;
 }
 
-[[nodiscard]] inline constexpr bool is_math_operand(const char token) noexcept {
-    return std::isdigit(token) || token == '.';
+[[nodiscard]] inline constexpr bool is_math_operand(const Token token) noexcept {
+    return std::isdigit(static_cast<char>(token)) || token == Token::DOT;
 }
 
-[[nodiscard]] inline constexpr bool is_bool_operand(const char token) noexcept {
-    return toupper(token) == 'T' || toupper(token) == 'F';
+[[nodiscard]] inline constexpr bool is_bool_operand(const Token token) noexcept {
+    return token == Token::TRUE || token == Token::FALSE;
 }
 
-[[nodiscard]] inline constexpr bool isoperand(const char token) noexcept {
+[[nodiscard]] inline constexpr bool isoperand(const Token token) noexcept {
     return is_math_operand(token) || is_bool_operand(token);
 }
 
-[[nodiscard]] inline constexpr bool is_math_operator(const char token) noexcept {
+[[nodiscard]] inline constexpr bool is_math_operator(const Token token) noexcept {
     switch (token) {
-        case '+':
-        case '-':
-        case '*':
-        case '/':
-        case '^':
-        case '~':
-        case '!':
+        case Token::ADD:
+        case Token::SUB:
+        case Token::MULT:
+        case Token::DIV:
+        case Token::UNARY:
+        case Token::POW:
+        case Token::FAC:
             return true;
+        default:
+            return false;
     }
-    return false;
 }
 
-[[nodiscard]] inline constexpr bool is_bool_operator(const char token) noexcept {
+[[nodiscard]] inline constexpr bool is_bool_operator(const Token token) noexcept {
     switch (token) {
-        case '&':
-        case '|':
-        case '@':
-        case '$':
+        case Token::AND:
+        case Token::OR:
+        case Token::NAND:
+        case Token::XOR:
             return true;
+        default:
+            return false;
     }
-    return false;
 }
 
-[[nodiscard]] inline constexpr bool isoperator(const char token) noexcept {
+[[nodiscard]] inline constexpr bool isoperator(const Token token) noexcept {
     return is_math_operator(token) || is_bool_operator(token);
 }
 
-[[nodiscard]] inline constexpr bool isnot(const char token) noexcept { return token == '!'; }
+[[nodiscard]] inline constexpr bool isnot(const Token token) noexcept { return token == Token::FAC; }
 
-[[nodiscard]] inline constexpr int get_precedence(const char op) {
+[[nodiscard]] inline constexpr int get_precedence(const Token op) {
     switch (op) {
-        case '+':
-        case '-':
+        case Token::ADD:
+        case Token::SUB:
             return 1;
-        case '*':
-        case '/':
+        case Token::MULT:
+        case Token::DIV:
             return 2;
-        case '~':
+        case Token::UNARY:
             return 3;
-        case '^':
+        case Token::POW:
             return 4;
-        case '!':
+        case Token::FAC:
             return 5;
         default:
             return 0;

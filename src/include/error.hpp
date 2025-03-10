@@ -13,6 +13,8 @@
 
 #include "include/types.hpp"
 
+using namespace Types;
+
 namespace Error {
 
 // Declare helper functions in an anonymous namespace
@@ -24,10 +26,10 @@ constexpr std::optional<std::string> check_leading(const std::string_view infix_
     if (infix_expression.size() == 1) {
         return std::optional<std::string>("Expression is only one character long\n");
     }
-    if (math && Types::is_math_operator(infix_expression[0]) && infix_expression[0] != '-') {
+    if (math && is_math_operator(static_cast<Token>(infix_expression[0])) && infix_expression[0] != '-') {
         return std::optional<std::string>("Math expression begins with an operator\n");
     }
-    if (!math && Types::is_bool_operator(infix_expression[0])) {
+    if (!math && is_bool_operator(static_cast<Token>(infix_expression[0]))) {
         return std::optional<std::string>("Boolean expression begins with an operator\n");
     }
     if (infix_expression[0] == ')') {
@@ -38,7 +40,7 @@ constexpr std::optional<std::string> check_leading(const std::string_view infix_
     for (const auto i : infix_expression) {
         if (!math && std::isdigit(i)) {
             return std::optional<std::string>("Boolean expression contains a number\n");
-        } else if (math && Types::is_bool_operand(i)) {
+        } else if (math && is_bool_operand(static_cast<Token>(i))) {
             return std::optional<std::string>("Arithmetic expression contains a bool\n");
         }
     }
@@ -48,11 +50,12 @@ constexpr std::optional<std::string> check_leading(const std::string_view infix_
 
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_trailing(const std::string_view infix_expression, const bool math) {
-    if (Types::isnot(*infix_expression.rbegin()) && !math) {
+    const Token rbegin = static_cast<Token>(*infix_expression.rbegin());
+    if (isnot(rbegin) && !math) {
         return std::optional<std::string>("Expression ends with NOT\n");
-    } else if (math && Types::is_math_operator(*infix_expression.rbegin()) && *infix_expression.rbegin() != '!') {
+    } else if (math && is_math_operator(rbegin) && *infix_expression.rbegin() != '!') {
         return std::optional<std::string>("Math expression ends with an operator\n");
-    } else if (!math && Types::is_bool_operator(*infix_expression.rbegin())) {
+    } else if (!math && is_bool_operator(rbegin)) {
         return std::optional<std::string>("Boolean expression ends with an operator\n");
     } else if (*infix_expression.rbegin() == '(') {
         return std::optional<std::string>("Expression ends with open parentheses\n");
@@ -61,8 +64,8 @@ constexpr std::optional<std::string> check_trailing(const std::string_view infix
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_missing_parentheses(const char current_token, const char previous_token) {
-    if (current_token == '(' && previous_token == ')') {
+constexpr std::optional<std::string> check_missing_parentheses(const Token current_token, const Token previous_token) {
+    if (current_token == Token::LEFT_PAREN && previous_token == Token::RIGHT_PAREN) {
         return std::optional<std::string>("Empty parentheses detected\n");
     }
 
@@ -70,28 +73,28 @@ constexpr std::optional<std::string> check_missing_parentheses(const char curren
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_consecutive_operators(const char current_token, const char previous_token) {
-    if (Types::is_bool_operator(current_token) && Types::is_bool_operator(previous_token)) {
-        return std::optional<std::string>("Two consecutive operators detected: " + std::string{current_token} + " and " +
-                std::string{previous_token} + "\n");
+constexpr std::optional<std::string> check_consecutive_operators(const Token current_token, const Token previous_token) {
+    if (is_bool_operator(current_token) && is_bool_operator(previous_token)) {
+        return std::optional<std::string>("Two consecutive operators detected: " + std::string{static_cast<char>(current_token)} + " and " +
+                std::string{static_cast<char>(previous_token)} + "\n");
     }
 
     return std::nullopt;
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_consecutive_operands(const char current_token, const char previous_token) {
-    if (Types::isoperand(current_token) && Types::isoperand(previous_token)) {
-        return std::optional<std::string>("Two consecutive operands detected: " + std::string{current_token} + " and " +
-                std::string{previous_token} + "\n");
+constexpr std::optional<std::string> check_consecutive_operands(const Token current_token, const Token previous_token) {
+    if (isoperand(current_token) && isoperand(previous_token)) {
+        return std::optional<std::string>("Two consecutive operands detected: " + std::string{static_cast<char>(current_token)} + " and " +
+                std::string{static_cast<char>(previous_token)} + "\n");
     }
 
     return std::nullopt;
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_not_after_value(const char current_token, const char previous_token) {
-    if (Types::isnot(current_token) && (Types::isoperator(previous_token) || previous_token == ')')) {
+constexpr std::optional<std::string> check_not_after_value(const Token current_token, const Token previous_token) {
+    if (isnot(current_token) && (isoperator(previous_token) || previous_token == Token::RIGHT_PAREN)) {
         return std::optional<std::string>("NOT applied after value\n");
     }
 
@@ -99,24 +102,24 @@ constexpr std::optional<std::string> check_not_after_value(const char current_to
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_missing_operator_math(const char current_token, const char previous_token) {
-    if ((current_token == ')' && Types::is_math_operand(previous_token)) ||
-        ((Types::is_math_operand(current_token) && current_token != '~') && previous_token == '(') || 
-        (current_token == ')' && previous_token == '(')) {
-        return std::optional<std::string>("Missing operator between " + std::string{current_token}
-                                  + " and " + std::string{previous_token} + "\n");
+constexpr std::optional<std::string> check_missing_operator_math(const Token current_token, const Token previous_token) {
+    if ((current_token == Token::RIGHT_PAREN && is_math_operand(previous_token)) ||
+        ((is_math_operand(current_token) && current_token != Token::UNARY) && previous_token == Token::LEFT_PAREN) || 
+        (current_token == Token::RIGHT_PAREN && previous_token == Token::LEFT_PAREN)) {
+        return std::optional<std::string>("Missing operator between " + std::string{static_cast<char>(current_token)}
+                                  + " and " + std::string{static_cast<char>(previous_token)} + "\n");
     }
 
     return std::nullopt;
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_missing_operator_bool(const char current_token, const char previous_token) {
-    if ((current_token == ')' && (Types::isnot(previous_token) || Types::is_bool_operand(previous_token))) ||
-        (Types::is_bool_operand(current_token) && (previous_token == '(' || Types::isnot(previous_token))) ||
-        (current_token == ')' && previous_token == '(')) {
-        return std::optional<std::string>("Missing operator between " + std::string{current_token}
-                                  + " and " + std::string{previous_token} + "\n");
+constexpr std::optional<std::string> check_missing_operator_bool(const Token current_token, const Token previous_token) {
+    if ((current_token == Token::RIGHT_PAREN && (isnot(previous_token) || is_bool_operand(previous_token))) ||
+        (is_bool_operand(current_token) && (previous_token == Token::LEFT_PAREN || isnot(previous_token))) ||
+        (current_token == Token::RIGHT_PAREN && previous_token == Token::LEFT_PAREN)) {
+        return std::optional<std::string>("Missing operator between " + std::string{static_cast<char>(current_token)}
+                                  + " and " + std::string{static_cast<char>(previous_token)} + "\n");
 
     }
 
@@ -124,26 +127,41 @@ constexpr std::optional<std::string> check_missing_operator_bool(const char curr
 }
 
 // I was going to use a map, but that wouldn't be constexpr compatible
-static inline constexpr std::initializer_list<char> invalid_tokens_no_add_sub = {'*', '/', '^', '!', ')'};
-static inline constexpr std::initializer_list<char> invalid_tokens = {'+', '-', '*', '/', '^', '!', ')'};
+static inline constexpr std::initializer_list<Token> invalid_tokens_no_add_sub = {
+    Token::MULT, 
+    Token::DIV, 
+    Token::POW, 
+    Token::FAC, 
+    Token::RIGHT_PAREN
+};
+
+static inline constexpr std::initializer_list<Token> invalid_tokens = {
+    Token::ADD, 
+    Token::SUB, 
+    Token::MULT, 
+    Token::DIV, 
+    Token::POW, 
+    Token::FAC, 
+    Token::RIGHT_PAREN
+};
 static inline constexpr
-std::array<std::pair<char, std::initializer_list<char> >, 7 > invalid_math_operator_sequences {
-    std::make_pair('+', invalid_tokens_no_add_sub),
-    std::make_pair('-', invalid_tokens_no_add_sub),
-    std::make_pair('*', invalid_tokens),
-    std::make_pair('/', invalid_tokens),
-    std::make_pair('^', invalid_tokens_no_add_sub), 
-    std::make_pair('(', invalid_tokens_no_add_sub)
+std::array<std::pair<Token, std::initializer_list<Token> >, 7 > invalid_math_operator_sequences {
+    std::make_pair(Token::ADD, invalid_tokens_no_add_sub),
+    std::make_pair(Token::SUB, invalid_tokens_no_add_sub),
+    std::make_pair(Token::MULT, invalid_tokens),
+    std::make_pair(Token::DIV, invalid_tokens),
+    std::make_pair(Token::POW, invalid_tokens_no_add_sub), 
+    std::make_pair(Token::LEFT_PAREN, invalid_tokens_no_add_sub)
 };
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_missing_operand_math(const char current_token, const char previous_token) {
+constexpr std::optional<std::string> check_missing_operand_math(const Token current_token, const Token previous_token) {
     for (const auto& [token, prev_tokens] : invalid_math_operator_sequences) {
         if (current_token == token) {
             for (const auto c : prev_tokens) {
                 if (previous_token == c) {
-                    return std::optional<std::string>("Missing operand between " + std::string{current_token}
-                                                      + " and " + std::string{previous_token} + "\n");
+                    return std::optional<std::string>("Missing operand between " + std::string{static_cast<char>(current_token)}
+                                                      + " and " + std::string{static_cast<char>(previous_token)} + "\n");
                 }
             }
         }
@@ -152,23 +170,24 @@ constexpr std::optional<std::string> check_missing_operand_math(const char curre
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_missing_operand_bool(const char current_token, const char previous_token) {
-    if ((current_token == '(' && Types::is_bool_operator(previous_token)) ||
-        (Types::is_bool_operator(current_token) && previous_token == ')')) {
-        return std::optional<std::string>("Missing operand between " + std::string{current_token}
-                                          + " and " + std::string{previous_token} + "\n");
+constexpr std::optional<std::string> check_missing_operand_bool(const Token current_token, const Token previous_token) {
+    if ((current_token == Token::LEFT_PAREN && is_bool_operator(previous_token)) ||
+        (is_bool_operator(current_token) && previous_token == Token::RIGHT_PAREN)) {
+        return std::optional<std::string>("Missing operand between " + std::string{static_cast<char>(current_token)}
+                                          + " and " + std::string{static_cast<char>(previous_token)} + "\n");
     }
 
     return std::nullopt;
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> check_for_factorial_error(const char current_token, const char previous_token) {
-    if (current_token == '!' && std::isdigit(previous_token)) {
+constexpr std::optional<std::string> check_for_factorial_error(const Token current_token, const Token previous_token) {
+    if (current_token == Token::FAC && std::isdigit(static_cast<char>(previous_token))) {
         return std::optional<std::string>("Digit following factorial\n");
-    } else if(!std::isdigit(current_token) && current_token != ')' && current_token != '!' && previous_token == '!') {
+    } else if(!std::isdigit(static_cast<char>(current_token)) && current_token != Token::RIGHT_PAREN &&
+               current_token != Token::FAC && previous_token == Token::FAC) {
         return std::optional<std::string>("Factorial follows a non-number value\n");
-    } else if(current_token == '!' && previous_token == '!') {
+    } else if(current_token == Token::FAC && previous_token == Token::FAC) {
         return std::optional<std::string>("Consecutive factorials detected\n");
     }
 
@@ -189,8 +208,8 @@ constexpr std::optional<std::string> initial_checks(const std::string_view infix
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> error_math(const char current_token, const char previous_token) {
-    std::initializer_list<std::optional<std::string> (*)(const char, const char)> error_checks{
+constexpr std::optional<std::string> error_math(const Token current_token, const Token previous_token) {
+    std::initializer_list<std::optional<std::string> (*)(const Token, const Token)> error_checks{
         check_missing_parentheses, check_missing_operator_math, check_missing_operand_math, 
         check_for_factorial_error};
 
@@ -202,8 +221,8 @@ constexpr std::optional<std::string> error_math(const char current_token, const 
 }
 
 [[nodiscard]] inline
-constexpr std::optional<std::string> error_bool(const char current_token, const char previous_token) {
-    std::initializer_list<std::optional<std::string> (*)(const char, const char)> error_checks{
+constexpr std::optional<std::string> error_bool(const Token current_token, const Token previous_token) {
+    std::initializer_list<std::optional<std::string> (*)(const Token, const Token)> error_checks{
         check_missing_parentheses, check_consecutive_operands, check_consecutive_operators,
         check_not_after_value,     check_missing_operator_bool,     check_missing_operand_bool};
 

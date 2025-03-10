@@ -13,12 +13,12 @@
 std::unique_ptr<BoolNode> BoolAST::build_ast() noexcept {
     const Types::Token current_token = m_prefix_expression[m_index++];
 
-    if (Types::is_bool_operand(static_cast<char>(current_token))) {
+    if (Types::is_bool_operand(current_token)) {
         return std::make_unique<ValueBNode>(current_token);
     }
 
     std::unique_ptr<BoolNode> node;
-    if (Types::isnot(static_cast<char>(current_token))) {
+    if (Types::isnot(current_token)) {
         node = std::make_unique<UnaryBNode>(current_token);
         node->m_left_child = build_ast();
     } else {
@@ -40,7 +40,7 @@ std::unique_ptr<MathNode> MathAST::build_ast() {
         current_token = m_prefix_expression[m_index++];
     }
 
-    if (Types::isoperand(static_cast<char>(current_token))) {
+    if (Types::is_math_operand(current_token)) {
         std::string current_num;
         current_num += static_cast<char>(current_token);
         while (m_index < m_prefix_expression.size()) {

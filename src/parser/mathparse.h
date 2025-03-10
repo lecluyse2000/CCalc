@@ -12,8 +12,8 @@ namespace MathParse {
     struct MathParseState {
         std::vector<Types::Token> num_buffer;
         std::string::reverse_iterator itr;
-        char current_token = '\0';
-        char previous_token = '\0';
+        Types::Token current_token = Types::Token::NULLCHAR;
+        Types::Token previous_token = Types::Token::NULLCHAR;
         bool in_number = false;
     };
 
