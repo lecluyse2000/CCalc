@@ -53,11 +53,11 @@ constexpr std::optional<std::string> check_trailing(const std::string_view infix
     const Token rbegin = static_cast<Token>(*infix_expression.rbegin());
     if (isnot(rbegin) && !math) {
         return std::optional<std::string>("Expression ends with NOT\n");
-    } else if (math && is_math_operator(rbegin) && *infix_expression.rbegin() != '!') {
+    } else if (math && is_math_operator(rbegin) && rbegin != Token::FAC) {
         return std::optional<std::string>("Math expression ends with an operator\n");
     } else if (!math && is_bool_operator(rbegin)) {
         return std::optional<std::string>("Boolean expression ends with an operator\n");
-    } else if (*infix_expression.rbegin() == '(') {
+    } else if (rbegin == Token::LEFT_PAREN) {
         return std::optional<std::string>("Expression ends with open parentheses\n");
     }
     return std::nullopt;
