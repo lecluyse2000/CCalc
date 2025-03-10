@@ -314,9 +314,9 @@ void bool_procedure(const std::span<const Types::Token> result) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
-        std::cout << "True!\n";
+        std::cout << "True\n";
     } else {
-        std::cout << "False!\n";
+        std::cout << "False\n";
     }
 }
 
