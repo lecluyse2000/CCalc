@@ -6,11 +6,54 @@
 #include <cctype>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace Types {
 
+enum struct Token : char {
+    NULLCHAR = '\0',
+    ADD = '+',
+    SUB = '-',
+    MULT = '*',
+    DIV = '/',
+    POW = '^',
+    UNARY = '~',
+    FAC = '!',
+    ONE = '1',
+    TWO = '2',
+    THREE = '3',
+    FOUR = '4',
+    FIVE = '5',
+    SIX = '6',
+    SEVEN = '7',
+    EIGHT = '8',
+    NINE = '9',
+    ZERO = '0',
+    LEFT_PAREN = '(',
+    RIGHT_PAREN = ')',
+    DOT = '.',
+    COMMA = ',',
+    MODULO = '%',
+    EQUAL = '=',
+    SIN = 'S',
+    COS = 'C',
+    TAN = 'T',
+    LOG = 'L',
+    LN = 'N', 
+    EXP = 'E',
+    PI = 'P', 
+    ANS = 'A',
+    AND = '&',
+    OR = '|',
+    XOR = '$',
+    NAND = '@',
+    TRUE = 'T',
+    FALSE = 'F'
+};
+
 struct ParseResult {
-    std::string result;
+    std::vector<Types::Token> result;
+    std::string error_msg;
     bool success = false;
     bool is_math = false;
     bool is_floating_point = false;

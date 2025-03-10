@@ -7,21 +7,22 @@
 #include <limits>
 #include <memory>
 #include <mpfr.h>
+#include <stdexcept>
 
-BoolNode::BoolNode(const char token) noexcept : key(token){}
+BoolNode::BoolNode(const Types::Token token) noexcept : key(token){}
 
-[[nodiscard]] bool ValueBNode::evaluate() const { return toupper(key) == 'T'; }
+[[nodiscard]] bool ValueBNode::evaluate() const { return key == Types::Token::TRUE; }
 
 [[nodiscard]] bool OperationBNode::evaluate() const {
     const bool left_value = m_left_child->evaluate();
     const bool right_value = m_right_child->evaluate();
 
     switch (key) {
-        case '&':
+        case Types::Token::AND:
             return left_value && right_value;
-        case '|':
+        case Types::Token::OR:
             return left_value || right_value;
-        case '@':
+        case Types::Token::NAND:
             return !(left_value && right_value);
         default:
             return (!left_value && right_value) || (left_value && !right_value);
@@ -55,11 +56,11 @@ static inline mpz_class mpz_exponent(mpz_class& left_value, mpz_class& right_val
     mpz_class right_value = m_right_child->evaluate();
 
     switch(key) {
-        case '+':
+        case Types::Token::ADD:
             return left_value + right_value;
-        case '-':
+        case Types::Token::SUB:
             return left_value - right_value;
-        case '*':
+        case Types::Token::MULT:
             return left_value * right_value;
         default:
             return mpz_exponent(left_value, right_value);
@@ -71,16 +72,16 @@ mpfr_t& OperationMNode::evaluate_float() {
     const mpfr_t& right_value = m_right_child->evaluate_float();
 
     switch(key) {
-        case '+':
+        case Types::Token::ADD:
             mpfr_add(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
-        case '-':
+        case Types::Token::SUB:
             mpfr_sub(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
-        case '*':
+        case Types::Token::MULT:
             mpfr_mul(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
-        case '/':
+        case Types::Token::DIV:
             if (mpfr_zero_p(right_value)) {
                 throw std::runtime_error("Divide by zero error");
             }

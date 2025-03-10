@@ -5,33 +5,34 @@
 
 #include <gmpxx.h>
 #include <stdexcept>
-#include <string>
+#include <string_view>
 #include <memory>
 #include <mpfr.h>
 
+#include "include/types.hpp"
 #include "startup/startup.h"
 
 struct BoolNode {
-    explicit BoolNode(const char token) noexcept;
+    explicit BoolNode(const Types::Token token) noexcept;
     virtual ~BoolNode() = default;
     [[nodiscard]] virtual bool evaluate() const = 0;
     std::unique_ptr<BoolNode> m_left_child;
     std::unique_ptr<BoolNode> m_right_child;
-    const char key;
+    const Types::Token key;
 };
 
 struct ValueBNode : public BoolNode {
-    explicit ValueBNode(const char token) : BoolNode(token) {}
+    explicit ValueBNode(const Types::Token token) : BoolNode(token) {}
     [[nodiscard]] bool evaluate() const override;
 };
 
 struct OperationBNode : public BoolNode {
-    explicit OperationBNode(const char token) : BoolNode(token) {}
+    explicit OperationBNode(const Types::Token token) : BoolNode(token) {}
     [[nodiscard]] bool evaluate() const override;
 };
 
 struct UnaryBNode : public BoolNode {
-    explicit UnaryBNode(const char token) : BoolNode(token) {}
+    explicit UnaryBNode(const Types::Token token) : BoolNode(token) {}
     [[nodiscard]] bool evaluate() const override;
 };
 
@@ -53,7 +54,7 @@ struct ValueMNode : public MathNode {
         const int successful = mpfr_set_str(value_mpfr, _value_mpf.data(), 10, MPFR_RNDN);
         if (successful != 0) {
             mpfr_clear(value_mpfr);
-            throw std::invalid_argument("Invalid floating point: " + std::string(_value_mpf));
+            throw std::invalid_argument("Invalid floating point");
         }
     }
     ~ValueMNode() { mpfr_clear(value_mpfr); }
@@ -65,14 +66,14 @@ struct ValueMNode : public MathNode {
 };
 
 struct OperationMNode : public MathNode {
-    explicit OperationMNode(const char token) : key(token) {
+    explicit OperationMNode(const Types::Token token) : key(token) {
         mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
     }
     ~OperationMNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
     mpfr_t& evaluate_float() override;
     mpfr_t node_result;
-    const char key;
+    const Types::Token key;
 };
 
 struct FactorialNode : public MathNode {

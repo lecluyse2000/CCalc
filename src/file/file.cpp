@@ -9,6 +9,7 @@
 #include <iostream>
 #include <mpfr.h>
 #include <optional>
+#include <span>
 #include <string>
 #include <stdio.h>
 #include <unordered_map>
@@ -65,7 +66,7 @@ bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec
     return true;
 }
 
-void math_float_procedure(FILE*& output_file, const std::string_view result) {
+void math_float_procedure(FILE*& output_file, const std::span<Types::Token> result) {
     try {
         const auto tree = std::make_unique<MathAST>(result, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
@@ -79,7 +80,7 @@ void math_float_procedure(FILE*& output_file, const std::string_view result) {
     }
 }
 
-void math_int_procedure(FILE*& output_file, const std::string_view result) {
+void math_int_procedure(FILE*& output_file, const std::span<Types::Token> result) {
     try {
         const auto tree = std::make_unique<MathAST>(result, false);
         const mpz_class final_value = tree->evaluate();
@@ -91,7 +92,7 @@ void math_int_procedure(FILE*& output_file, const std::string_view result) {
     }
 }
 
-void math_procedure(FILE*& output_file, const std::string_view result, const bool is_floating_point) {
+void math_procedure(FILE*& output_file, const std::span<Types::Token> result, const bool is_floating_point) {
     if (is_floating_point) {
         math_float_procedure(output_file, result);
     } else {
@@ -99,7 +100,7 @@ void math_procedure(FILE*& output_file, const std::string_view result, const boo
     }
 }
 
-void bool_procedure(FILE*& output_file, const std::string_view result) {
+void bool_procedure(FILE*& output_file, const std::span<Types::Token> result) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     if (syntax_tree->evaluate()) {
         fprintf(output_file, "Result: True\n");
@@ -111,17 +112,17 @@ void bool_procedure(FILE*& output_file, const std::string_view result) {
 void main_loop(FILE*& output_file, std::string& expression) {
     const std::string orig_expression = expression;
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
-    const auto [result, success, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
+    Types::ParseResult result = Parse::create_prefix_expression(expression);
 
     fprintf(output_file, "Expression: %s\n", orig_expression.c_str());
-    if (!success) {
-        fprintf(output_file, "Error: %s", result.c_str());
+    if (!result.success) {
+        fprintf(output_file, "Error: %s", result.error_msg.c_str());
         return;
     }
-    if(is_math) {
-        math_procedure(output_file, result, is_floating_point);
+    if(result.is_math) {
+        math_procedure(output_file, result.result, result.is_floating_point);
     } else {
-        bool_procedure(output_file, result);
+        bool_procedure(output_file, result.result);
     }
 }
 

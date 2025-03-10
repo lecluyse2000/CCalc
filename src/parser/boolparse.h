@@ -3,8 +3,9 @@
 
 #include <optional>
 #include <stack>
-#include <string>
 #include <string_view>
+
+#include "include/types.hpp"
 
 namespace BoolParse {
     struct BoolParseState {
@@ -13,8 +14,8 @@ namespace BoolParse {
         char previous_token = '\0';
     };
 
-    std::optional<std::string> parse_bool(const std::string_view infix_expression, std::string& prefix_expression,
-                                          std::stack<char>& operator_stack);
+    std::optional<std::string> parse_bool(const std::string_view infix_expression, std::vector<Types::Token>& prefix_expression,
+                                          std::stack<Types::Token>& operator_stack);
 }
 
 #endif

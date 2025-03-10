@@ -26,14 +26,11 @@ constexpr void add_mult_signs(std::string& infix) {
 check_for_number(MathParseState& state,  bool& floating_point) {
     if (std::isdigit(state.current_token)) {
         state.in_number = true;
-        state.num_buffer += state.current_token;
+        state.num_buffer.push_back(static_cast<Types::Token>(state.current_token));
         return std::optional<std::string>("");
     } else if (state.current_token == '.') {
-        if (state.num_buffer.find('.') != std::string::npos) {
-            return std::optional<std::string>("Multiple decimal points in number!\n");
-        }
         state.in_number = true;
-        state.num_buffer += state.current_token;
+        state.num_buffer.push_back(static_cast<Types::Token>(state.current_token));
         floating_point = true;
         return std::optional<std::string>("");
     }
@@ -93,55 +90,64 @@ constexpr void check_for_floating_point(MathParseState& state, const std::string
     }
 }
 
-inline void closing_parentheses_math(MathParseState& state, std::string& prefix_expression,
-                                     std::stack<char>& op_stack) {
+inline void closing_parentheses_math(MathParseState& state, std::vector<Types::Token>& prefix_expression,
+                                     std::stack<Types::Token>& op_stack) {
     if (state.in_number) {
-        prefix_expression += state.num_buffer + ',';
+        for (const auto token : state.num_buffer) {
+            prefix_expression.push_back(token);
+        }
+        prefix_expression.push_back(Types::Token::COMMA);
         clear_num_buffer(state);
     }
-    op_stack.push(')');
+    op_stack.push(Types::Token::RIGHT_PAREN);
 }
 
-std:: optional<std::string> open_parentheses_math(MathParseState& state, std::string& prefix_expression,
-                                                  std::stack<char>& op_stack) {
+std:: optional<std::string> open_parentheses_math(MathParseState& state, std::vector<Types::Token>& prefix_expression,
+                                                  std::stack<Types::Token>& op_stack) {
     if (state.in_number) {
-        prefix_expression += state.num_buffer + ',';
+        for (const auto token : state.num_buffer) {
+            prefix_expression.push_back(token);
+        }
+        prefix_expression.push_back(Types::Token::COMMA);
         clear_num_buffer(state);
     }
-    while (!op_stack.empty() && op_stack.top() != ')') {
+    while (!op_stack.empty() && op_stack.top() != Types::Token::RIGHT_PAREN) {
         prefix_expression.push_back(op_stack.top());
-        prefix_expression.push_back(',');
+        prefix_expression.push_back(Types::Token::COMMA);
         op_stack.pop();
     }
     if (!op_stack.empty()) {
         op_stack.pop();
     } else {
-        return std::optional<std::string>("Missing closing parentheses!\n");
+        return std::optional<std::string>("Missing closing parentheses\n");
     }
     return std::nullopt;
 }
 
 bool math_operator_found(MathParseState& state, Types::ParseResult& result,
-                         const std::string& infix_expression, std::stack<char>& op_stack) {
+                         const std::string& infix_expression, std::stack<Types::Token>& op_stack) {
     if (state.in_number) {
-        result.result += state.num_buffer + ',';
+        for (const auto token : state.num_buffer) {
+            result.result.push_back(token);
+        }
+        result.result.push_back(Types::Token::COMMA);
         clear_num_buffer(state);
         if (state.current_token == '+' &&
             ((Types::is_math_operator(*(state.itr + 1)) && *(state.itr + 1) != '!') || *(state.itr + 1) == '(')) return true;
     }
     check_for_floating_point(state, infix_expression, result.is_floating_point);
     if (state.current_token == '!') {
-        op_stack.push(state.current_token);
+        op_stack.push(static_cast<Types::Token>(state.current_token));
         return false;
     }
 
-     while (!op_stack.empty() && op_stack.top() != ')' &&
-           Types::get_precedence(op_stack.top()) > Types::get_precedence(state.current_token)) {
+     while (!op_stack.empty() && op_stack.top() != Types::Token::RIGHT_PAREN &&
+           Types::get_precedence(static_cast<char>(op_stack.top())) > Types::get_precedence(state.current_token)) {
         result.result.push_back(op_stack.top());
-        result.result.push_back(',');
+        result.result.push_back(Types::Token::COMMA);
         op_stack.pop();
     }
-    op_stack.push(state.current_token);
+    op_stack.push(static_cast<Types::Token>(state.current_token));
     
     return false;
 }
@@ -150,7 +156,7 @@ bool math_operator_found(MathParseState& state, Types::ParseResult& result,
 [[nodiscard]]
 std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseResult& result,
                                           std::string& infix_expression,
-                                          std::stack<char>& op_stack) {
+                                          std::stack<Types::Token>& op_stack) {
     // Grab the current token
     // If the token is an operand, simply add it to the string
     // if the token is an operator or a closing parentheses, add it to the stack
@@ -185,7 +191,7 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
 
 [[nodiscard]]
 std::optional<std::string> parse_math(std::string& infix_expression, Types::ParseResult& result,
-                                      std::stack<char>& operator_stack) {
+                                      std::stack<Types::Token>& operator_stack) {
     MathParseState state;
     if (infix_expression[0] == '-') infix_expression[0] = '~';
     add_mult_signs(infix_expression);
@@ -197,7 +203,11 @@ std::optional<std::string> parse_math(std::string& infix_expression, Types::Pars
         const auto loop_result = math_loop_body(state, result, infix_expression, operator_stack);
         if (loop_result) return loop_result;
     }
-    if (state.in_number) result.result += state.num_buffer;
+    if (state.in_number) {
+        for (const auto token : state.num_buffer) {
+            result.result.push_back(token);
+        }
+    }
     return std::nullopt;
 }
 

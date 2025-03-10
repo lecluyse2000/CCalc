@@ -10,6 +10,7 @@
 #include <memory>
 #include <mpfr.h>
 #include <optional>
+#include <span>
 #include <string_view>
 #include <utility>
 #include <unordered_map>
@@ -142,7 +143,7 @@ inline void add_to_history(std::string& orig_input, std::string&& final_val, aut
 }
 
 // Make the tree, evaluate, print the result, then add it to the history
-void math_float_procedure(std::string& orig_input, const std::string_view prefix_input, auto& history) {
+void math_float_procedure(std::string& orig_input, const std::span<Types::Token> prefix_input, auto& history) {
     try {
         const auto tree = std::make_unique<MathAST>(prefix_input, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
@@ -155,7 +156,7 @@ void math_float_procedure(std::string& orig_input, const std::string_view prefix
     return;
 }
 
-void math_int_procedure(std::string& orig_input, const std::string_view prefix_input, auto& history) {
+void math_int_procedure(std::string& orig_input, const std::span<Types::Token> prefix_input, auto& history) {
     try {
         const auto tree = std::make_unique<MathAST>(prefix_input, false);
         const mpz_class final_value = tree->evaluate();
@@ -169,7 +170,7 @@ void math_int_procedure(std::string& orig_input, const std::string_view prefix_i
 }
 
 // Calls the float or int procedure based on float_point status
-void math_procedure(std::string& orig_input, const std::string_view prefix_input, const bool floating_point, auto& history) {
+void math_procedure(std::string& orig_input, const std::span<Types::Token> prefix_input, const bool floating_point, auto& history) {
     if (floating_point) {
         math_float_procedure(orig_input, prefix_input, history);
     } else {
@@ -178,7 +179,7 @@ void math_procedure(std::string& orig_input, const std::string_view prefix_input
 }
 
 // Bool is easier than math, just solve and add to history
-void bool_procedure(std::string& orig_input, const std::string_view prefix_input, auto& history) {
+void bool_procedure(std::string& orig_input, const std::span<Types::Token> prefix_input, auto& history) {
     const auto syntax_tree = std::make_unique<BoolAST>(prefix_input);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
@@ -193,7 +194,7 @@ void bool_procedure(std::string& orig_input, const std::string_view prefix_input
 void evaluate_expression(std::string& orig_input, std::string& expression, auto& history) {
     Types::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
-        std::cerr << "Error: " << result.result;
+        std::cerr << "Error: " << result.error_msg;
         return;
     }
     if(result.is_math) {
@@ -288,12 +289,12 @@ void print_invalid_flag(const std::string_view expression) {
 // When just passing expressions in at runtime there is no need to worry about the history
 namespace {
 
-void math_procedure(const std::string_view result, const auto& settings, const bool floating_point) {
+void math_procedure(const std::span<Types::Token> result, const bool floating_point) {
     const auto tree = std::make_unique<MathAST>(result, floating_point);
     if (floating_point) {
         try {
             const mpfr_t& final_value = tree->evaluate_floating_point();
-            print_mpfr(final_value, static_cast<mpfr_prec_t>(settings.at(Types::Setting::DISPLAY_PREC)));
+            print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
         } catch (const std::exception& err) {
             std::cerr << "Error: " << err.what() << '\n';
         }
@@ -309,7 +310,7 @@ void math_procedure(const std::string_view result, const auto& settings, const b
     }
 }
 
-void bool_procedure(const std::string_view result) {
+void bool_procedure(const std::span<Types::Token> result) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
@@ -325,15 +326,15 @@ void bool_procedure(const std::string_view result) {
 void evaluate_expression(std::string& expression) {
     const std::unordered_map<Types::Setting, long> settings = Startup::source_ini();
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
-    const auto [result, status, is_math, is_floating_point] = Parse::create_prefix_expression(expression);
-    if (!status) {
-        std::cerr << "Error: " << result;
+    Types::ParseResult result = Parse::create_prefix_expression(expression);
+    if (!result.success) {
+        std::cerr << "Error: " << result.error_msg;
         return;
     }
-    if(is_math) {
-        math_procedure(result, settings, is_floating_point);
+    if(result.is_math) {
+        math_procedure(result.result, result.is_floating_point);
     } else {
-        bool_procedure(result);
+        bool_procedure(result.result);
     }
 }
 

@@ -52,7 +52,7 @@ inline void clear_input_stream() {
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-inline void empty_stack(std::stack<char>& operator_stack) noexcept {
+inline void empty_stack(std::stack<Types::Token>& operator_stack) noexcept {
     while (!operator_stack.empty()) {
         operator_stack.pop();
     }

@@ -41,14 +41,14 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
 
 
 [[nodiscard]] std::optional<std::string_view>
-clear_stack(std::string& prefix_expression, std::stack<char>& operator_stack, const bool is_math) {
+clear_stack(std::vector<Types::Token>& prefix_expression, std::stack<Types::Token>& operator_stack, const bool is_math) {
     while (!operator_stack.empty()) {
-        if (operator_stack.top() == ')') {
+        if (operator_stack.top() == Types::Token::RIGHT_PAREN) {
             Util::empty_stack(operator_stack);
             return std::optional<std::string_view>("Missing open parentheses\n");
         }
         prefix_expression.push_back(operator_stack.top());
-        if(is_math) prefix_expression.push_back(',');
+        if(is_math) prefix_expression.push_back(Types::Token::COMMA);
         operator_stack.pop();
     }
 
@@ -61,29 +61,29 @@ clear_stack(std::string& prefix_expression, std::stack<char>& operator_stack, co
 // This is a variation of the Shunting yard algorithm, invented by Dijkstra in 1961
 [[nodiscard]]
 Types::ParseResult create_prefix_expression(std::string& infix_expression) {
-    std::stack<char> operator_stack;
+    std::stack<Types::Token> operator_stack;
     Types::ParseResult parse_result; 
 
     const auto is_math = is_math_equation(infix_expression);
     if (!is_math) {
-        parse_result.result = "No valid operators detected\n";
+        parse_result.error_msg = "No valid operators detected\n";
         return parse_result;
     }
 
     const auto initial_checks = Error::initial_checks(infix_expression, *is_math);
     if (initial_checks) {
-        parse_result.result = *initial_checks;
+        parse_result.error_msg = *initial_checks;
         return parse_result;
     }
     const auto error_parsing = *is_math ? MathParse::parse_math(infix_expression, parse_result, operator_stack)
                                         : BoolParse::parse_bool(infix_expression, parse_result.result, operator_stack);
     if (error_parsing) {
-        parse_result.result = *error_parsing;
+        parse_result.error_msg = *error_parsing;
         return parse_result;
     }
     const auto stack_result = clear_stack(parse_result.result, operator_stack, *is_math);
     if (stack_result) {
-        parse_result.result = *stack_result;
+        parse_result.error_msg = *stack_result;
         parse_result.is_math = *is_math;
         return parse_result; 
     }

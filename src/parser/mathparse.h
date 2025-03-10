@@ -8,8 +8,9 @@
 #include "include/types.hpp"
 
 namespace MathParse {
+
     struct MathParseState {
-        std::string num_buffer;
+        std::vector<Types::Token> num_buffer;
         std::string::reverse_iterator itr;
         char current_token = '\0';
         char previous_token = '\0';
@@ -22,7 +23,7 @@ namespace MathParse {
     }
 
     std::optional<std::string> parse_math(std::string& infix_expression, Types::ParseResult& result,
-                                          std::stack<char>& operator_stack);
+                                          std::stack<Types::Token>& operator_stack);
 }
 
 #endif

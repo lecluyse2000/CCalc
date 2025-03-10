@@ -12,8 +12,8 @@ namespace BoolParse {
 namespace {
 
 [[nodiscard]]
-std::optional<std::string> bool_loop_body(BoolParseState& state, std::string& prefix_expression,
-                                          std::stack<char>& operator_stack) {
+std::optional<std::string> bool_loop_body(BoolParseState& state, std::vector<Types::Token>& prefix_expression,
+                                          std::stack<Types::Token>& operator_stack) {
     // Grab the current token
     // If the token is an operand, simply add it to the string
     // if the token is an operator or a closing parentheses, add it to the stack
@@ -27,11 +27,11 @@ std::optional<std::string> bool_loop_body(BoolParseState& state, std::string& pr
     }
 
     if (Types::isoperand(state.current_token)) {
-        prefix_expression.push_back(state.current_token);
+        prefix_expression.push_back(static_cast<Types::Token>(state.current_token));
     } else if (Types::isnot(state.current_token) || Types::isoperator(state.current_token) || state.current_token == ')') {
-        operator_stack.push(state.current_token);
+        operator_stack.push(static_cast<Types::Token>(state.current_token));
     } else if (state.current_token == '(') {
-        while (!operator_stack.empty() && operator_stack.top() != ')') {
+        while (!operator_stack.empty() && operator_stack.top() != Types::Token::RIGHT_PAREN) {
             prefix_expression.push_back(operator_stack.top());
             operator_stack.pop();
         }
@@ -52,8 +52,8 @@ std::optional<std::string> bool_loop_body(BoolParseState& state, std::string& pr
 }
 
 [[nodiscard]]
-std::optional<std::string> parse_bool(const std::string_view infix_expression, std::string& prefix_expression,
-                                      std::stack<char>& operator_stack) {
+std::optional<std::string> parse_bool(const std::string_view infix_expression, std::vector<Types::Token>& prefix_expression,
+                                      std::stack<Types::Token>& operator_stack) {
     BoolParseState state;
 
     // Traverse the string in reverse
