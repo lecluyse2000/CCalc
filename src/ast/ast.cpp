@@ -5,6 +5,7 @@
 #include <cctype>
 #include <gmpxx.h>
 #include <mpfr.h>
+#include <span>
 
 #include "include/types.hpp"
 #include "node.h"
@@ -29,7 +30,7 @@ std::unique_ptr<BoolNode> BoolAST::build_ast() noexcept {
     return node;
 }
 
-BoolAST::BoolAST(const std::span<Types::Token> expression) noexcept :  m_prefix_expression(expression),  m_index(0), m_root(build_ast()){}
+BoolAST::BoolAST(const std::span<const Types::Token> expression) noexcept :  m_prefix_expression(expression),  m_index(0), m_root(build_ast()){}
 
 [[nodiscard]] bool BoolAST::evaluate() const { return m_root->evaluate(); }
 
@@ -69,7 +70,7 @@ std::unique_ptr<MathNode> MathAST::build_ast() {
     return node;
 }
 
-MathAST::MathAST(const std::span<Types::Token> expression, const bool _floating_point) :
+MathAST::MathAST(const std::span<const Types::Token> expression, const bool _floating_point) :
     m_prefix_expression(expression), m_index(0), m_floating_point(_floating_point),
     m_root(build_ast()) {
 }

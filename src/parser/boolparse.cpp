@@ -1,5 +1,6 @@
 #include "boolparse.h"
 
+#include <cctype>
 #include <optional>
 #include <stack>
 #include <string>
@@ -27,7 +28,7 @@ std::optional<std::string> bool_loop_body(BoolParseState& state, std::vector<Typ
     }
 
     if (Types::isoperand(state.current_token)) {
-        prefix_expression.push_back(static_cast<Types::Token>(state.current_token));
+        prefix_expression.push_back(static_cast<Types::Token>(std::toupper(state.current_token)));
     } else if (Types::isnot(state.current_token) || Types::isoperator(state.current_token) || state.current_token == ')') {
         operator_stack.push(static_cast<Types::Token>(state.current_token));
     } else if (state.current_token == '(') {

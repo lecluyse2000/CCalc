@@ -24,7 +24,7 @@
 // We have to use C style file output here since mpfr is a C library
 namespace File {
 
-void output_history(const std::vector<std::pair<std::string, std::string> >& history, 
+void output_history(const std::span<const std::pair<std::string, std::string> > history, 
                     std::ofstream& output_file) noexcept {
     std::ranges::for_each(history, [&output_file](const auto& expression_result) {
         const auto [expression, result] = expression_result;
