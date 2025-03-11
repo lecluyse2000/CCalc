@@ -130,9 +130,12 @@ enum struct Setting {
     return Setting::INVALID;
 }
 
+[[nodiscard]] inline constexpr bool is_math_var(const Token token) noexcept {
+    return token == Token::EULER;
+}
 [[nodiscard]] inline constexpr bool is_math_operand(const Token token) noexcept {
     return std::isdigit(static_cast<char>(token)) || token == Token::DOT ||
-           token == Token::EULER;
+           is_math_var(token);
 }
 
 [[nodiscard]] inline constexpr bool is_bool_operand(const Token token) noexcept {

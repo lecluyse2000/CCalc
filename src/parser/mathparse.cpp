@@ -13,10 +13,17 @@ namespace {
 
 constexpr void add_mult_signs(std::string& infix) {
     for (auto itr = infix.begin(); itr < infix.end(); ++itr) {
-            const char current_token = *itr;
-            const char next_token = (itr + 1 != infix.end()) ? *(itr + 1) : '\0';
+            const char current_token = static_cast<char>(std::toupper(*itr));
+            const char next_token = (itr + 1 != infix.end()) ? static_cast<char>(std::toupper(*(itr + 1))) : '\0';
             if (current_token == ')' && next_token == '(') infix.insert(itr + 1, '*');
             if (current_token == '!' && std::isdigit(next_token)) infix.insert(itr + 1, '*');
+            if (std::isdigit(current_token) && Types::is_math_var(static_cast<Types::Token>(next_token))) {
+                infix.insert(itr + 1, '*');
+            }
+            if (Types::is_math_var(static_cast<Types::Token>(current_token)) &&
+                Types::is_math_var(static_cast<Types::Token>(next_token))) {
+                infix.insert(itr + 1, '*');
+            }
         }
 }
 
