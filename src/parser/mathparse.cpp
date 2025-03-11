@@ -14,16 +14,23 @@ namespace {
 // This function will go through and add multiplication signs for implicit multiplication
 // This is easier than having to rework the logic of the whole program
 constexpr void add_mult_signs(std::string& infix) {
-    for (auto itr = infix.begin(); itr < infix.end(); ++itr) {
-            const char current_token = *itr;
-            const char next_token = (itr + 1 != infix.end()) ? *(itr + 1) : '\0';
-            if (current_token == ')' && next_token == '(') infix.insert(itr + 1, '*');
-            if (current_token == '!' && std::isdigit(next_token)) infix.insert(itr + 1, '*');
-            if ((std::isdigit(current_token) || Types::is_math_var(static_cast<Types::Token>(current_token)))
-                && (Types::is_math_var(static_cast<Types::Token>(next_token)) || next_token == '(')) {
-                infix.insert(itr + 1, '*');
-            }
+    for (std::size_t i = 0; i < infix.size() - 1; ++i) {
+        const char current_token = infix[i];
+        const char next_token = infix[i + 1];
+        bool should_insert = false;
+        
+        if (current_token == ')' && next_token == '(') should_insert = true;
+        if (current_token == '!' && Types::is_math_operand(static_cast<Types::Token>(next_token))) should_insert = true;
+        if (Types::is_math_operand(static_cast<Types::Token>(current_token))
+            && (Types::is_math_var(static_cast<Types::Token>(next_token)) || next_token == '(')) {
+            should_insert = true;
         }
+        
+        if (should_insert) {
+            infix.insert(i + 1, 1,'*');
+            ++i; 
+        }
+    }
 }
 
 [[nodiscard]] constexpr
@@ -217,10 +224,10 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
 std::optional<std::string> parse_math(std::string& infix_expression, Types::ParseResult& result,
                                       std::stack<Types::Token>& operator_stack) {
     MathParseState state;
-    state.rend = infix_expression.rend();
-    state.end = infix_expression.end();
     if (infix_expression[0] == '-') infix_expression[0] = '~';
     add_mult_signs(infix_expression);
+    state.rend = infix_expression.rend();
+    state.end = infix_expression.end();
     
     // All the algorithms I discovered for converting to prefix started by reversing the string,
     // so I thought why not just parse from right to left so we don't have to reverse
