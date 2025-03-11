@@ -13,8 +13,8 @@ namespace {
 
 constexpr void add_mult_signs(std::string& infix) {
     for (auto itr = infix.begin(); itr < infix.end(); ++itr) {
-            const char current_token = static_cast<char>(std::toupper(*itr));
-            const char next_token = (itr + 1 != infix.end()) ? static_cast<char>(std::toupper(*(itr + 1))) : '\0';
+            const char current_token = *itr;
+            const char next_token = (itr + 1 != infix.end()) ? *(itr + 1) : '\0';
             if (current_token == ')' && next_token == '(') infix.insert(itr + 1, '*');
             if (current_token == '!' && std::isdigit(next_token)) infix.insert(itr + 1, '*');
             if (std::isdigit(current_token) && Types::is_math_var(static_cast<Types::Token>(next_token))) {
@@ -155,7 +155,7 @@ bool math_operator_found(MathParseState& state, Types::ParseResult& result,
         result.result.push_back(Types::Token::COMMA);
         clear_num_buffer(state);
         const Types::Token next_token = (state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(state.itr + 1))
-                                                                                   : Types::Token::NULLCHAR;
+                                                                      : Types::Token::NULLCHAR;
         if (state.current_token == Types::Token::ADD &&
             ((Types::is_math_operator(static_cast<Types::Token>(next_token)) && next_token != Types::Token::FAC)
             || next_token == Types::Token::LEFT_PAREN)) return true;
@@ -186,10 +186,10 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
     // if the token is an operator or a closing parentheses, add it to the stack
     // If the token is an open parentheses, pop from the stack and add to the string until a closing parentheses is
     // found, or an operator with a higher precedence
-    if (!Types::is_valid_math_token(static_cast<char>(std::toupper(*state.itr)))) {
+    if (!Types::is_valid_math_token(*state.itr)) {
         return Error::invalid_character_error_math(*state.itr);
     }
-    state.current_token = static_cast<Types::Token>(std::toupper(*state.itr));
+    state.current_token = static_cast<Types::Token>(*state.itr);
     if (state.current_token == Types::Token::SUB) check_for_unary(state);
     const auto num_check = check_for_number(state, result.is_floating_point); 
     if (num_check) {

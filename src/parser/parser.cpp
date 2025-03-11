@@ -21,8 +21,8 @@ namespace {
 [[nodiscard]]
 constexpr std::optional<bool> is_math_equation(const std::string_view infix_expression) noexcept {
     for (auto itr = infix_expression.begin(); itr != infix_expression.end(); ++itr) {
-        const char c = static_cast<char>(std::toupper(*itr));
-        const char next_token = (itr + 1 != infix_expression.end()) ? static_cast<char>(std::toupper(*(itr + 1))) : '\0';
+        const char c = *itr;
+        const char next_token = (itr + 1 != infix_expression.end()) ? *(itr + 1) : '\0';
         if (c == '!' && Types::is_bool_operand(static_cast<Types::Token>(next_token))) {
             return false;
             // I think this is a more robust check than just looking for a digit

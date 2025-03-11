@@ -236,6 +236,8 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
             case InputResult::CONTINUE:
                 continue;
             default:
+                std::transform(input_expression.begin(), input_expression.end(), input_expression.begin(),
+                   [](auto c){ return std::toupper(c); });
                 evaluate_expression(orig_input, input_expression, program_history);
         }
     }
@@ -326,6 +328,9 @@ void bool_procedure(const std::span<const Types::Token> result) {
 void evaluate_expression(std::string& expression) {
     const std::unordered_map<Types::Setting, long> settings = Startup::source_ini();
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
+    std::transform(expression.begin(), expression.end(), expression.begin(),
+    [](auto c){ return std::toupper(c); });
+
     const Types::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
         std::cerr << "Error: " << result.error_msg;
