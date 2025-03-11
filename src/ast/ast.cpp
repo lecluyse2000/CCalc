@@ -10,6 +10,7 @@
 #include "include/types.hpp"
 #include "node.h"
 
+
 std::unique_ptr<BoolNode> BoolAST::build_ast() noexcept {
     const Types::Token current_token = m_prefix_expression[m_index++];
 
@@ -41,6 +42,7 @@ std::unique_ptr<MathNode> MathAST::build_ast() {
     }
 
     if (Types::is_math_operand(current_token)) {
+        if (current_token == Types::Token::EULER) return std::make_unique<ValueMNode>("0", Types::euler); 
         std::string current_num;
         current_num += static_cast<char>(current_token);
         while (m_index < m_prefix_expression.size()) {

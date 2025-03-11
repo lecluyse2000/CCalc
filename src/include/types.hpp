@@ -10,6 +10,8 @@
 
 namespace Types {
 
+inline constexpr std::string_view euler = "2.71828182845904523536028747135266249775724709369995";
+
 enum struct Token : char {
     NULLCHAR = '\0',
     ADD = '+',
@@ -40,7 +42,7 @@ enum struct Token : char {
     TAN = 'G', //tanGent, T is already used for true
     LOG = 'L',
     LN = 'N', 
-    EXP = 'E',
+    EULER = 'E',
     PI = 'P', 
     ANS = 'A',
     AND = '&',
@@ -129,7 +131,8 @@ enum struct Setting {
 }
 
 [[nodiscard]] inline constexpr bool is_math_operand(const Token token) noexcept {
-    return std::isdigit(static_cast<char>(token)) || token == Token::DOT;
+    return std::isdigit(static_cast<char>(token)) || token == Token::DOT ||
+           token == Token::EULER;
 }
 
 [[nodiscard]] inline constexpr bool is_bool_operand(const Token token) noexcept {
