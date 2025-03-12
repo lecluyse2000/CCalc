@@ -9,6 +9,8 @@
 #include <mpfr.h>
 #include <stdexcept>
 
+#include "include/types.hpp"
+
 BoolNode::BoolNode(const Types::Token token) noexcept : key(token){}
 
 [[nodiscard]] bool ValueBNode::evaluate() const { return key == Types::Token::TRUE; }

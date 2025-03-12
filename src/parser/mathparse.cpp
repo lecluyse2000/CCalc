@@ -164,12 +164,12 @@ bool math_operator_found(MathParseState& state, Types::ParseResult& result,
                                                                       : Types::Token::NULLCHAR;
         if (state.current_token == Types::Token::ADD &&
             ((Types::is_math_operator(static_cast<Types::Token>(next_token)) && next_token != Types::Token::FAC)
-            || next_token == Types::Token::LEFT_PAREN)) return true;
+            || next_token == Types::Token::LEFT_PAREN)) return false;
     }
     check_for_floating_point(state, result.is_floating_point);
     if (state.current_token == Types::Token::FAC) {
         op_stack.push(static_cast<Types::Token>(state.current_token));
-        return false;
+        return true;
     }
 
      while (!op_stack.empty() && op_stack.top() != Types::Token::RIGHT_PAREN &&
@@ -180,7 +180,7 @@ bool math_operator_found(MathParseState& state, Types::ParseResult& result,
     }
     op_stack.push(static_cast<Types::Token>(state.current_token));
     
-    return false;
+    return true;
 }
 
 // Main body of the loop for parsing math equations
@@ -207,7 +207,7 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
 
     if (Types::is_math_operator(state.current_token)) {
         const bool cont = math_operator_found(state, result, op_stack);
-        if (cont) return std::nullopt; 
+        if (!cont) return std::nullopt; 
     } else if (state.current_token == Types::Token::RIGHT_PAREN) {
         closing_parentheses_math(state, result.result, op_stack);
     } else if (state.current_token == Types::Token::LEFT_PAREN) {
@@ -223,11 +223,9 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
 [[nodiscard]]
 std::optional<std::string> parse_math(std::string& infix_expression, Types::ParseResult& result,
                                       std::stack<Types::Token>& operator_stack) {
-    MathParseState state;
     if (infix_expression[0] == '-') infix_expression[0] = '~';
     add_mult_signs(infix_expression);
-    state.rend = infix_expression.rend();
-    state.end = infix_expression.end();
+    MathParseState state(infix_expression);
     
     // All the algorithms I discovered for converting to prefix started by reversing the string,
     // so I thought why not just parse from right to left so we don't have to reverse

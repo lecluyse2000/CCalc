@@ -10,10 +10,12 @@
 namespace MathParse {
 
     struct MathParseState {
+        MathParseState(std::string& infix) : rend(infix.rend()), end(infix.end()) {}
+
         std::vector<Types::Token> num_buffer;
         std::string::reverse_iterator itr;
-        std::string::reverse_iterator rend;
-        std::string::iterator end;
+        const std::string::reverse_iterator rend;
+        const std::string::iterator end;
         Types::Token current_token = Types::Token::NULLCHAR;
         Types::Token previous_token = Types::Token::NULLCHAR;
         bool in_number = false;
