@@ -131,7 +131,7 @@ enum struct Setting {
 }
 
 [[nodiscard]] inline constexpr bool is_math_var(const Token token) noexcept {
-    return token == Token::EULER;
+    return token == Token::EULER || token == Token::PI;
 }
 [[nodiscard]] inline constexpr bool is_math_operand(const Token token) noexcept {
     return std::isdigit(static_cast<char>(token)) || token == Token::DOT ||
