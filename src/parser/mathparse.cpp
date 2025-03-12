@@ -66,7 +66,7 @@ check_for_number(MathParseState& state, bool& floating_point) {
 // Unary cases: 1) [not operand, close paren, or factorial] - (
 constexpr bool unary_first_case(MathParseState& state) {
     const Types::Token next_token = (state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(state.itr + 1))
-                                                                    : Types::Token::NULLCHAR;
+                                                                  : Types::Token::NULLCHAR;
     return state.previous_token == Types::Token::LEFT_PAREN && !Types::isoperand(next_token) &&
            next_token != Types::Token::RIGHT_PAREN && next_token != Types::Token::FAC;
 }
@@ -74,14 +74,14 @@ constexpr bool unary_first_case(MathParseState& state) {
 // 2) ( - [operand]
 constexpr bool unary_second_case(MathParseState& state) {
     const Types::Token next_token = (state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(state.itr + 1))
-                                                                    : Types::Token::NULLCHAR;
+                                                                  : Types::Token::NULLCHAR;
     return next_token == Types::Token::LEFT_PAREN && Types::is_math_operand(state.previous_token);
 }
 
 // 3) [not factorial operator] - [operand]
 constexpr bool unary_third_case(MathParseState& state) {
     const Types::Token next_token = (state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(state.itr + 1))
-                                                                    : Types::Token::NULLCHAR;
+                                                                  : Types::Token::NULLCHAR;
     return (Types::is_math_operator(next_token) && next_token != Types::Token::FAC)
             && Types::is_math_operand(state.previous_token);
 }
@@ -89,7 +89,7 @@ constexpr bool unary_third_case(MathParseState& state) {
 // 4) Exponent raised to the negative power
 constexpr bool unary_fourth_case(MathParseState& state) {
     const Types::Token next_token = (state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(state.itr + 1))
-                                                                    : Types::Token::NULLCHAR;
+                                                                  : Types::Token::NULLCHAR;
     return next_token == Types::Token::POW;
 }
 

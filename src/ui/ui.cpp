@@ -147,7 +147,8 @@ void math_float_procedure(std::string& orig_input, const std::span<const Types::
     try {
         const auto tree = std::make_unique<MathAST>(prefix_input, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
-        std::string final_val = print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
+        std::string final_val = print_mpfr(final_value,
+                                           static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
         if (final_val.empty()) return;
         add_to_history(orig_input, final_val, history);
     } catch (const std::exception& err) {
@@ -170,11 +171,11 @@ void math_int_procedure(std::string& orig_input, const std::span<const Types::To
 }
 
 // Calls the float or int procedure based on float_point status
-void math_procedure(std::string& orig_input, const std::span<const Types::Token> prefix_input, const bool floating_point, auto& history) {
-    if (floating_point) {
-        math_float_procedure(orig_input, prefix_input, history);
+void math_procedure(std::string& orig_input, const Types::ParseResult result, auto& history) {
+    if (result.is_floating_point) {
+        math_float_procedure(orig_input, result.result, history);
     } else {
-        math_int_procedure(orig_input, prefix_input, history);
+        math_int_procedure(orig_input, result.result, history);
     }
 }
 
@@ -198,7 +199,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
         return;
     }
     if(result.is_math) {
-        math_procedure(orig_input, result.result, result.is_floating_point, history);
+        math_procedure(orig_input, result, history);
     } else {
         bool_procedure(orig_input, result.result, history);
     }
@@ -219,7 +220,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
             std::cerr << "Unknown error ocurred in receiving input. Aborting...\n\n";
             return 1;
         } else if (input_expression.empty()) {
-            std::cerr << "Error: Empty expression received\n";
+            std::cerr << "Error: Empty input received\n";
             continue;
         }
         std::string orig_input = input_expression;
@@ -326,7 +327,6 @@ void bool_procedure(const std::span<const Types::Token> result) {
 
 // Non continuous mode
 void evaluate_expression(std::string& expression) {
-    const std::unordered_map<Types::Setting, long> settings = Startup::source_ini();
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
     std::transform(expression.begin(), expression.end(), expression.begin(),
     [](auto c){ return std::toupper(c); });
