@@ -8,7 +8,8 @@
 #include <span>
 
 #include "include/types.hpp"
-#include "node.h"
+#include "bnode.h"
+#include "mnode.h"
 
 
 std::unique_ptr<BoolNode> BoolAST::build_ast() noexcept {
@@ -42,7 +43,8 @@ std::unique_ptr<MathNode> MathAST::build_ast() {
     }
 
     if (Types::is_math_operand(current_token)) {
-        if (current_token == Types::Token::EULER) return std::make_unique<ValueMNode>("0", Types::euler); 
+        if (current_token == Types::Token::EULER) return std::make_unique<ValueMNode>(Types::Token::EULER); 
+        if (current_token == Types::Token::PI) return std::make_unique<ValueMNode>(Types::Token::PI); 
         std::string current_num;
         current_num += static_cast<char>(current_token);
         while (m_index < m_prefix_expression.size()) {

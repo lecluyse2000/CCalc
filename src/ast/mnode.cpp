@@ -1,6 +1,6 @@
 // Author: Caden LeCluyse
 
-#include "node.h"
+#include "mnode.h"
 
 #include <cctype>
 #include <gmpxx.h>
@@ -11,29 +11,27 @@
 
 #include "include/types.hpp"
 
-BoolNode::BoolNode(const Types::Token token) noexcept : key(token){}
-
-[[nodiscard]] bool ValueBNode::evaluate() const { return key == Types::Token::TRUE; }
-
-[[nodiscard]] bool OperationBNode::evaluate() const {
-    const bool left_value = m_left_child->evaluate();
-    const bool right_value = m_right_child->evaluate();
-
-    switch (key) {
-        case Types::Token::AND:
-            return left_value && right_value;
-        case Types::Token::OR:
-            return left_value || right_value;
-        case Types::Token::NAND:
-            return !(left_value && right_value);
-        default:
-            return (!left_value && right_value) || (left_value && !right_value);
+ValueMNode::ValueMNode(const std::string_view _value_mpz, const std::string_view _value_mpf) :
+    value_mpz(_value_mpz.data()) {
+    mpfr_init2(value_mpfr, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
+    const int successful = mpfr_set_str(value_mpfr, _value_mpf.data(), 10, MPFR_RNDN);
+    if (successful != 0) {
+        mpfr_clear(value_mpfr);
+        throw std::invalid_argument("Invalid floating point: " + std::string(_value_mpf));
     }
-
 }
 
-[[nodiscard]] bool UnaryBNode::evaluate() const { return !m_left_child->evaluate(); }
-
+ValueMNode::ValueMNode(const Types::Token token) : value_mpz(0) {
+    mpfr_init2(value_mpfr, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
+    if (token == Types::Token::PI) mpfr_const_pi(value_mpfr, MPFR_RNDN);
+    if (token == Types::Token::EULER) {
+        const int successful = mpfr_set_str(value_mpfr, Types::euler.data(), 10, MPFR_RNDN);
+        if (successful != 0) {
+            mpfr_clear(value_mpfr);
+            throw std::invalid_argument("Invalid floating point, token type: " + std::string{static_cast<char>(token)} );
+        }
+    }
+}
 [[nodiscard]] mpz_class ValueMNode::evaluate() const { return value_mpz; }
 
 [[nodiscard]] mpfr_t& ValueMNode::evaluate_float() { return value_mpfr; }
@@ -116,7 +114,6 @@ mpfr_t& FactorialNode::evaluate_float() {
 [[nodiscard]] mpz_class UnaryMNode::evaluate() const { return m_left_child->evaluate() * -1; }
 
 mpfr_t& UnaryMNode::evaluate_float() {
-    const mpfr_t& prev_val = m_left_child->evaluate_float();
-    mpfr_mul_si(node_result, prev_val, -1L, MPFR_RNDN);
+    mpfr_mul_si(node_result, m_left_child->evaluate_float(), -1L, MPFR_RNDN);
     return node_result;
 }
