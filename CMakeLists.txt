@@ -17,6 +17,7 @@ find_library(GMP_LIBRARIES NAMES gmp libgmp gmpxx)
 find_library(MPFR_LIBRARIES NAMES mpfr libmpfr)
 find_path(GMP_INCLUDE_DIR NAMES gmpxx.h gmp.h)
 find_path(MPFR_INCLUDE_DIR NAMES mpfr.h)
+
 if(NOT GMP_INCLUDE_DIR)
     message(FATAL_ERROR "GMP headers not found. Please install GMP correctly.")
 endif()
@@ -36,7 +37,8 @@ target_sources(ccalc PRIVATE
     "src/main.cpp"
     "src/ui/ui.cpp"
     "src/ast/ast.cpp"
-    "src/ast/node.cpp"
+    "src/ast/bnode.cpp"
+    "src/ast/mnode.cpp"
     "src/parser/parser.cpp"
     "src/parser/boolparse.cpp"
     "src/parser/mathparse.cpp"
