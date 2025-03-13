@@ -92,11 +92,11 @@ void math_int_procedure(FILE*& output_file, const std::span<const Types::Token> 
     }
 }
 
-void math_procedure(FILE*& output_file, const std::span<const Types::Token> result, const bool is_floating_point) {
-    if (is_floating_point) {
-        math_float_procedure(output_file, result);
+void math_procedure(FILE*& output_file, const Types::ParseResult& result) {
+    if (result.is_floating_point) {
+        math_float_procedure(output_file, result.result);
     } else {
-        math_int_procedure(output_file, result);
+        math_int_procedure(output_file, result.result);
     }
 }
 
@@ -112,6 +112,8 @@ void bool_procedure(FILE*& output_file, const std::span<const Types::Token> resu
 void main_loop(FILE*& output_file, std::string& expression) {
     const std::string orig_expression = expression;
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
+    std::transform(expression.begin(), expression.end(), expression.begin(),
+        [](auto c){ return std::toupper(c); });
     const Types::ParseResult result = Parse::create_prefix_expression(expression);
 
     fprintf(output_file, "Expression: %s\n", orig_expression.c_str());
@@ -120,7 +122,7 @@ void main_loop(FILE*& output_file, std::string& expression) {
         return;
     }
     if(result.is_math) {
-        math_procedure(output_file, result.result, result.is_floating_point);
+        math_procedure(output_file, result);
     } else {
         bool_procedure(output_file, result.result);
     }

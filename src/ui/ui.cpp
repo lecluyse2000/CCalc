@@ -297,10 +297,10 @@ void print_invalid_flag(const std::string_view expression) {
 // When just passing expressions in at runtime there is no need to worry about the history
 namespace {
 
-void math_procedure(const std::span<const Types::Token> result, const bool floating_point) {
-    const auto tree = std::make_unique<MathAST>(result, floating_point);
-    if (floating_point) {
+void math_procedure(Types::ParseResult result) {
+    if (result.is_floating_point) {
         try {
+            const auto tree = std::make_unique<MathAST>(result.result, result.is_floating_point);
             const mpfr_t& final_value = tree->evaluate_floating_point();
             print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
         } catch (const std::exception& err) {
@@ -309,6 +309,7 @@ void math_procedure(const std::span<const Types::Token> result, const bool float
         return;
     }
     try {
+        const auto tree = std::make_unique<MathAST>(result.result, result.is_floating_point);
         const mpz_class final_value = tree->evaluate();
         std::cout << "Result: " << final_value.get_str() << '\n';
     } catch (const std::bad_alloc& err) {
@@ -333,12 +334,12 @@ void bool_procedure(const std::span<const Types::Token> result) {
 // Non continuous mode
 void evaluate_expression(std::string& expression) {
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
-    std::transform(expression.begin(), expression.end(), expression.begin(),
-    [](auto c){ return std::toupper(c); });
     if (std::ranges::all_of(expression, ::isdigit)) {
         std::cout << "Result: " << expression << '\n';
         return;
     }
+    std::transform(expression.begin(), expression.end(), expression.begin(),
+        [](auto c){ return std::toupper(c); });
 
     const Types::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
@@ -346,7 +347,7 @@ void evaluate_expression(std::string& expression) {
         return;
     }
     if(result.is_math) {
-        math_procedure(result.result, result.is_floating_point);
+        math_procedure(result);
     } else {
         bool_procedure(result.result);
     }
