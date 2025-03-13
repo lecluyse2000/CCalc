@@ -66,7 +66,7 @@ bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec
     return true;
 }
 
-void math_float_procedure(FILE*& output_file, const std::span<Types::Token> result) {
+void math_float_procedure(FILE*& output_file, const std::span<const Types::Token> result) {
     try {
         const auto tree = std::make_unique<MathAST>(result, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
@@ -80,7 +80,7 @@ void math_float_procedure(FILE*& output_file, const std::span<Types::Token> resu
     }
 }
 
-void math_int_procedure(FILE*& output_file, const std::span<Types::Token> result) {
+void math_int_procedure(FILE*& output_file, const std::span<const Types::Token> result) {
     try {
         const auto tree = std::make_unique<MathAST>(result, false);
         const mpz_class final_value = tree->evaluate();
@@ -92,7 +92,7 @@ void math_int_procedure(FILE*& output_file, const std::span<Types::Token> result
     }
 }
 
-void math_procedure(FILE*& output_file, const std::span<Types::Token> result, const bool is_floating_point) {
+void math_procedure(FILE*& output_file, const std::span<const Types::Token> result, const bool is_floating_point) {
     if (is_floating_point) {
         math_float_procedure(output_file, result);
     } else {
@@ -100,7 +100,7 @@ void math_procedure(FILE*& output_file, const std::span<Types::Token> result, co
     }
 }
 
-void bool_procedure(FILE*& output_file, const std::span<Types::Token> result) {
+void bool_procedure(FILE*& output_file, const std::span<const Types::Token> result) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     if (syntax_tree->evaluate()) {
         fprintf(output_file, "Result: True\n");
@@ -112,7 +112,7 @@ void bool_procedure(FILE*& output_file, const std::span<Types::Token> result) {
 void main_loop(FILE*& output_file, std::string& expression) {
     const std::string orig_expression = expression;
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
-    Types::ParseResult result = Parse::create_prefix_expression(expression);
+    const Types::ParseResult result = Parse::create_prefix_expression(expression);
 
     fprintf(output_file, "Expression: %s\n", orig_expression.c_str());
     if (!result.success) {

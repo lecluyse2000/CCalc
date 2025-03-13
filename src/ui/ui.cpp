@@ -193,6 +193,11 @@ void bool_procedure(std::string& orig_input, const std::span<const Types::Token>
 }
 
 void evaluate_expression(std::string& orig_input, std::string& expression, auto& history) {
+    if (std::ranges::all_of(expression, ::isdigit)) {
+        std::cout << "Result: " << expression << '\n';
+        add_to_history(orig_input, expression, history);
+        return;
+    }
     const Types::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
         std::cerr << "Error: " << result.error_msg;
