@@ -152,6 +152,7 @@ std::optional<std::string> open_parentheses_math(MathParseState& state, std::vec
     return std::nullopt;
 }
 
+// This function returns true if unary plus is found
 bool math_operator_found(MathParseState& state, Types::ParseResult& result,
                         std::stack<Types::Token>& op_stack) {
     if (state.in_number) {
@@ -164,12 +165,12 @@ bool math_operator_found(MathParseState& state, Types::ParseResult& result,
                                                                       : Types::Token::NULLCHAR;
         if (state.current_token == Types::Token::ADD &&
             ((Types::is_math_operator(static_cast<Types::Token>(next_token)) && next_token != Types::Token::FAC)
-            || next_token == Types::Token::LEFT_PAREN)) return false;
+            || next_token == Types::Token::LEFT_PAREN)) return true;
     }
     check_for_floating_point(state, result.is_floating_point);
     if (state.current_token == Types::Token::FAC) {
         op_stack.push(static_cast<Types::Token>(state.current_token));
-        return true;
+        return false;
     }
 
      while (!op_stack.empty() && op_stack.top() != Types::Token::RIGHT_PAREN &&
@@ -180,7 +181,7 @@ bool math_operator_found(MathParseState& state, Types::ParseResult& result,
     }
     op_stack.push(static_cast<Types::Token>(state.current_token));
     
-    return true;
+    return false;
 }
 
 // Main body of the loop for parsing math equations
@@ -206,14 +207,17 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
     if (checker_result) return checker_result;
 
     if (Types::is_math_operator(state.current_token)) {
-        const bool cont = math_operator_found(state, result, op_stack);
-        if (!cont) return std::nullopt; 
+        const bool unary_plus = math_operator_found(state, result, op_stack);
+        // If unary plus is found, return early and do not set previous token
+        if (unary_plus) return std::nullopt; 
     } else if (state.current_token == Types::Token::RIGHT_PAREN) {
         closing_parentheses_math(state, result.result, op_stack);
     } else if (state.current_token == Types::Token::LEFT_PAREN) {
         const auto open_parenthese_result = open_parentheses_math(state, result.result, op_stack);
         if (open_parenthese_result) return open_parenthese_result;
-    } 
+    } else {
+        return Error::invalid_character_error_math(*state.itr);
+    }
     state.previous_token = state.current_token;
     return std::nullopt;
 }

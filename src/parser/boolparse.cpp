@@ -46,6 +46,8 @@ std::optional<std::string> bool_loop_body(BoolParseState& state, std::vector<Typ
         } else {
             return std::optional<std::string>("Missing closing parentheses\n");
         }
+    } else {
+        return Error::invalid_character_error_bool(*state.itr);
     }
     state.previous_token = state.current_token;
     return std::nullopt;

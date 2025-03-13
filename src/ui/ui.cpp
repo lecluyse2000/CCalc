@@ -335,6 +335,10 @@ void evaluate_expression(std::string& expression) {
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
     std::transform(expression.begin(), expression.end(), expression.begin(),
     [](auto c){ return std::toupper(c); });
+    if (std::ranges::all_of(expression, ::isdigit)) {
+        std::cout << "Result: " << expression << '\n';
+        return;
+    }
 
     const Types::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
