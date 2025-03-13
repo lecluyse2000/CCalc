@@ -34,33 +34,36 @@ constexpr void add_mult_signs(std::string& infix) {
 }
 
 [[nodiscard]] constexpr
-bool check_for_var(MathParseState& state, bool& floating_point) {
-    if (state.current_token == Types::Token::EULER) {
+std::optional<std::string> check_for_var(MathParseState& state, bool& floating_point) {
+    if (Types::is_math_var(state.current_token)) {
+        const auto error_check = Error::variable_error(state.previous_token);
+        if (error_check) return error_check;
         floating_point = true;
         state.in_number = true;
         state.num_buffer.push_back(state.current_token);
-        return true;
+        return std::optional<std::string>("");
     }
-    return false;
+    return std::nullopt;
 }
 
 // Checks if the parser is currently in a number based on if the current token is a digit or decimal
 // If a decimal place is found, the program goes into floating point mode
-[[nodiscard]] constexpr bool 
+[[nodiscard]] constexpr std::optional<std::string> 
 check_for_number(MathParseState& state, bool& floating_point) {
-    if (check_for_var(state, floating_point)) return true;
+    const auto var_check = check_for_var(state, floating_point);
+    if (var_check) return var_check;
     if (std::isdigit(static_cast<char>(state.current_token))) {
         state.in_number = true;
         state.num_buffer.push_back(state.current_token);
-        return true;
+        return std::optional<std::string>("");
     } else if (state.current_token == Types::Token::DOT) {
         state.in_number = true;
         state.num_buffer.push_back(state.current_token);
         floating_point = true;
-        return true;
+        return std::optional<std::string>("");
     }
 
-    return false;
+    return std::nullopt;
 }
 
 // Unary cases: 1) [not operand, close paren, or factorial] - (
@@ -199,10 +202,12 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
     state.current_token = static_cast<Types::Token>(*state.itr);
     if (state.current_token == Types::Token::SUB) check_for_unary(state);
     const auto num_check = check_for_number(state, result.is_floating_point); 
-    if (num_check) {
+    if (num_check && num_check->empty()) {
         state.previous_token = state.current_token;
         return std::nullopt;
-    } 
+    } else if (num_check) {
+        return num_check;
+    }
     const auto checker_result = Error::error_math(state.current_token, state.previous_token);
     if (checker_result) return checker_result;
 

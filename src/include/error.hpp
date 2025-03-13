@@ -208,6 +208,16 @@ constexpr std::optional<std::string> initial_checks(const std::string_view infix
 }
 
 [[nodiscard]] inline
+constexpr std::optional<std::string> variable_error(const Token previous_token) {
+    if (previous_token == Token::DOT) {
+        return std::optional<std::string>("Decimal point detected after variable\n");
+    } else if (std::isdigit(static_cast<char>(previous_token))) {
+        return std::optional<std::string>("Digit detected after variable\n");
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] inline
 constexpr std::optional<std::string> error_math(const Token current_token, const Token previous_token) {
     std::initializer_list<std::optional<std::string> (*)(const Token, const Token)> error_checks{
         check_missing_parentheses, check_missing_operator_math, check_missing_operand_math, 
