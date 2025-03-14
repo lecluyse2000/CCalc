@@ -37,7 +37,7 @@ namespace {
 std::vector<std::string> get_expressions() noexcept {
     std::vector<std::string> expressions;
     const std::optional<std::string> buffer = Util::get_filename(false);
-    if (!buffer) return expressions;
+    if (!buffer) [[unlikely]] return expressions;
     std::ifstream input_file(*buffer);
     std::string line;
 
@@ -57,7 +57,7 @@ std::vector<std::string> get_expressions() noexcept {
 // Prints an MPFR float using the two functions defined above
 bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec_t display_precision) {
     std::vector<char> buffer(Util::buffer_size);
-    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) return false;
+    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return false;
     fprintf(output_file, "Result: ");
     for (const auto c : buffer) {
         fprintf(output_file, "%c", c);
@@ -73,7 +73,8 @@ void math_float_procedure(FILE*& output_file, const std::span<const Types::Token
         if (mpfr_integer_p(final_value)) {
             mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
         } else {
-            if(!mpfr_to_file(output_file, final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)))) return;
+            if(!mpfr_to_file(output_file, final_value,
+                             static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)))) [[unlikely]] return;
         }
     } catch (const std::exception& err) {
         fprintf(output_file, "Error: %s\n", err.what()); 
@@ -132,9 +133,9 @@ void main_loop(FILE*& output_file, std::string& expression) {
 
 void initiate_file_mode() {
     std::vector<std::string> expressions = get_expressions();
-    if (expressions.empty()) return;
+    if (expressions.empty()) [[unlikely]] return;
     const std::optional<std::string> output_file_name = Util::get_filename(true);
-    if (!output_file_name) return;
+    if (!output_file_name) [[unlikely]] return;
     FILE* output_file;
     output_file = fopen(output_file_name->c_str(), "w");
     if(!output_file) [[unlikely]] {

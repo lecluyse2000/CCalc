@@ -47,7 +47,7 @@ void print_help_continuous() {
               << "* Enter 'exit', 'quit', or 'q' to exit the program.\n\n";
 }
 
-void print_history(const auto& history) {
+void print_history(const std::span<const std::pair<std::string, std::string> > history) {
     std::ranges::for_each(history, [](const auto& expression_result) {
         const auto [expression, result] = expression_result;
         std::cout << "Expression: " << expression << "\nResult: " << result << "\n";
@@ -117,7 +117,7 @@ enum struct InputResult {
 // Prints an MPFR float using the two functions defined above
 std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_precision) {
     std::vector<char> buffer(Util::buffer_size);
-    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) return std::string("");
+    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return std::string("");
     std::cout << "Result: ";
     for (const char c : buffer) {
         std::cout << c;
@@ -149,7 +149,7 @@ void math_float_procedure(std::string& orig_input, const std::span<const Types::
         const mpfr_t& final_value = tree->evaluate_floating_point();
         std::string final_val = print_mpfr(final_value,
                                            static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
-        if (final_val.empty()) return;
+        if (final_val.empty()) [[unlikely]] return;
         add_to_history(orig_input, final_val, history);
     } catch (const std::exception& err) {
         std::cerr << "Error: " << err.what() << '\n';

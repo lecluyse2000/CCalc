@@ -15,7 +15,7 @@ ValueMNode::ValueMNode(const std::string_view _value_mpz, const std::string_view
     value_mpz(_value_mpz.data()) {
     mpfr_init2(value_mpfr, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
     const int successful = mpfr_set_str(value_mpfr, _value_mpf.data(), 10, MPFR_RNDN);
-    if (successful != 0) {
+    if (successful != 0) [[unlikely]] {
         mpfr_clear(value_mpfr);
         throw std::invalid_argument("Invalid floating point: " + std::string(_value_mpf));
     }
@@ -26,7 +26,7 @@ ValueMNode::ValueMNode(const Types::Token token) : value_mpz(0) {
     if (token == Types::Token::PI) mpfr_const_pi(value_mpfr, MPFR_RNDN);
     if (token == Types::Token::EULER) {
         const int successful = mpfr_set_str(value_mpfr, Types::euler.data(), 10, MPFR_RNDN);
-        if (successful != 0) {
+        if (successful != 0) [[unlikely]] {
             mpfr_clear(value_mpfr);
             throw std::invalid_argument("Invalid floating point, token type: " + std::string{static_cast<char>(token)} );
         }

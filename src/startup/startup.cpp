@@ -15,8 +15,11 @@
 
 namespace Startup {
 
-[[maybe_unused]] inline constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
-[[maybe_unused]] inline constexpr std::string_view ini_path_windows = "AppData\\Local\\ccalc\\settings.ini";
+#ifdef _WIN32
+    inline constexpr std::string_view ini_path = "AppData\\Local\\ccalc\\settings.ini";
+#else
+    inline constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
+#endif
 
 namespace {
 
@@ -35,12 +38,11 @@ bool create_ini(const auto& full_path) {
     try {
         std::filesystem::create_directories(full_path.parent_path());
         std::ofstream file(full_path, std::ios::trunc);
-        if (file.is_open()) {
+        if (file.is_open()) [[likely]] {
             file << "[Settings]\n";
             for (std::size_t i = 0; i < Util::num_settings; ++i) {
                 file << Util::setting_fields[i] << Util::default_setting_values[i] << '\n'; 
             }
-            file.close();
             return true;
         }
         return false;
@@ -49,8 +51,8 @@ bool create_ini(const auto& full_path) {
     }
 }
 
-inline bool create_ini_return_false(const auto& full_path) {
-    if (!create_ini(full_path)) {
+[[nodiscard]] inline bool create_ini_return_false(const auto& full_path) {
+    if (!create_ini(full_path)) [[unlikely]] {
         std::cerr << "Unable to create settings.ini\n";
     }
     return false;
@@ -59,16 +61,16 @@ inline bool create_ini_return_false(const auto& full_path) {
 [[nodiscard]] bool create_retval(const std::string& line, const auto& full_path, std::unordered_map<Types::Setting, long>& map) {
     const auto equal_pos = line.find('=');
     if (equal_pos == line.size() - 1 || equal_pos == std::string::npos) {
-        create_ini_return_false(full_path);
+        return create_ini_return_false(full_path);
     }
 
     const std::string_view key = std::string_view(line).substr(0, equal_pos);
     const std::string_view value_string = std::string_view(line).substr(equal_pos + 1);
-    if(!std::ranges::all_of(value_string, ::isdigit)) {
+    if(!std::ranges::all_of(value_string, ::isdigit)) [[unlikely]] {
         return create_ini_return_false(full_path);
     }
     const long value_long = std::stol(value_string.data());
-    if (value_long < 0) {
+    if (value_long < 0) [[unlikely]] {
         return create_ini_return_false(full_path);
     }
     const auto emplace_result = map.try_emplace(Types::string_to_settings_enum(key), value_long);
@@ -96,16 +98,11 @@ inline bool create_ini_return_false(const auto& full_path) {
     std::unordered_map<Types::Setting, long> retval;
     const std::filesystem::path parent_path = get_home_path();
     if (parent_path.empty()) return Util::create_default_settings_map();
-
-    #ifdef _WIN32
-        const std::filesystem::path full_path = get_home_path() / ini_path_windows;
-    #else
-        const std::filesystem::path full_path = get_home_path() / ini_path;
-    #endif
+    const std::filesystem::path full_path = get_home_path() / ini_path;
 
     const bool settings_exists = std::filesystem::exists(full_path);
     if (!settings_exists) {
-        if (!create_ini(full_path)) {
+        if (!create_ini(full_path)) [[unlikely]] {
             std::cerr << "Unable to create settings.ini\n";
         }
         return Util::create_default_settings_map();
