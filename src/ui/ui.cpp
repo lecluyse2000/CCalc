@@ -114,20 +114,6 @@ enum struct InputResult {
     return InputResult::CONTINUE_TO_EVALUATE;
 }
 
-// Prints an MPFR float using the two functions defined above
-std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_precision) {
-    std::vector<char> buffer(Util::buffer_size);
-    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return std::string("");
-    std::cout << "Result: ";
-    for (const char c : buffer) {
-        std::cout << c;
-    }
-    std::cout << '\n';
-
-    // Have to return using iterators since it's not null teriminated
-    return std::string(buffer.begin(), buffer.end()); 
-}
-
 inline void add_to_history(std::string& orig_input, std::string& final_val, auto& history) {
     history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
     if (history.size() >= static_cast<std::size_t>(Startup::settings.at(Types::Setting::MAX_HISTORY))) {
@@ -142,10 +128,46 @@ inline void add_to_history(std::string& orig_input, std::string&& final_val, aut
     }
 }
 
+// Prints an MPFR float using the two functions defined above
+std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_precision) {
+    std::vector<char> buffer(Util::buffer_size);
+    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return std::string("");
+    std::cout << "Result: ";
+    for (const char c : buffer) {
+        std::cout << c;
+    }
+    std::cout << '\n';
+
+    // Have to return using iterators since it's not null teriminated
+    return std::string(buffer.begin(), buffer.end()); 
+}
+
+[[nodiscard]] bool check_num_input(std::string& orig_input, std::string& expression, auto& history) {
+    if (std::ranges::all_of(expression, ::isdigit)) {
+        std::cout << "Result: " << expression << '\n';
+        add_to_history(orig_input, expression, history);
+        return true;
+    } else if (expression == "E") {
+        std::cout << "Result: " << Types::euler << '\n';
+        add_to_history(orig_input, std::string(Types::euler), history);
+        return true;
+    } else if (expression == "PI") {
+        mpfr_t pi;
+        mpfr_init2(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
+        mpfr_const_pi(pi, MPFR_RNDN); 
+        std::string pi_str = print_mpfr(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
+        add_to_history(orig_input, pi_str, history);
+        mpfr_free_cache();
+        mpfr_clear(pi);
+        return true;
+    }
+    return false;
+}
+
 // Make the tree, evaluate, print the result, then add it to the history
 void math_float_procedure(std::string& orig_input, const std::span<const Types::Token> prefix_input, auto& history) {
     try {
-        const auto tree = std::make_unique<MathAST>(prefix_input, true);
+        const auto tree = std::make_unique<const MathAST>(prefix_input, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         std::string final_val = print_mpfr(final_value,
                                            static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
@@ -159,7 +181,7 @@ void math_float_procedure(std::string& orig_input, const std::span<const Types::
 
 void math_int_procedure(std::string& orig_input, const std::span<const Types::Token> prefix_input, auto& history) {
     try {
-        const auto tree = std::make_unique<MathAST>(prefix_input, false);
+        const auto tree = std::make_unique<const MathAST>(prefix_input, false);
         const mpz_class final_value = tree->evaluate();
         std::cout << "Result: " << final_value.get_str() << '\n';
         add_to_history(orig_input, final_value.get_str(), history);
@@ -171,7 +193,7 @@ void math_int_procedure(std::string& orig_input, const std::span<const Types::To
 }
 
 // Calls the float or int procedure based on float_point status
-void math_procedure(std::string& orig_input, const Types::ParseResult result, auto& history) {
+void math_procedure(std::string& orig_input, const Types::ParseResult& result, auto& history) {
     if (result.is_floating_point) {
         math_float_procedure(orig_input, result.result, history);
     } else {
@@ -193,11 +215,7 @@ void bool_procedure(std::string& orig_input, const std::span<const Types::Token>
 }
 
 void evaluate_expression(std::string& orig_input, std::string& expression, auto& history) {
-    if (std::ranges::all_of(expression, ::isdigit)) {
-        std::cout << "Result: " << expression << '\n';
-        add_to_history(orig_input, expression, history);
-        return;
-    }
+    if (check_num_input(orig_input, expression, history)) return;
     const Types::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
         std::cerr << "Error: " << result.error_msg;
@@ -242,8 +260,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
             case InputResult::CONTINUE:
                 continue;
             default:
-                std::transform(input_expression.begin(), input_expression.end(), input_expression.begin(),
-                   [](auto c){ return std::toupper(c); });
+                std::ranges::transform(input_expression, input_expression.begin(), [](const auto c){ return std::toupper(c); });
                 evaluate_expression(orig_input, input_expression, program_history);
         }
     }
@@ -297,6 +314,25 @@ void print_invalid_flag(const std::string_view expression) {
 // When just passing expressions in at runtime there is no need to worry about the history
 namespace {
 
+[[nodiscard]] bool check_num_input(std::string& expression) {
+    if (std::ranges::all_of(expression, ::isdigit)) {
+        std::cout << "Result: " << expression << '\n';
+        return true;
+    } else if (expression == "E") {
+        std::cout << "Result: " << Types::euler << '\n';
+        return true;
+    } else if (expression == "PI") {
+        mpfr_t pi;
+        mpfr_init2(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
+        mpfr_const_pi(pi, MPFR_RNDN); 
+        print_mpfr(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
+        mpfr_free_cache();
+        mpfr_clear(pi);
+        return true;
+    }
+    return false;
+}
+
 void math_procedure(Types::ParseResult result) {
     if (result.is_floating_point) {
         try {
@@ -334,12 +370,8 @@ void bool_procedure(const std::span<const Types::Token> result) {
 // Non continuous mode
 void evaluate_expression(std::string& expression) {
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
-    if (std::ranges::all_of(expression, ::isdigit)) {
-        std::cout << "Result: " << expression << '\n';
-        return;
-    }
-    std::transform(expression.begin(), expression.end(), expression.begin(),
-        [](auto c){ return std::toupper(c); });
+    std::ranges::transform(expression, expression.begin(), [](const auto c){ return std::toupper(c); });
+    if (check_num_input(expression)) return;
 
     const Types::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {

@@ -34,7 +34,7 @@ void output_history(const std::span<const std::pair<std::string, std::string> > 
 
 namespace {
 
-std::vector<std::string> get_expressions() noexcept {
+[[nodiscard]] std::vector<std::string> get_expressions() noexcept {
     std::vector<std::string> expressions;
     const std::optional<std::string> buffer = Util::get_filename(false);
     if (!buffer) [[unlikely]] return expressions;
@@ -68,7 +68,7 @@ bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec
 
 void math_float_procedure(FILE*& output_file, const std::span<const Types::Token> result) {
     try {
-        const auto tree = std::make_unique<MathAST>(result, true);
+        const auto tree = std::make_unique<const MathAST>(result, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         if (mpfr_integer_p(final_value)) {
             mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
@@ -83,7 +83,7 @@ void math_float_procedure(FILE*& output_file, const std::span<const Types::Token
 
 void math_int_procedure(FILE*& output_file, const std::span<const Types::Token> result) {
     try {
-        const auto tree = std::make_unique<MathAST>(result, false);
+        const auto tree = std::make_unique<const MathAST>(result, false);
         const mpz_class final_value = tree->evaluate();
         gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
     } catch (const std::bad_alloc& err) {
@@ -113,8 +113,7 @@ void bool_procedure(FILE*& output_file, const std::span<const Types::Token> resu
 void main_loop(FILE*& output_file, std::string& expression) {
     const std::string orig_expression = expression;
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
-    std::transform(expression.begin(), expression.end(), expression.begin(),
-        [](auto c){ return std::toupper(c); });
+    std::ranges::transform(expression, expression.begin(), [](const auto c){ return std::toupper(c); });
     const Types::ParseResult result = Parse::create_prefix_expression(expression);
 
     fprintf(output_file, "Expression: %s\n", orig_expression.c_str());

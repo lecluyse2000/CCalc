@@ -34,14 +34,41 @@ constexpr void add_mult_signs(std::string& infix) {
 }
 
 [[nodiscard]] constexpr
-std::optional<std::string> check_for_var(MathParseState& state, bool& floating_point) {
-    if (Types::is_math_var(state.current_token)) {
-        const auto error_check = Error::variable_error(state.previous_token);
-        if (error_check) return error_check;
-        floating_point = true;
-        state.in_number = true;
-        state.num_buffer.push_back(state.current_token);
-        return std::optional<std::string>("");
+std::optional<std::string> parse_euler(MathParseState& state, Types::ParseResult& result) {
+    const auto error_check = Error::variable_error(state.previous_token);
+    if (error_check) return error_check;
+    result.is_floating_point = true;
+    state.in_number = true;
+    state.num_buffer.push_back(Types::Token::EULER);
+    return std::nullopt;
+}
+
+[[nodiscard]] constexpr
+std::optional<std::string> parse_pi(MathParseState& state, Types::ParseResult& result) {
+    const char next_token = (state.itr + 1 != state.rend) ? *(state.itr + 1)
+                                                          : '\0';
+    if (next_token != 'P') return Error::invalid_character_error_math(*state.itr);
+    const auto error_check = Error::variable_error(state.previous_token);
+    if (error_check) return error_check;
+    result.is_floating_point = true;
+    state.in_number = true;
+    state.num_buffer.push_back(Types::Token::PI);
+    return std::nullopt;
+}
+
+[[nodiscard]] constexpr
+std::optional<std::string> parse_var(MathParseState& state, Types::ParseResult& result) {
+    if (*state.itr == 'E') {
+        const auto euler_check = parse_euler(state, result); 
+        if (euler_check) return euler_check;
+        else return std::optional<std::string>("");
+    }
+
+    // PI check
+    if (*state.itr == 'I') {
+        const auto pi_check = parse_pi(state, result); 
+        if (pi_check) return pi_check;
+        else return std::optional<std::string>("PI");
     }
     return std::nullopt;
 }
@@ -50,8 +77,6 @@ std::optional<std::string> check_for_var(MathParseState& state, bool& floating_p
 // If a decimal place is found, the program goes into floating point mode
 [[nodiscard]] constexpr std::optional<std::string> 
 check_for_number(MathParseState& state, bool& floating_point) {
-    const auto var_check = check_for_var(state, floating_point);
-    if (var_check) return var_check;
     if (std::isdigit(static_cast<char>(state.current_token))) {
         state.in_number = true;
         state.num_buffer.push_back(state.current_token);
@@ -198,6 +223,9 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
     // if the token is an operator or a closing parentheses, add it to the stack
     // If the token is an open parentheses, pop from the stack and add to the string until a closing parentheses is
     // found, or an operator with a higher precedence
+    const auto var_check = parse_var(state, result);
+    if (var_check) return var_check;
+    if (var_check && var_check->empty()) return std::nullopt;
     if (!Types::is_valid_math_token(*state.itr)) {
         return Error::invalid_character_error_math(*state.itr);
     }
@@ -243,6 +271,10 @@ std::optional<std::string> parse_math(std::string& infix_expression, Types::Pars
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         state.itr = itr;
         const auto loop_result = math_loop_body(state, result, operator_stack);
+        if (loop_result && *loop_result == "PI") {
+            itr++;
+            continue;
+        }
         if (loop_result) return loop_result;
     }
     if (state.in_number) {
