@@ -154,7 +154,7 @@ cmake -B build -DCMAKE_INSTALL_PREFIX=~/Documents/ccalc && sudo cmake --build bu
 ### Run    
 
 ```bash
-ccalc
+ccalc -c
 ```
 
 ### Windows
