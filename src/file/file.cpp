@@ -34,7 +34,7 @@ void output_history(const std::span<const std::pair<std::string, std::string> > 
                     std::ofstream& output_file) noexcept {
     std::ranges::for_each(history, [&output_file](const auto& expression_result) {
         const auto [expression, result] = expression_result;
-        output_file << "Expression: " << expression << "\nResult: " << result << "\n";
+        output_file << "Expression: " << expression << std::endl <<"Result: " << result << std::endl;
     });
 }
 
@@ -53,7 +53,7 @@ namespace {
             expressions.emplace_back(std::move(line));
         }
     } else {
-        std::cout << "Couldn't find " << *buffer << '\n';
+        std::cerr << "Couldn't find " << *buffer << '\n';
     }
 
     return expressions;
@@ -83,7 +83,7 @@ void math_float_procedure(FILE*& output_file, const std::span<const Types::Token
                              static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)))) [[unlikely]] return;
         }
     } catch (const std::exception& err) {
-        fprintf(output_file, "Error: %s\n", err.what()); 
+        fprintf(output_file, "Error: %s%s", err.what(), escape_sequence.data()); 
     }
 }
 
@@ -95,7 +95,7 @@ void math_int_procedure(FILE*& output_file, const std::span<const Types::Token> 
     } catch (const std::bad_alloc& err) {
         fprintf(output_file, "Error: The number grew too big!%s", escape_sequence.data()); 
     } catch (const std::exception& err) {
-        fprintf(output_file, "Error: %s\n", err.what()); 
+        fprintf(output_file, "Error: %s%s", err.what(), escape_sequence.data()); 
     }
 }
 
@@ -124,7 +124,7 @@ void main_loop(FILE*& output_file, std::string& expression) {
 
     fprintf(output_file, "Expression: %s%s", orig_expression.c_str(), escape_sequence.data());
     if (!result.success) {
-        fprintf(output_file, "Error: %s", result.error_msg.c_str());
+        fprintf(output_file, "Error: %s%s", result.error_msg.c_str(), escape_sequence.data());
         return;
     }
     if(result.is_math) {

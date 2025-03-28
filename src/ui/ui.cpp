@@ -218,7 +218,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
     if (check_num_input(orig_input, expression, history)) return;
     const Types::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
-        std::cerr << "Error: " << result.error_msg;
+        std::cerr << "Error: " << result.error_msg << '\n';
         return;
     }
     if(result.is_math) {
@@ -375,7 +375,7 @@ void evaluate_expression(std::string& expression) {
 
     const Types::ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
-        std::cerr << "Error: " << result.error_msg;
+        std::cerr << "Error: " << result.error_msg << '\n';
         return;
     }
     if(result.is_math) {

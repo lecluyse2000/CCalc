@@ -24,24 +24,24 @@ namespace {
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_leading(const std::string_view infix_expression, const bool math) {
     if (infix_expression.size() == 1) {
-        return std::optional<std::string>("Expression is only one character long\n");
+        return std::optional<std::string>("Expression is only one character long");
     }
     if (math && is_math_operator(static_cast<Token>(infix_expression[0])) && infix_expression[0] != '-') {
-        return std::optional<std::string>("Math expression begins with an operator\n");
+        return std::optional<std::string>("Math expression begins with an operator");
     }
     if (!math && is_bool_operator(static_cast<Token>(infix_expression[0]))) {
-        return std::optional<std::string>("Boolean expression begins with an operator\n");
+        return std::optional<std::string>("Boolean expression begins with an operator");
     }
     if (infix_expression[0] == ')') {
-        return std::optional<std::string>("Expression begins with closed parentheses\n");
+        return std::optional<std::string>("Expression begins with closed parentheses");
     } else if (infix_expression[0] == '!' && math) {
-        return std::optional<std::string>("Expression begins with factorial\n");
+        return std::optional<std::string>("Expression begins with factorial");
     }
     for (const auto i : infix_expression) {
         if (!math && std::isdigit(i)) {
-            return std::optional<std::string>("Boolean expression contains a number\n");
+            return std::optional<std::string>("Boolean expression contains a number");
         } else if (math && is_bool_operand(static_cast<Token>(i))) {
-            return std::optional<std::string>("Arithmetic expression contains a bool\n");
+            return std::optional<std::string>("Arithmetic expression contains a bool");
         }
     }
 
@@ -52,13 +52,13 @@ constexpr std::optional<std::string> check_leading(const std::string_view infix_
 constexpr std::optional<std::string> check_trailing(const std::string_view infix_expression, const bool math) {
     const Token rbegin = static_cast<Token>(*infix_expression.rbegin());
     if (isnot(rbegin) && !math) {
-        return std::optional<std::string>("Expression ends with NOT\n");
+        return std::optional<std::string>("Expression ends with NOT");
     } else if (math && is_math_operator(rbegin) && rbegin != Token::FAC) {
-        return std::optional<std::string>("Math expression ends with an operator\n");
+        return std::optional<std::string>("Math expression ends with an operator");
     } else if (!math && is_bool_operator(rbegin)) {
-        return std::optional<std::string>("Boolean expression ends with an operator\n");
+        return std::optional<std::string>("Boolean expression ends with an operator");
     } else if (rbegin == Token::LEFT_PAREN) {
-        return std::optional<std::string>("Expression ends with open parentheses\n");
+        return std::optional<std::string>("Expression ends with open parentheses");
     }
     return std::nullopt;
 }
@@ -66,7 +66,7 @@ constexpr std::optional<std::string> check_trailing(const std::string_view infix
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_missing_parentheses(const Token current_token, const Token previous_token) {
     if (current_token == Token::LEFT_PAREN && previous_token == Token::RIGHT_PAREN) {
-        return std::optional<std::string>("Empty parentheses detected\n");
+        return std::optional<std::string>("Empty parentheses detected");
     }
 
     return std::nullopt;
@@ -76,7 +76,7 @@ constexpr std::optional<std::string> check_missing_parentheses(const Token curre
 constexpr std::optional<std::string> check_consecutive_operators(const Token current_token, const Token previous_token) {
     if (is_bool_operator(current_token) && is_bool_operator(previous_token)) {
         return std::optional<std::string>("Two consecutive operators detected: " + std::string{static_cast<char>(current_token)} + " and " +
-                std::string{static_cast<char>(previous_token)} + "\n");
+                std::string{static_cast<char>(previous_token)} + "");
     }
 
     return std::nullopt;
@@ -86,7 +86,7 @@ constexpr std::optional<std::string> check_consecutive_operators(const Token cur
 constexpr std::optional<std::string> check_consecutive_operands(const Token current_token, const Token previous_token) {
     if (isoperand(current_token) && isoperand(previous_token)) {
         return std::optional<std::string>("Two consecutive operands detected: " + std::string{static_cast<char>(current_token)} + " and " +
-                std::string{static_cast<char>(previous_token)} + "\n");
+                std::string{static_cast<char>(previous_token)} + "");
     }
 
     return std::nullopt;
@@ -95,7 +95,7 @@ constexpr std::optional<std::string> check_consecutive_operands(const Token curr
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_not_after_value(const Token current_token, const Token previous_token) {
     if (isnot(current_token) && (isoperator(previous_token) || previous_token == Token::RIGHT_PAREN)) {
-        return std::optional<std::string>("NOT applied after value\n");
+        return std::optional<std::string>("NOT applied after value");
     }
 
     return std::nullopt;
@@ -107,7 +107,7 @@ constexpr std::optional<std::string> check_missing_operator_math(const Token cur
         ((is_math_operand(current_token) && current_token != Token::UNARY) && previous_token == Token::LEFT_PAREN) || 
         (current_token == Token::RIGHT_PAREN && previous_token == Token::LEFT_PAREN)) {
         return std::optional<std::string>("Missing operator between " + std::string{static_cast<char>(current_token)}
-                                  + " and " + std::string{static_cast<char>(previous_token)} + "\n");
+                                  + " and " + std::string{static_cast<char>(previous_token)} + "");
     }
 
     return std::nullopt;
@@ -119,7 +119,7 @@ constexpr std::optional<std::string> check_missing_operator_bool(const Token cur
         (is_bool_operand(current_token) && (previous_token == Token::LEFT_PAREN || isnot(previous_token))) ||
         (current_token == Token::RIGHT_PAREN && previous_token == Token::LEFT_PAREN)) {
         return std::optional<std::string>("Missing operator between " + std::string{static_cast<char>(current_token)}
-                                  + " and " + std::string{static_cast<char>(previous_token)} + "\n");
+                                  + " and " + std::string{static_cast<char>(previous_token)} + "");
 
     }
 
@@ -161,7 +161,7 @@ constexpr std::optional<std::string> check_missing_operand_math(const Token curr
             for (const auto c : prev_tokens) {
                 if (previous_token == c) {
                     return std::optional<std::string>("Missing operand between " + std::string{static_cast<char>(current_token)}
-                                                      + " and " + std::string{static_cast<char>(previous_token)} + "\n");
+                                                      + " and " + std::string{static_cast<char>(previous_token)} + "");
                 }
             }
         }
@@ -174,7 +174,7 @@ constexpr std::optional<std::string> check_missing_operand_bool(const Token curr
     if ((current_token == Token::LEFT_PAREN && is_bool_operator(previous_token)) ||
         (is_bool_operator(current_token) && previous_token == Token::RIGHT_PAREN)) {
         return std::optional<std::string>("Missing operand between " + std::string{static_cast<char>(current_token)}
-                                          + " and " + std::string{static_cast<char>(previous_token)} + "\n");
+                                          + " and " + std::string{static_cast<char>(previous_token)} + "");
     }
 
     return std::nullopt;
@@ -183,12 +183,12 @@ constexpr std::optional<std::string> check_missing_operand_bool(const Token curr
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_for_factorial_error(const Token current_token, const Token previous_token) {
     if (current_token == Token::FAC && std::isdigit(static_cast<char>(previous_token))) {
-        return std::optional<std::string>("Digit following factorial\n");
+        return std::optional<std::string>("Digit following factorial");
     } else if(!std::isdigit(static_cast<char>(current_token)) && current_token != Token::RIGHT_PAREN &&
                current_token != Token::FAC && previous_token == Token::FAC) {
-        return std::optional<std::string>("Factorial follows a non-number value\n");
+        return std::optional<std::string>("Factorial follows a non-number value");
     } else if(current_token == Token::FAC && previous_token == Token::FAC) {
-        return std::optional<std::string>("Consecutive factorials detected\n");
+        return std::optional<std::string>("Consecutive factorials detected");
     }
 
     return std::nullopt;
@@ -210,9 +210,9 @@ constexpr std::optional<std::string> initial_checks(const std::string_view infix
 [[nodiscard]] inline
 constexpr std::optional<std::string> variable_error(const Token previous_token) {
     if (previous_token == Token::DOT) {
-        return std::optional<std::string>("Decimal point detected after variable\n");
+        return std::optional<std::string>("Decimal point detected after variable");
     } else if (std::isdigit(static_cast<char>(previous_token))) {
-        return std::optional<std::string>("Digit detected after variable\n");
+        return std::optional<std::string>("Digit detected after variable");
     }
     return std::nullopt;
 }
@@ -245,18 +245,18 @@ constexpr std::optional<std::string> error_bool(const Token current_token, const
 
 [[nodiscard]] inline constexpr std::string invalid_character_error_math(const char token) {
     if (token == ']' || token == '[') {
-        return "Invalid use of brackets detected! Just use parentheses please.\n";
+        return "Invalid use of brackets detected! Just use parentheses please.";
     }
-    return "Expected +, -, *, /, ^, received: " + std::string{token} + "\n";
+    return "Expected +, -, *, /, ^, received: " + std::string{token} + "";
 }
 
 [[nodiscard]] inline constexpr std::string invalid_character_error_bool(const char token) {
     if (isalnum(token)) {
-        return "Expected T or F, received: " + std::string{token} + "\n";
+        return "Expected T or F, received: " + std::string{token} + "";
     } else if (token == ']' || token == '[') {
-        return "Invalid use of brackets detected! Just use parentheses please.\n";
+        return "Invalid use of brackets detected! Just use parentheses please.";
     }
-    return "Expected &, |, !, @, $, received: " + std::string{token} + "\n";
+    return "Expected &, |, !, @, $, received: " + std::string{token} + "";
 }
 
 }  // namespace Error
