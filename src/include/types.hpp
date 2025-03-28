@@ -44,6 +44,7 @@ enum struct Token : char {
     LN = 'N', 
     EULER = 'E',
     PI = 'P', 
+    PI_2 = 'I',
     ANS = 'A',
     AND = '&',
     OR = '|',
@@ -131,7 +132,7 @@ enum struct Setting {
 }
 
 [[nodiscard]] inline constexpr bool is_math_var(const Token token) noexcept {
-    return token == Token::EULER || token == Token::PI;
+    return token == Token::EULER || token == Token::PI || token == Token::PI_2;
 }
 [[nodiscard]] inline constexpr bool is_math_operand(const Token token) noexcept {
     return std::isdigit(static_cast<char>(token)) || token == Token::DOT ||

@@ -15,20 +15,25 @@ namespace {
 // This is easier than having to rework the logic of the whole program
 constexpr void add_mult_signs(std::string& infix) {
     for (std::size_t i = 0; i < infix.size() - 1; ++i) {
-        const char current_token = infix[i];
-        const char next_token = infix[i + 1];
-        bool should_insert = false;
+        const Types::Token current_token = static_cast<Types::Token>(infix[i]);
+        const Types::Token next_token = static_cast<Types::Token>(infix[i + 1]);
+        if (current_token == Types::Token::PI) continue;
         
-        if (current_token == ')' && next_token == '(') should_insert = true;
-        if (current_token == '!' && Types::is_math_operand(static_cast<Types::Token>(next_token))) should_insert = true;
-        if (Types::is_math_operand(static_cast<Types::Token>(current_token))
-            && (Types::is_math_var(static_cast<Types::Token>(next_token)) || next_token == '(')) {
-            should_insert = true;
-        }
-        
-        if (should_insert) {
+        const auto insert_increment = [&i, &infix]() {
             infix.insert(i + 1, 1,'*');
             ++i; 
+        };
+
+        if (current_token == Types::Token::RIGHT_PAREN && (next_token == Types::Token::LEFT_PAREN || 
+                                                           Types::is_math_operand(next_token))) {
+            insert_increment();
+        } else if (current_token == Types::Token::FAC && Types::is_math_operand(next_token)) {
+            insert_increment();
+        } else if (Types::is_math_var(current_token) && Types::is_math_var(next_token)) {
+            insert_increment();
+        } else if (Types::is_math_operand(current_token)
+            && (Types::is_math_var(next_token) || next_token == Types::Token::LEFT_PAREN)) {
+            insert_increment();
         }
     }
 }
@@ -43,11 +48,15 @@ std::optional<std::string> parse_euler(MathParseState& state, Types::ParseResult
     return std::nullopt;
 }
 
+static constexpr Types::Token get_next_token(const MathParseState& state) {
+    return (*state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(*state.itr + 1))
+                                          : Types::Token::NULLCHAR;
+}
+
 [[nodiscard]] constexpr
 std::optional<std::string> parse_pi(MathParseState& state, Types::ParseResult& result) {
-    const char next_token = (state.itr + 1 != state.rend) ? *(state.itr + 1)
-                                                          : '\0';
-    if (next_token != 'P') return Error::invalid_character_error_math(*state.itr);
+    const char next_token = static_cast<char>(get_next_token(state));
+    if (next_token != 'P') return Error::invalid_character_error_math(**state.itr);
     const auto error_check = Error::variable_error(state.previous_token);
     if (error_check) return error_check;
     result.is_floating_point = true;
@@ -58,17 +67,16 @@ std::optional<std::string> parse_pi(MathParseState& state, Types::ParseResult& r
 
 [[nodiscard]] constexpr
 std::optional<std::string> parse_var(MathParseState& state, Types::ParseResult& result) {
-    if (*state.itr == 'E') {
+    if (**state.itr == 'E') {
         const auto euler_check = parse_euler(state, result); 
         if (euler_check) return euler_check;
-        else return std::optional<std::string>("");
     }
 
     // PI check
-    if (*state.itr == 'I') {
+    if (**state.itr == 'I') {
         const auto pi_check = parse_pi(state, result); 
         if (pi_check) return pi_check;
-        else return std::optional<std::string>("PI");
+        else (*state.itr)++;
     }
     return std::nullopt;
 }
@@ -93,31 +101,27 @@ check_for_number(MathParseState& state, bool& floating_point) {
 
 // Unary cases: 1) [not operand, close paren, or factorial] - (
 constexpr bool unary_first_case(const MathParseState& state) {
-    const Types::Token next_token = (state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(state.itr + 1))
-                                                                  : Types::Token::NULLCHAR;
+    const Types::Token next_token = get_next_token(state);
     return state.previous_token == Types::Token::LEFT_PAREN && !Types::isoperand(next_token) &&
            next_token != Types::Token::RIGHT_PAREN && next_token != Types::Token::FAC;
 }
 
 // 2) ( - [operand]
 constexpr bool unary_second_case(const MathParseState& state) {
-    const Types::Token next_token = (state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(state.itr + 1))
-                                                                  : Types::Token::NULLCHAR;
+    const Types::Token next_token = get_next_token(state);
     return next_token == Types::Token::LEFT_PAREN && Types::is_math_operand(state.previous_token);
 }
 
 // 3) [not factorial operator] - [operand]
 constexpr bool unary_third_case(const MathParseState& state) {
-    const Types::Token next_token = (state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(state.itr + 1))
-                                                                  : Types::Token::NULLCHAR;
+    const Types::Token next_token = get_next_token(state); 
     return (Types::is_math_operator(next_token) && next_token != Types::Token::FAC)
             && Types::is_math_operand(state.previous_token);
 }
 
 // 4) Exponent raised to the negative power
 constexpr bool unary_fourth_case(const MathParseState& state) {
-    const Types::Token next_token = (state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(state.itr + 1))
-                                                                  : Types::Token::NULLCHAR;
+    const Types::Token next_token = get_next_token(state); 
     return next_token == Types::Token::POW;
 }
 
@@ -138,7 +142,7 @@ constexpr void check_for_floating_point(const MathParseState& state, bool& float
     // If raised to a negative exponent, we evaluate as a float
     // Have to iterate back in the other direction towards the end of the string
     if (state.current_token == Types::Token::POW) {
-        for (auto new_itr = state.itr.base(); new_itr != state.end; ++new_itr) {
+        for (auto new_itr = state.itr->base(); new_itr != state.end; ++new_itr) {
             if (*new_itr == '-' || *new_itr == '~') {
                 floating_point = true;
                 return;
@@ -191,7 +195,7 @@ bool math_operator_found(MathParseState& state, Types::ParseResult& result,
         }
         result.result.push_back(Types::Token::COMMA);
         clear_num_buffer(state);
-        const Types::Token next_token = (state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(state.itr + 1))
+        const Types::Token next_token = (*state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(*state.itr + 1))
                                                                       : Types::Token::NULLCHAR;
         if (state.current_token == Types::Token::ADD &&
             ((Types::is_math_operator(static_cast<Types::Token>(next_token)) && next_token != Types::Token::FAC)
@@ -225,11 +229,10 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
     // found, or an operator with a higher precedence
     const auto var_check = parse_var(state, result);
     if (var_check) return var_check;
-    if (var_check && var_check->empty()) return std::nullopt;
-    if (!Types::is_valid_math_token(*state.itr)) {
-        return Error::invalid_character_error_math(*state.itr);
+    if (!Types::is_valid_math_token(**state.itr)) {
+        return Error::invalid_character_error_math(**state.itr);
     }
-    state.current_token = static_cast<Types::Token>(*state.itr);
+    state.current_token = static_cast<Types::Token>(**state.itr);
     if (state.current_token == Types::Token::SUB) check_for_unary(state);
     const auto num_check = check_for_number(state, result.is_floating_point); 
     if (num_check && num_check->empty()) {
@@ -250,8 +253,8 @@ std::optional<std::string> math_loop_body(MathParseState& state, Types::ParseRes
     } else if (state.current_token == Types::Token::LEFT_PAREN) {
         const auto open_parenthese_result = open_parentheses_math(state, result.result, op_stack);
         if (open_parenthese_result) return open_parenthese_result;
-    } else {
-        return Error::invalid_character_error_math(*state.itr);
+    } else if (!Types::is_math_var(state.current_token)){
+        return Error::invalid_character_error_math(**state.itr);
     }
     state.previous_token = state.current_token;
     return std::nullopt;
@@ -269,12 +272,8 @@ std::optional<std::string> parse_math(std::string& infix_expression, Types::Pars
     // All the algorithms I discovered for converting to prefix started by reversing the string,
     // so I thought why not just parse from right to left so we don't have to reverse
     for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
-        state.itr = itr;
+        state.itr = &itr;
         const auto loop_result = math_loop_body(state, result, operator_stack);
-        if (loop_result && *loop_result == "PI") {
-            itr++;
-            continue;
-        }
         if (loop_result) return loop_result;
     }
     if (state.in_number) {

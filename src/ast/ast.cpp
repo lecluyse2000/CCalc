@@ -11,7 +11,6 @@
 #include "bnode.h"
 #include "mnode.h"
 
-
 std::unique_ptr<BoolNode> BoolAST::build_ast() noexcept {
     const Types::Token current_token = m_prefix_expression[m_index++];
 
