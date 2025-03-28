@@ -112,54 +112,46 @@ max_history=50
 - [GNU GMP](https://gmplib.org/)
 - [GNU MPFR](https://www.mpfr.org/)
 
-### Debian
+#### Debian
 
 ```bash
 sudo apt-get install cmake
 sudo apt install build-essential libgmp-dev libmpfr-dev
 ```
 
-### Fedora 
+#### Fedora 
 
 ```bash
 sudo dnf group install "Development Tools"
 sudo dnf install cmake gmp-devel mpfr-devel 
 ```
 
-### Arch
+#### Arch
 
 ```bash
 sudo pacman -S base-devel cmake gmp mpfr
 ```
 
-Build    
-
-```bash
-cmake -B build && sudo cmake --build build --target install
-```
-
-Run    
-
-```bash
-ccalc
-```
-
-### macOS
-
-Dependencies
+#### MacOS
 
 ```bash
 xcode-select --install
 brew install cmake gmp mpfr
 ```
 
-Build
+### Build    
 
 ```bash
 cmake -B build && sudo cmake --build build --target install
 ```
 
-Run
+By default, CCalc is installed in `/usr/local/bin` on Mac and `/usr/bin` on Linux. To change the installation directory, pass in the `-DCMAKE_INSTALL_PREFIX` flag to cmake. For example:
+
+```bash
+cmake -B build -DCMAKE_INSTALL_PREFIX=~/Documents/ccalc && sudo cmake --build build --target install
+```
+
+### Run    
 
 ```bash
 ccalc

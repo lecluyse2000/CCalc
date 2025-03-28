@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.21)
 project(ccalc)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_INSTALL_PREFIX "/usr/local")
+    set(CMAKE_INSTALL_PREFIX "/usr/local/bin")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(CMAKE_INSTALL_PREFIX "/usr")
+    set(CMAKE_INSTALL_PREFIX "/usr/bin")
 else()
-    set(CMAKE_INSTALL_PREFIX "C:\\Program Files\\ccalc")
+    set(CMAKE_INSTALL_PREFIX "C:\\Program Files\\ccalc\\bin")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -66,10 +66,9 @@ target_link_libraries(ccalc PRIVATE
 
 if(MSVC)
     target_compile_options(ccalc PRIVATE 
-        /02
+        /O2
         /fp:strict
     )
-    message(WARNING "MSVC is not explicitly supported.")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(ccalc PRIVATE 
         -g 
@@ -98,5 +97,5 @@ else()
 endif()
 
 install(TARGETS ccalc
-    DESTINATION bin
+    DESTINATION . 
 )
