@@ -15,13 +15,13 @@
 
 namespace Startup {
 
+namespace {
+
 #ifdef _WIN32
     inline constexpr std::string_view ini_path = "AppData\\Local\\ccalc\\settings.ini";
 #else
     inline constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
 #endif
-
-namespace {
 
 [[nodiscard]] std::filesystem::path get_home_path() {
     #ifdef _WIN32

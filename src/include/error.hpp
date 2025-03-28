@@ -20,7 +20,6 @@ namespace Error {
 // Declare helper functions in an anonymous namespace
 namespace {
 
-
 [[nodiscard]] inline
 constexpr std::optional<std::string> check_leading(const std::string_view infix_expression, const bool math) {
     if (infix_expression.size() == 1) {

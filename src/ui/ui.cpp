@@ -26,7 +26,6 @@
 
 namespace UI {
 
-
 void print_excessive_arguments(const int arguments) {
     std::cerr << "Expected 1 argument, received " << arguments
               << ". Use the --help flag to see all flags, or pass in an expression.\n"

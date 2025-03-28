@@ -48,7 +48,7 @@ std::optional<std::string> parse_euler(MathParseState& state, Types::ParseResult
     return std::nullopt;
 }
 
-static constexpr Types::Token get_next_token(const MathParseState& state) {
+constexpr Types::Token get_next_token(const MathParseState& state) {
     return (*state.itr + 1 != state.rend) ? static_cast<Types::Token>(*(*state.itr + 1))
                                           : Types::Token::NULLCHAR;
 }

@@ -24,12 +24,6 @@
 // We have to use C style file output here since mpfr is a C library
 namespace File {
 
-#ifdef _WIN32
-    inline constexpr std::string_view escape_sequence = "\r\n";
-#else
-    inline constexpr std::string_view escape_sequence = "\n";
-#endif
-
 void output_history(const std::span<const std::pair<std::string, std::string> > history, 
                     std::ofstream& output_file) noexcept {
     std::ranges::for_each(history, [&output_file](const auto& expression_result) {
@@ -39,6 +33,12 @@ void output_history(const std::span<const std::pair<std::string, std::string> > 
 }
 
 namespace {
+
+#ifdef _WIN32
+    inline constexpr std::string_view escape_sequence = "\r\n";
+#else
+    inline constexpr std::string_view escape_sequence = "\n";
+#endif
 
 [[nodiscard]] std::vector<std::string> get_expressions() noexcept {
     std::vector<std::string> expressions;
@@ -58,7 +58,6 @@ namespace {
 
     return expressions;
 }
-
 
 // Prints an MPFR float using the two functions defined above
 bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec_t display_precision) {
@@ -147,6 +146,7 @@ void initiate_file_mode() {
         std::cerr << "Error opening file!\n";
         return;
     }
+
     for (auto& expression : expressions) {
         main_loop(output_file, expression);
     }
