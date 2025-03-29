@@ -14,6 +14,8 @@
 #include "include/util.hpp"
 #include "mathparse.h"
 
+using namespace Types;
+
 namespace Parse {
 
 namespace {
@@ -23,19 +25,19 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
     for (auto itr = infix_expression.begin(); itr != infix_expression.end(); ++itr) {
         const char c = *itr;
         const char next_token = (itr + 1 != infix_expression.end()) ? *(itr + 1) : '\0';
-        if (c == '!' && Types::is_bool_operand(static_cast<Types::Token>(next_token))) {
+        if (c == '!' && is_bool_operand(static_cast<Token>(next_token))) {
             return false;
             // I think this is a more robust check than just looking for a digit
         } else if (std::isdigit(c) && (next_token == '!' || next_token == ')' ||
-                                       Types::is_math_var(static_cast<Types::Token>(next_token)))) {
+                                       is_math_var(static_cast<Token>(next_token)))) {
             return true;
         }
-        if (Types::is_math_var(static_cast<Types::Token>(c)) && Types::is_math_var(static_cast<Types::Token>(next_token))) {
+        if (is_math_var(static_cast<Token>(c)) && is_math_var(static_cast<Token>(next_token))) {
             return true;
         }
-        if (Types::is_bool_operator(static_cast<Types::Token>(c))) {
+        if (is_bool_operator(static_cast<Token>(c))) {
             return false;
-        } else if (Types::is_math_operator(static_cast<Types::Token>(c))) {
+        } else if (is_math_operator(static_cast<Token>(c))) {
             return true;
         } else {
             continue;
@@ -46,14 +48,14 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
 
 
 [[nodiscard]] std::optional<std::string_view>
-clear_stack(std::vector<Types::Token>& prefix_expression, std::stack<Types::Token>& operator_stack, const bool is_math) {
+clear_stack(std::vector<Token>& prefix_expression, std::stack<Token>& operator_stack, const bool is_math) {
     while (!operator_stack.empty()) {
-        if (operator_stack.top() == Types::Token::RIGHT_PAREN) {
+        if (operator_stack.top() == Token::RIGHT_PAREN) {
             Util::empty_stack(operator_stack);
-            return std::optional<std::string_view>("Missing open parentheses\n");
+            return std::optional<std::string_view>("Missing open parentheses");
         }
         prefix_expression.push_back(operator_stack.top());
-        if(is_math) prefix_expression.push_back(Types::Token::COMMA);
+        if(is_math) prefix_expression.push_back(Token::COMMA);
         operator_stack.pop();
     }
 
@@ -65,9 +67,9 @@ clear_stack(std::vector<Types::Token>& prefix_expression, std::stack<Types::Toke
 // Takes in a standard expression string in infix form, and converts it to prefix
 // This is a variation of the Shunting yard algorithm, invented by Dijkstra in 1961
 [[nodiscard]]
-Types::ParseResult create_prefix_expression(std::string& infix_expression) {
-    std::stack<Types::Token> operator_stack;
-    Types::ParseResult parse_result; 
+ParseResult create_prefix_expression(std::string& infix_expression) {
+    std::stack<Token> operator_stack;
+    ParseResult parse_result; 
 
     const auto is_math = is_math_equation(infix_expression);
     if (!is_math) {

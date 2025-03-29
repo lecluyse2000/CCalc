@@ -21,6 +21,8 @@
 #include "parser/parser.h"
 #include "startup/startup.h"
 
+using namespace Types;
+
 // We have to use C style file output here since mpfr is a C library
 namespace File {
 
@@ -71,7 +73,7 @@ bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec
     return true;
 }
 
-void math_float_procedure(FILE*& output_file, const std::span<const Types::Token> result) {
+void math_float_procedure(FILE*& output_file, const std::span<const Token> result) {
     try {
         const auto tree = std::make_unique<const MathAST>(result, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
@@ -79,14 +81,14 @@ void math_float_procedure(FILE*& output_file, const std::span<const Types::Token
             mpfr_fprintf(output_file, "Result: %.0Rf%s", final_value, escape_sequence.data());
         } else {
             if(!mpfr_to_file(output_file, final_value,
-                             static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)))) [[unlikely]] return;
+                             static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)))) [[unlikely]] return;
         }
     } catch (const std::exception& err) {
         fprintf(output_file, "Error: %s%s", err.what(), escape_sequence.data()); 
     }
 }
 
-void math_int_procedure(FILE*& output_file, const std::span<const Types::Token> result) {
+void math_int_procedure(FILE*& output_file, const std::span<const Token> result) {
     try {
         const auto tree = std::make_unique<const MathAST>(result, false);
         const mpz_class final_value = tree->evaluate();
@@ -98,7 +100,7 @@ void math_int_procedure(FILE*& output_file, const std::span<const Types::Token> 
     }
 }
 
-void math_procedure(FILE*& output_file, const Types::ParseResult& result) {
+void math_procedure(FILE*& output_file, const ParseResult& result) {
     if (result.is_floating_point) {
         math_float_procedure(output_file, result.result);
     } else {
@@ -106,7 +108,7 @@ void math_procedure(FILE*& output_file, const Types::ParseResult& result) {
     }
 }
 
-void bool_procedure(FILE*& output_file, const std::span<const Types::Token> result) {
+void bool_procedure(FILE*& output_file, const std::span<const Token> result) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     if (syntax_tree->evaluate()) {
         fprintf(output_file, "Result: True%s", escape_sequence.data());
@@ -119,7 +121,7 @@ void main_loop(FILE*& output_file, std::string& expression) {
     const std::string orig_expression = expression;
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
     std::ranges::transform(expression, expression.begin(), [](const auto c){ return std::toupper(c); });
-    const Types::ParseResult result = Parse::create_prefix_expression(expression);
+    const ParseResult result = Parse::create_prefix_expression(expression);
 
     fprintf(output_file, "Expression: %s%s", orig_expression.c_str(), escape_sequence.data());
     if (!result.success) {

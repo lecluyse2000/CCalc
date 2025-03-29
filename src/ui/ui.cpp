@@ -24,6 +24,8 @@
 #include "startup/startup.h"
 #include "version.hpp"
 
+using namespace Types;
+
 namespace UI {
 
 void print_excessive_arguments(const int arguments) {
@@ -115,14 +117,14 @@ enum struct InputResult {
 
 inline void add_to_history(std::string& orig_input, std::string& final_val, auto& history) {
     history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
-    if (history.size() >= static_cast<std::size_t>(Startup::settings.at(Types::Setting::MAX_HISTORY))) {
+    if (history.size() >= static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY))) {
         history.erase(history.begin()); 
     }
 }
 
 inline void add_to_history(std::string& orig_input, std::string&& final_val, auto& history) {
     history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
-    if (history.size() >= static_cast<std::size_t>(Startup::settings.at(Types::Setting::MAX_HISTORY))) {
+    if (history.size() >= static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY))) {
         history.erase(history.begin()); 
     }
 }
@@ -141,35 +143,50 @@ std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_prec
     return std::string(buffer.begin(), buffer.end()); 
 }
 
+inline std::string trim_euler() {
+    std::string euler_retval = std::string(euler);
+    euler_retval.erase(static_cast<std::size_t>(Startup::settings.at(Setting::DISPLAY_PREC) + 2), std::string::npos);
+    return euler_retval;
+}
+
+inline void print_euler(std::string& orig_input, auto& history) {
+    std::string euler = trim_euler();
+    std::cout << "Result: " << euler << '\n';
+    add_to_history(orig_input, std::string(euler), history);
+}
+
+inline void print_pi(std::string& orig_input, auto& history) {
+    mpfr_t pi;
+    mpfr_init2(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
+    mpfr_const_pi(pi, MPFR_RNDN); 
+    std::string pi_str = print_mpfr(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
+    add_to_history(orig_input, pi_str, history);
+    mpfr_free_cache();
+    mpfr_clear(pi);
+}
+
 [[nodiscard]] bool check_num_input(std::string& orig_input, std::string& expression, auto& history) {
     if (std::ranges::all_of(expression, ::isdigit)) {
         std::cout << "Result: " << expression << '\n';
         add_to_history(orig_input, expression, history);
         return true;
     } else if (expression == "E") {
-        std::cout << "Result: " << Types::euler << '\n';
-        add_to_history(orig_input, std::string(Types::euler), history);
+        print_euler(orig_input, history);
         return true;
     } else if (expression == "PI") {
-        mpfr_t pi;
-        mpfr_init2(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
-        mpfr_const_pi(pi, MPFR_RNDN); 
-        std::string pi_str = print_mpfr(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
-        add_to_history(orig_input, pi_str, history);
-        mpfr_free_cache();
-        mpfr_clear(pi);
+        print_pi(orig_input, history);
         return true;
     }
     return false;
 }
 
 // Make the tree, evaluate, print the result, then add it to the history
-void math_float_procedure(std::string& orig_input, const std::span<const Types::Token> prefix_input, auto& history) {
+void math_float_procedure(std::string& orig_input, const std::span<const Token> prefix_input, auto& history) {
     try {
         const auto tree = std::make_unique<const MathAST>(prefix_input, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         std::string final_val = print_mpfr(final_value,
-                                           static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
+                                           static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
         if (final_val.empty()) [[unlikely]] return;
         add_to_history(orig_input, final_val, history);
     } catch (const std::exception& err) {
@@ -178,7 +195,7 @@ void math_float_procedure(std::string& orig_input, const std::span<const Types::
     return;
 }
 
-void math_int_procedure(std::string& orig_input, const std::span<const Types::Token> prefix_input, auto& history) {
+void math_int_procedure(std::string& orig_input, const std::span<const Token> prefix_input, auto& history) {
     try {
         const auto tree = std::make_unique<const MathAST>(prefix_input, false);
         const mpz_class final_value = tree->evaluate();
@@ -192,7 +209,7 @@ void math_int_procedure(std::string& orig_input, const std::span<const Types::To
 }
 
 // Calls the float or int procedure based on float_point status
-void math_procedure(std::string& orig_input, const Types::ParseResult& result, auto& history) {
+void math_procedure(std::string& orig_input, const ParseResult& result, auto& history) {
     if (result.is_floating_point) {
         math_float_procedure(orig_input, result.result, history);
     } else {
@@ -201,7 +218,7 @@ void math_procedure(std::string& orig_input, const Types::ParseResult& result, a
 }
 
 // Bool is easier than math, just solve and add to history
-void bool_procedure(std::string& orig_input, const std::span<const Types::Token> prefix_input, auto& history) {
+void bool_procedure(std::string& orig_input, const std::span<const Token> prefix_input, auto& history) {
     const auto syntax_tree = std::make_unique<BoolAST>(prefix_input);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
@@ -215,7 +232,7 @@ void bool_procedure(std::string& orig_input, const std::span<const Types::Token>
 
 void evaluate_expression(std::string& orig_input, std::string& expression, auto& history) {
     if (check_num_input(orig_input, expression, history)) return;
-    const Types::ParseResult result = Parse::create_prefix_expression(expression);
+    const ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
         std::cerr << "Error: " << result.error_msg << '\n';
         return;
@@ -232,7 +249,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression, auto&
 [[nodiscard]] int program_loop() {
     std::string input_expression;
     std::vector<std::pair<std::string, std::string> > program_history;
-    program_history.reserve(static_cast<std::size_t>(Startup::settings.at(Types::Setting::MAX_HISTORY)));
+    program_history.reserve(static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY)));
 
     while (true) {
         std::cout << "Please enter your expression, or enter help to see all available commands: ";
@@ -313,18 +330,19 @@ void print_invalid_flag(const std::string_view expression) {
 // When just passing expressions in at runtime there is no need to worry about the history
 namespace {
 
+
 [[nodiscard]] bool check_num_input(std::string& expression) {
     if (std::ranges::all_of(expression, ::isdigit)) {
         std::cout << "Result: " << expression << '\n';
         return true;
     } else if (expression == "E") {
-        std::cout << "Result: " << Types::euler << '\n';
+        std::cout << "Result: " << trim_euler() << '\n';
         return true;
     } else if (expression == "PI") {
         mpfr_t pi;
-        mpfr_init2(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
+        mpfr_init2(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
         mpfr_const_pi(pi, MPFR_RNDN); 
-        print_mpfr(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
+        print_mpfr(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
         mpfr_free_cache();
         mpfr_clear(pi);
         return true;
@@ -332,12 +350,12 @@ namespace {
     return false;
 }
 
-void math_procedure(Types::ParseResult result) {
+void math_procedure(ParseResult result) {
     if (result.is_floating_point) {
         try {
             const auto tree = std::make_unique<MathAST>(result.result, result.is_floating_point);
             const mpfr_t& final_value = tree->evaluate_floating_point();
-            print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)));
+            print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
         } catch (const std::exception& err) {
             std::cerr << "Error: " << err.what() << '\n';
         }
@@ -354,7 +372,7 @@ void math_procedure(Types::ParseResult result) {
     }
 }
 
-void bool_procedure(const std::span<const Types::Token> result) {
+void bool_procedure(const std::span<const Token> result) {
     const auto syntax_tree = std::make_unique<BoolAST>(result);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
@@ -372,7 +390,7 @@ void evaluate_expression(std::string& expression) {
     std::ranges::transform(expression, expression.begin(), [](const auto c){ return std::toupper(c); });
     if (check_num_input(expression)) return;
 
-    const Types::ParseResult result = Parse::create_prefix_expression(expression);
+    const ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
         std::cerr << "Error: " << result.error_msg << '\n';
         return;

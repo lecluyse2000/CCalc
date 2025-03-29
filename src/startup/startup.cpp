@@ -13,6 +13,8 @@
 #include "include/types.hpp"
 #include "include/util.hpp"
 
+using namespace Types;
+
 namespace Startup {
 
 namespace {
@@ -58,7 +60,7 @@ bool create_ini(const auto& full_path) {
     return false;
 }
 
-[[nodiscard]] bool create_retval(const std::string& line, const auto& full_path, std::unordered_map<Types::Setting, long>& map) {
+[[nodiscard]] bool create_retval(const std::string& line, const auto& full_path, std::unordered_map<Setting, long>& map) {
     const auto equal_pos = line.find('=');
     if (equal_pos == line.size() - 1 || equal_pos == std::string::npos) {
         return create_ini_return_false(full_path);
@@ -73,7 +75,7 @@ bool create_ini(const auto& full_path) {
     if (value_long < 0) [[unlikely]] {
         return create_ini_return_false(full_path);
     }
-    const auto emplace_result = map.try_emplace(Types::string_to_settings_enum(key), value_long);
+    const auto emplace_result = map.try_emplace(string_to_settings_enum(key), value_long);
     if (!emplace_result.second) {
         return create_ini_return_false(full_path);
     }
@@ -81,11 +83,11 @@ bool create_ini(const auto& full_path) {
     return true;
 }
 
-[[nodiscard]] bool final_verification(const auto& full_path, const std::unordered_map<Types::Setting, long>& map) {
+[[nodiscard]] bool final_verification(const auto& full_path, const std::unordered_map<Setting, long>& map) {
     if (map.size() != Util::setting_keys.size()) {
         return create_ini_return_false(full_path);
     }
-    if (map.contains(Types::Setting::INVALID)) {
+    if (map.contains(Setting::INVALID)) {
         return create_ini_return_false(full_path);
     }
 
@@ -94,8 +96,8 @@ bool create_ini(const auto& full_path) {
 
 }
 
-[[nodiscard]] std::unordered_map<Types::Setting, long> source_ini() noexcept {
-    std::unordered_map<Types::Setting, long> retval;
+[[nodiscard]] std::unordered_map<Setting, long> source_ini() noexcept {
+    std::unordered_map<Setting, long> retval;
     const std::filesystem::path parent_path = get_home_path();
     if (parent_path.empty()) return Util::create_default_settings_map();
     const std::filesystem::path full_path = get_home_path() / ini_path;

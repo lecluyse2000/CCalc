@@ -10,7 +10,8 @@
 
 namespace Types {
 
-inline constexpr std::string_view euler = "2.71828182845904523536028747135266249775724709369995";
+inline constexpr std::string_view euler = 
+"2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274274663919320030599218174135966290435";
 
 enum struct Token : char {
     NULLCHAR = '\0',
@@ -132,8 +133,16 @@ enum struct Setting {
 }
 
 [[nodiscard]] inline constexpr bool is_math_var(const Token token) noexcept {
-    return token == Token::EULER || token == Token::PI || token == Token::PI_2;
+    switch (token) {
+        case Token::EULER:
+        case Token::PI:
+        case Token::PI_2: 
+            return true;
+        default:
+            return false;
+    }
 }
+
 [[nodiscard]] inline constexpr bool is_math_operand(const Token token) noexcept {
     return std::isdigit(static_cast<char>(token)) || token == Token::DOT ||
            is_math_var(token);

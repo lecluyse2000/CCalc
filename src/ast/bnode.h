@@ -5,6 +5,8 @@
 
 #include "include/types.hpp"
 
+namespace BoolNodes {
+
 struct BoolNode {
     explicit BoolNode(const Types::Token token) noexcept;
     virtual ~BoolNode() = default;
@@ -28,5 +30,7 @@ struct UnaryBNode : public BoolNode {
     explicit UnaryBNode(const Types::Token token) : BoolNode(token) {}
     [[nodiscard]] bool evaluate() const override;
 };
+
+}
 
 #endif

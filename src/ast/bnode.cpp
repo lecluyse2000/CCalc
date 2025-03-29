@@ -4,6 +4,8 @@
 
 #include "include/types.hpp"
 
+namespace BoolNodes {
+
 BoolNode::BoolNode(const Types::Token token) noexcept : key(token){}
 
 [[nodiscard]] bool ValueBNode::evaluate() const { return key == Types::Token::TRUE; }
@@ -26,3 +28,5 @@ BoolNode::BoolNode(const Types::Token token) noexcept : key(token){}
 }
 
 [[nodiscard]] bool UnaryBNode::evaluate() const { return !m_left_child->evaluate(); }
+
+}

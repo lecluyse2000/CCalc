@@ -11,9 +11,13 @@
 
 #include "include/types.hpp"
 
+using namespace Types;
+
+namespace MathNodes {
+
 ValueMNode::ValueMNode(const std::string_view _value_mpz, const std::string_view _value_mpf) :
     value_mpz(_value_mpz.data()) {
-    mpfr_init2(value_mpfr, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
+    mpfr_init2(value_mpfr, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
     const int successful = mpfr_set_str(value_mpfr, _value_mpf.data(), 10, MPFR_RNDN);
     if (successful != 0) [[unlikely]] {
         mpfr_clear(value_mpfr);
@@ -21,11 +25,11 @@ ValueMNode::ValueMNode(const std::string_view _value_mpz, const std::string_view
     }
 }
 
-ValueMNode::ValueMNode(const Types::Token token) : value_mpz(0) {
-    mpfr_init2(value_mpfr, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
-    if (token == Types::Token::PI) mpfr_const_pi(value_mpfr, MPFR_RNDN);
-    if (token == Types::Token::EULER) {
-        const int successful = mpfr_set_str(value_mpfr, Types::euler.data(), 10, MPFR_RNDN);
+ValueMNode::ValueMNode(const Token token) : value_mpz(0) {
+    mpfr_init2(value_mpfr, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
+    if (token == Token::PI) mpfr_const_pi(value_mpfr, MPFR_RNDN);
+    if (token == Token::EULER) {
+        const int successful = mpfr_set_str(value_mpfr, euler.data(), 10, MPFR_RNDN);
         if (successful != 0) [[unlikely]] {
             mpfr_clear(value_mpfr);
             throw std::invalid_argument("Invalid floating point, token type: " + std::string{static_cast<char>(token)} );
@@ -56,11 +60,11 @@ static inline mpz_class mpz_exponent(mpz_class& left_value, mpz_class& right_val
     mpz_class right_value = m_right_child->evaluate();
 
     switch(key) {
-        case Types::Token::ADD:
+        case Token::ADD:
             return left_value + right_value;
-        case Types::Token::SUB:
+        case Token::SUB:
             return left_value - right_value;
-        case Types::Token::MULT:
+        case Token::MULT:
             return left_value * right_value;
         default:
             return mpz_exponent(left_value, right_value);
@@ -72,16 +76,16 @@ mpfr_t& OperationMNode::evaluate_float() {
     const mpfr_t& right_value = m_right_child->evaluate_float();
 
     switch(key) {
-        case Types::Token::ADD:
+        case Token::ADD:
             mpfr_add(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
-        case Types::Token::SUB:
+        case Token::SUB:
             mpfr_sub(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
-        case Types::Token::MULT:
+        case Token::MULT:
             mpfr_mul(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
-        case Types::Token::DIV:
+        case Token::DIV:
             if (mpfr_zero_p(right_value)) {
                 throw std::runtime_error("Divide by zero error");
             }
@@ -116,4 +120,6 @@ mpfr_t& FactorialNode::evaluate_float() {
 mpfr_t& UnaryMNode::evaluate_float() {
     mpfr_mul_si(node_result, m_left_child->evaluate_float(), -1L, MPFR_RNDN);
     return node_result;
+}
+
 }

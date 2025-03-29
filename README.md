@@ -86,6 +86,15 @@ Why no sqrt? Because sqrt(x) = x^(1/2)
 - With the `-v` or `--version` flag. The program simply displays the version information of the program.    
 - The `--help` flag prints a screen explaining all the flags and general program usage.
 
+### Continuous Mode
+
+In continuous mode, there are four commands available:
+
+1. `history` prints the program history to the screen.
+2. `save` prompts you for a filename, then outputs the program history to that file.
+3. `clear` clears the history.
+4. `exit`, `quit`, or `q` exits the program.
+
 ### Configuration
 
 - All configuration is done in `~/.config/ccalc/settings.ini`

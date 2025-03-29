@@ -9,6 +9,6 @@
 
 namespace Parse {
     [[nodiscard]] Types::ParseResult create_prefix_expression(std::string& infix_expression);
-};
+}
 
 #endif
