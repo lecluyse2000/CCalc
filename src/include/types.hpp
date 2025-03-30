@@ -88,6 +88,7 @@ inline constexpr bool is_valid_math_token(const char c) {
         case 'N':
         case 'E':
         case 'P':
+        case 'I':
         case 'A':
             return true;
         default:

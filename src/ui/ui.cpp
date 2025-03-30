@@ -56,7 +56,7 @@ void print_history(const std::span<const std::pair<std::string, std::string> > h
     std::cout << std::endl;
 }
 
-[[nodiscard]] bool save_history(const auto& history) {
+[[nodiscard]] bool save_history(const std::span<const std::pair<std::string, std::string> > history) {
     // Get the file from the user, then output the history to it
     const std::optional<std::string> filename = Util::get_filename(true);
     if (!filename) [[unlikely]] {
@@ -81,7 +81,8 @@ enum struct InputResult {
 };
 
 // Determines the status of the program based on the user input, return an enum defined above
-[[nodiscard]] InputResult handle_input(std::string_view input_expression, auto& program_history) {
+[[nodiscard]] InputResult handle_input(std::string_view input_expression, 
+                                       std::vector<std::pair<std::string, std::string> >& program_history) {
     if (input_expression == "help") {
         print_help_continuous();
         return InputResult::CONTINUE;
@@ -115,18 +116,20 @@ enum struct InputResult {
     return InputResult::CONTINUE_TO_EVALUATE;
 }
 
-inline void add_to_history(std::string& orig_input, std::string& final_val, auto& history) {
-    history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
-    if (history.size() >= static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY))) {
+inline void add_to_history(std::string& orig_input, std::string& final_val,
+                           std::vector<std::pair<std::string, std::string> >& history) {
+    if (history.size() + 1 >= static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY))) {
         history.erase(history.begin()); 
     }
+    history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
 }
 
-inline void add_to_history(std::string& orig_input, std::string&& final_val, auto& history) {
-    history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
-    if (history.size() >= static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY))) {
+inline void add_to_history(std::string& orig_input, std::string&& final_val, 
+                           std::vector<std::pair<std::string, std::string> >& history) {
+    if (history.size() + 1 >= static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY))) {
         history.erase(history.begin()); 
     }
+    history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
 }
 
 // Prints an MPFR float using the two functions defined above
@@ -155,7 +158,8 @@ inline void print_euler(std::string& orig_input, auto& history) {
     add_to_history(orig_input, std::string(euler), history);
 }
 
-inline void print_pi(std::string& orig_input, auto& history) {
+inline void print_pi(std::string& orig_input,
+                     std::vector<std::pair<std::string, std::string> >& history) {
     mpfr_t pi;
     mpfr_init2(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
     mpfr_const_pi(pi, MPFR_RNDN); 
@@ -165,7 +169,8 @@ inline void print_pi(std::string& orig_input, auto& history) {
     mpfr_clear(pi);
 }
 
-[[nodiscard]] bool check_num_input(std::string& orig_input, std::string& expression, auto& history) {
+[[nodiscard]] bool check_num_input(std::string& orig_input, std::string& expression,
+                                   std::vector<std::pair<std::string, std::string> >& history) {
     if (std::ranges::all_of(expression, ::isdigit)) {
         std::cout << "Result: " << expression << '\n';
         add_to_history(orig_input, expression, history);
@@ -181,7 +186,8 @@ inline void print_pi(std::string& orig_input, auto& history) {
 }
 
 // Make the tree, evaluate, print the result, then add it to the history
-void math_float_procedure(std::string& orig_input, const std::span<const Token> prefix_input, auto& history) {
+void math_float_procedure(std::string& orig_input, const std::span<const Token> prefix_input,
+                          std::vector<std::pair<std::string, std::string> >& history) {
     try {
         const auto tree = std::make_unique<const MathAST>(prefix_input, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
@@ -195,7 +201,8 @@ void math_float_procedure(std::string& orig_input, const std::span<const Token> 
     return;
 }
 
-void math_int_procedure(std::string& orig_input, const std::span<const Token> prefix_input, auto& history) {
+void math_int_procedure(std::string& orig_input, const std::span<const Token> prefix_input,
+                        std::vector<std::pair<std::string, std::string> >& history) {
     try {
         const auto tree = std::make_unique<const MathAST>(prefix_input, false);
         const mpz_class final_value = tree->evaluate();
@@ -209,7 +216,8 @@ void math_int_procedure(std::string& orig_input, const std::span<const Token> pr
 }
 
 // Calls the float or int procedure based on float_point status
-void math_procedure(std::string& orig_input, const ParseResult& result, auto& history) {
+void math_procedure(std::string& orig_input, const ParseResult& result,
+                    std::vector<std::pair<std::string, std::string> >& history) {
     if (result.is_floating_point) {
         math_float_procedure(orig_input, result.result, history);
     } else {
@@ -218,7 +226,8 @@ void math_procedure(std::string& orig_input, const ParseResult& result, auto& hi
 }
 
 // Bool is easier than math, just solve and add to history
-void bool_procedure(std::string& orig_input, const std::span<const Token> prefix_input, auto& history) {
+void bool_procedure(std::string& orig_input, const std::span<const Token> prefix_input,
+                    std::vector<std::pair<std::string, std::string> >& history) {
     const auto syntax_tree = std::make_unique<BoolAST>(prefix_input);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
@@ -230,7 +239,8 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
     }
 }
 
-void evaluate_expression(std::string& orig_input, std::string& expression, auto& history) {
+void evaluate_expression(std::string& orig_input, std::string& expression,
+                         std::vector<std::pair<std::string, std::string> >& history) {
     if (check_num_input(orig_input, expression, history)) return;
     const ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {

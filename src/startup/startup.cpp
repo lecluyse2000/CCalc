@@ -36,7 +36,7 @@ namespace {
     return std::filesystem::path(home_path);
 }
 
-bool create_ini(const auto& full_path) {
+bool create_ini(const std::filesystem::path& full_path) {
     try {
         std::filesystem::create_directories(full_path.parent_path());
         std::ofstream file(full_path, std::ios::trunc);
@@ -53,14 +53,15 @@ bool create_ini(const auto& full_path) {
     }
 }
 
-[[nodiscard]] inline bool create_ini_return_false(const auto& full_path) {
+[[nodiscard]] inline bool create_ini_return_false(const std::filesystem::path& full_path) {
     if (!create_ini(full_path)) [[unlikely]] {
         std::cerr << "Unable to create settings.ini\n";
     }
     return false;
 }
 
-[[nodiscard]] bool create_retval(const std::string& line, const auto& full_path, std::unordered_map<Setting, long>& map) {
+[[nodiscard]] bool create_retval(const std::string& line, const std::filesystem::path& full_path,
+                                 std::unordered_map<Setting, long>& map) {
     const auto equal_pos = line.find('=');
     if (equal_pos == line.size() - 1 || equal_pos == std::string::npos) {
         return create_ini_return_false(full_path);
@@ -83,7 +84,8 @@ bool create_ini(const auto& full_path) {
     return true;
 }
 
-[[nodiscard]] bool final_verification(const auto& full_path, const std::unordered_map<Setting, long>& map) {
+[[nodiscard]] bool final_verification(const std::filesystem::path& full_path,
+                                      const std::unordered_map<Setting, long>& map) {
     if (map.size() != Util::setting_keys.size()) {
         return create_ini_return_false(full_path);
     }

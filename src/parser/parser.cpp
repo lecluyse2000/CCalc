@@ -73,7 +73,7 @@ ParseResult create_prefix_expression(std::string& infix_expression) {
 
     const auto is_math = is_math_equation(infix_expression);
     if (!is_math) {
-        parse_result.error_msg = "No valid operators detected\n";
+        parse_result.error_msg = "No valid operators detected";
         return parse_result;
     }
 

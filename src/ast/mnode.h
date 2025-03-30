@@ -11,6 +11,8 @@
 #include "include/types.hpp"
 #include "startup/startup.h"
 
+using namespace Types;
+
 namespace MathNodes {
 
 // According to the MPFR docs, when using c++ you should try to avoid making copies whenever possible,
@@ -26,7 +28,7 @@ struct MathNode {
 
 struct ValueMNode : public MathNode {
     explicit ValueMNode(const std::string_view _value_mpz, const std::string_view _value_mpf);
-    explicit ValueMNode(const Types::Token token);
+    explicit ValueMNode(const Token token);
     ~ValueMNode() {
         mpfr_clear(value_mpfr);
         mpfr_free_cache();
@@ -39,19 +41,19 @@ struct ValueMNode : public MathNode {
 };
 
 struct OperationMNode : public MathNode {
-    explicit OperationMNode(const Types::Token token) : key(token) {
-        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
+    explicit OperationMNode(const Token token) : key(token) {
+        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
     }
     ~OperationMNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
     mpfr_t& evaluate_float() override;
     mpfr_t node_result;
-    const Types::Token key;
+    const Token key;
 };
 
 struct FactorialNode : public MathNode {
     explicit FactorialNode() {
-        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
+        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
     }
     ~FactorialNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
@@ -61,7 +63,7 @@ struct FactorialNode : public MathNode {
 
 struct UnaryMNode : public MathNode {
     explicit UnaryMNode() {
-        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Types::Setting::PRECISION)));
+        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
     }
     ~UnaryMNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;

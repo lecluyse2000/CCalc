@@ -13,9 +13,9 @@ struct MathParseState {
     MathParseState(std::string& infix) : rend(infix.rend()), end(infix.end()) {}
 
     std::vector<Types::Token> num_buffer;
-    std::string::reverse_iterator* itr;
     const std::string::reverse_iterator rend;
     const std::string::iterator end;
+    std::string::reverse_iterator* itr = nullptr;
     Types::Token current_token = Types::Token::NULLCHAR;
     Types::Token previous_token = Types::Token::NULLCHAR;
     bool in_number = false;

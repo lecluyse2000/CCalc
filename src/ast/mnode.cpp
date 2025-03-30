@@ -36,6 +36,7 @@ ValueMNode::ValueMNode(const Token token) : value_mpz(0) {
         }
     }
 }
+
 [[nodiscard]] mpz_class ValueMNode::evaluate() const { return value_mpz; }
 
 [[nodiscard]] mpfr_t& ValueMNode::evaluate_float() { return value_mpfr; }

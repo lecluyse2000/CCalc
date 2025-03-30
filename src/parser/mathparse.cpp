@@ -58,9 +58,12 @@ constexpr Token get_next_token(const MathParseState& state) {
 [[nodiscard]] constexpr
 std::optional<std::string> parse_pi(MathParseState& state, ParseResult& result) {
     const char next_token = static_cast<char>(get_next_token(state));
-    if (next_token != 'P') return Error::invalid_character_error_math(**state.itr);
+    if (next_token != 'P') {
+        return std::optional<std::string>("Invalid variable detected");
+    }
     const auto error_check = Error::variable_error(state.previous_token);
     if (error_check) return error_check;
+
     result.is_floating_point = true;
     state.in_number = true;
     state.num_buffer.push_back(Token::PI);
@@ -72,6 +75,10 @@ std::optional<std::string> parse_var(MathParseState& state, ParseResult& result)
     if (**state.itr == 'E') {
         const auto euler_check = parse_euler(state, result); 
         if (euler_check) return euler_check;
+    }
+
+    if(**state.itr == 'P' && *(*state.itr - 1) != 'I') {
+        return std::optional<std::string>("Missing I after P for PI");
     }
 
     // PI check
@@ -191,12 +198,15 @@ std::optional<std::string> open_parentheses_math(MathParseState& state, std::vec
 // This function returns true if unary plus is found
 bool math_operator_found(MathParseState& state, ParseResult& result,
                         std::stack<Token>& op_stack) {
+    // If we are currently in a number, add the num buffer to the final result, then a comma for a delimiter
     if (state.in_number) {
         for (const auto token : state.num_buffer) {
             result.result.push_back(token);
         }
         result.result.push_back(Token::COMMA);
         clear_num_buffer(state);
+    
+        // Now search for unary plus
         const Token next_token = get_next_token(state);
         if (state.current_token == Token::ADD &&
             ((is_math_operator(static_cast<Token>(next_token)) && next_token != Token::FAC)
