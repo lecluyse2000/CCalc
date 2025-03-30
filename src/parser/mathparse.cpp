@@ -92,20 +92,20 @@ std::optional<std::string> parse_var(MathParseState& state, ParseResult& result)
 
 // Checks if the parser is currently in a number based on if the current token is a digit or decimal
 // If a decimal place is found, the program goes into floating point mode
-[[nodiscard]] constexpr std::optional<std::string> 
+[[nodiscard]] constexpr bool 
 check_for_number(MathParseState& state, bool& floating_point) {
     if (std::isdigit(static_cast<char>(state.current_token))) {
         state.in_number = true;
         state.num_buffer.push_back(state.current_token);
-        return std::optional<std::string>("");
+        return true;
     } else if (state.current_token == Token::DOT) {
         state.in_number = true;
         state.num_buffer.push_back(state.current_token);
         floating_point = true;
-        return std::optional<std::string>("");
+        return true;
     }
 
-    return std::nullopt;
+    return false;
 }
 
 // Unary cases: 1) [not operand, close paren, or factorial] - (
@@ -245,12 +245,9 @@ std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& re
     }
     state.current_token = static_cast<Token>(**state.itr);
     if (state.current_token == Token::SUB) check_for_unary(state);
-    const auto num_check = check_for_number(state, result.is_floating_point); 
-    if (num_check && num_check->empty()) {
+    if (check_for_number(state, result.is_floating_point)) { // Check for a number token here
         state.previous_token = state.current_token;
         return std::nullopt;
-    } else if (num_check) {
-        return num_check;
     }
     const auto checker_result = Error::error_math(state.current_token, state.previous_token);
     if (checker_result) return checker_result;
