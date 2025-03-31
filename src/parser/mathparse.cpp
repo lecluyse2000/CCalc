@@ -40,9 +40,44 @@ constexpr void add_mult_signs(std::string& infix) {
     }
 }
 
+constexpr Token get_next_token(const MathParseState& state) {
+    return (*state.itr + 1 != state.rend) ? static_cast<Token>(*(*state.itr + 1))
+                                          : Token::NULLCHAR;
+}
+
+void add_trig_to_result(MathParseState& state, ParseResult& result, const std::string_view trig_op) {
+    if (trig_op == "SIN") {
+        result.result.push_back(Token::SIN);
+        state.previous_token = Token::SIN;
+    } else if (trig_op == "COS") {
+        result.result.push_back(Token::COS);
+        state.previous_token = Token::COS;
+    } else if (trig_op == "TAN") {
+        result.result.push_back(Token::TAN); 
+        state.previous_token = Token::TAN;
+    }
+    result.result.push_back(Token::COMMA);
+    result.is_floating_point = true;
+}
+
 [[nodiscard]] constexpr
 std::optional<std::string> parse_trig(MathParseState& state, ParseResult& result) {
     if (**state.itr != 'S' && **state.itr != 'N') return std::nullopt;
+    if (*(*state.itr - 1) != '(') return std::optional<std::string>("Use parentheses with trig functions");
+
+    std::string trig_op = std::string{**state.itr};
+    for (int i = 0; i < 2; ++i) {
+        const char next_token = static_cast<char>(get_next_token(state));
+        if (next_token == '\0') return std::optional<std::string>("Invalid variable detected");
+        trig_op.insert(0, 1, next_token);
+        (*state.itr)++;
+    }
+    if (trig_op != "SIN" && trig_op != "COS" && trig_op != "TAN") {
+        return std::optional<std::string>("Expected sin, cos, tan, received: " + trig_op);
+    }
+    add_trig_to_result(state, result, trig_op);
+    (*state.itr)++;
+    return std::nullopt;
 }
 
 [[nodiscard]] constexpr
@@ -53,11 +88,6 @@ std::optional<std::string> parse_euler(MathParseState& state, ParseResult& resul
     state.in_number = true;
     state.num_buffer.push_back(Token::EULER);
     return std::nullopt;
-}
-
-constexpr Token get_next_token(const MathParseState& state) {
-    return (*state.itr + 1 != state.rend) ? static_cast<Token>(*(*state.itr + 1))
-                                          : Token::NULLCHAR;
 }
 
 [[nodiscard]] constexpr
@@ -245,6 +275,10 @@ std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& re
     // If the token is an open parentheses, pop from the stack and add to the string until a closing parentheses is
     // found, or an operator with a higher precedence
     const auto trig_check = parse_trig(state, result);
+    if (trig_check) return trig_check;
+    if (*state.itr == state.rend || *state.itr + 1 == state.rend) {
+        return std::nullopt;
+    }
     const auto var_check = parse_var(state, result);
     if (var_check) return var_check;
     if (!is_valid_math_token(**state.itr)) {
@@ -286,7 +320,7 @@ std::optional<std::string> parse_math(std::string& infix_expression, ParseResult
     
     // All the algorithms I discovered for converting to prefix started by reversing the string,
     // so I thought why not just parse from right to left so we don't have to reverse
-    for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
+    for (auto itr = infix_expression.rbegin(); itr < infix_expression.rend(); ++itr) {
         state.itr = &itr;
         const auto loop_result = math_loop_body(state, result, operator_stack);
         if (loop_result) return loop_result;

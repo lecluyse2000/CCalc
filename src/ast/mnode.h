@@ -51,6 +51,17 @@ struct OperationMNode : public MathNode {
     const Token key;
 };
 
+struct TrigMNode : public MathNode {
+    explicit TrigMNode(const Token token) : key(token) {
+        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
+    }
+    ~TrigMNode() { mpfr_clear(node_result); }
+    [[nodiscard]] mpz_class evaluate() const override{ return 0; }
+    mpfr_t& evaluate_float() override;
+    mpfr_t node_result;
+    const Token key;
+};
+
 struct FactorialNode : public MathNode {
     explicit FactorialNode() {
         mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));

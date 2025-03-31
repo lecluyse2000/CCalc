@@ -98,6 +98,23 @@ mpfr_t& OperationMNode::evaluate_float() {
     }
 }
 
+mpfr_t& TrigMNode::evaluate_float() {
+    const mpfr_t& left_value = m_left_child->evaluate_float();
+    switch(key) {
+        case Token::SIN:
+            mpfr_sin(node_result, left_value, MPFR_RNDN);
+            return node_result;
+        case Token::COS:
+            mpfr_cos(node_result, left_value, MPFR_RNDN);
+            return node_result;
+        case Token::TAN:
+            mpfr_tan(node_result, left_value, MPFR_RNDN);
+            return node_result;
+        default:
+            throw std::runtime_error("Invalid trig node");
+    }
+}
+
 [[nodiscard]] mpz_class FactorialNode::evaluate() const { return factorial(m_left_child->evaluate()); }
 
 mpfr_t& FactorialNode::evaluate_float() {

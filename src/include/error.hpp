@@ -39,8 +39,6 @@ constexpr std::optional<std::string> check_leading(const std::string_view infix_
     for (const auto i : infix_expression) {
         if (!math && std::isdigit(i)) {
             return std::optional<std::string>("Boolean expression contains a number");
-        } else if (math && is_bool_operand(static_cast<Token>(i))) {
-            return std::optional<std::string>("Arithmetic expression contains a bool");
         }
     }
 

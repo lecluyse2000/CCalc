@@ -25,6 +25,11 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
     for (auto itr = infix_expression.begin(); itr != infix_expression.end(); ++itr) {
         const char c = *itr;
         const char next_token = (itr + 1 != infix_expression.end()) ? *(itr + 1) : '\0';
+        if (c == 'T') {
+            const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)), 3);
+            if (get_tan == "TAN") return true;
+            return false;
+        }
         if (c == '!' && is_bool_operand(static_cast<Token>(next_token))) {
             return false;
             // I think this is a more robust check than just looking for a digit

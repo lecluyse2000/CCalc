@@ -144,6 +144,17 @@ enum struct Setting {
     }
 }
 
+[[nodiscard]] inline constexpr bool is_trig(const Token token) noexcept {
+    switch (token) {
+        case Token::SIN:
+        case Token::COS:
+        case Token::TAN: 
+            return true;
+        default:
+            return false;
+    }
+}
+
 [[nodiscard]] inline constexpr bool is_math_operand(const Token token) noexcept {
     return std::isdigit(static_cast<char>(token)) || token == Token::DOT ||
            is_math_var(token);

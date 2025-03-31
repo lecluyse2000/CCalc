@@ -61,7 +61,10 @@ std::unique_ptr<MathNodes::MathNode> MathAST::build_ast() {
     }
 
     std::unique_ptr<MathNodes::MathNode> node;
-    if (current_token == Token::FAC) {
+    if (is_trig(current_token)) {
+        node = std::make_unique<MathNodes::TrigMNode>(current_token);
+        node->m_left_child = build_ast();
+    } else if (current_token == Token::FAC) {
         node = std::make_unique<MathNodes::FactorialNode>();
         node->m_left_child = build_ast();
     } else if (current_token == Token::UNARY) {

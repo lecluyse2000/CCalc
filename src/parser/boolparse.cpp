@@ -34,7 +34,7 @@ std::optional<std::string> bool_loop_body(BoolParseState& state, std::vector<Tok
 
     if (is_bool_operand(state.current_token)) {
         prefix_expression.push_back(state.current_token);
-    } else if (isnot(state.current_token) || isoperator(state.current_token) || state.current_token == Token::RIGHT_PAREN) {
+    } else if (isnot(state.current_token) || is_bool_operator(state.current_token) || state.current_token == Token::RIGHT_PAREN) {
         operator_stack.push(static_cast<Token>(state.current_token));
     } else if (state.current_token == Token::LEFT_PAREN) {
         while (!operator_stack.empty() && operator_stack.top() != Token::RIGHT_PAREN) {
@@ -46,7 +46,7 @@ std::optional<std::string> bool_loop_body(BoolParseState& state, std::vector<Tok
         if (!operator_stack.empty()) {
             operator_stack.pop();
         } else {
-            return std::optional<std::string>("Missing closing parentheses\n");
+            return std::optional<std::string>("Missing closing parentheses");
         }
     } else {
         return Error::invalid_character_error_bool(*state.itr);
