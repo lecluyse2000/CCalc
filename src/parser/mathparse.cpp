@@ -27,7 +27,7 @@ constexpr void add_mult_signs(std::string& infix) {
         };
 
         if (current_token == Token::RIGHT_PAREN && (next_token == Token::LEFT_PAREN || 
-                                                           is_math_operand(next_token))) {
+                                                    is_math_operand(next_token))) {
             insert_increment();
         } else if (current_token == Token::FAC && is_math_operand(next_token)) {
             insert_increment();
@@ -38,6 +38,11 @@ constexpr void add_mult_signs(std::string& infix) {
             insert_increment();
         }
     }
+}
+
+[[nodiscard]] constexpr
+std::optional<std::string> parse_trig(MathParseState& state, ParseResult& result) {
+    if (**state.itr != 'S' && **state.itr != 'N') return std::nullopt;
 }
 
 [[nodiscard]] constexpr
@@ -87,6 +92,7 @@ std::optional<std::string> parse_var(MathParseState& state, ParseResult& result)
         if (pi_check) return pi_check;
         else (*state.itr)++;
     }
+
     return std::nullopt;
 }
 
@@ -238,11 +244,13 @@ std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& re
     // if the token is an operator or a closing parentheses, add it to the stack
     // If the token is an open parentheses, pop from the stack and add to the string until a closing parentheses is
     // found, or an operator with a higher precedence
+    const auto trig_check = parse_trig(state, result);
     const auto var_check = parse_var(state, result);
     if (var_check) return var_check;
     if (!is_valid_math_token(**state.itr)) {
         return Error::invalid_character_error_math(**state.itr);
     }
+
     state.current_token = static_cast<Token>(**state.itr);
     if (state.current_token == Token::SUB) check_for_unary(state);
     if (check_for_number(state, result.is_floating_point)) { // Check for a number token here
@@ -253,9 +261,8 @@ std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& re
     if (checker_result) return checker_result;
 
     if (is_math_operator(state.current_token)) {
-        const bool unary_plus = math_operator_found(state, result, op_stack);
         // If unary plus is found, return early and do not set previous token
-        if (unary_plus) return std::nullopt; 
+        if (math_operator_found(state, result, op_stack)) return std::nullopt; 
     } else if (state.current_token == Token::RIGHT_PAREN) {
         closing_parentheses_math(state, result.result, op_stack);
     } else if (state.current_token == Token::LEFT_PAREN) {

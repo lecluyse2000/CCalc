@@ -15,7 +15,7 @@ struct MathParseState {
     std::vector<Types::Token> num_buffer;
     const std::string::reverse_iterator rend;
     const std::string::iterator end;
-    std::string::reverse_iterator* itr = nullptr;
+    std::string::reverse_iterator* itr = nullptr; // Pointer to iterator so the loop can be directly manipulated
     Types::Token current_token = Types::Token::NULLCHAR;
     Types::Token previous_token = Types::Token::NULLCHAR;
     bool in_number = false;
