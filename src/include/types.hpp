@@ -123,6 +123,7 @@ enum struct Setting {
     PRECISION,
     DISPLAY_PREC,
     MAX_HISTORY,
+    ANGLE,
     INVALID
 };
 
@@ -130,6 +131,7 @@ enum struct Setting {
     if (string == "precision") return Setting::PRECISION;
     if (string == "display_digits") return Setting::DISPLAY_PREC;
     if (string == "max_history") return Setting::MAX_HISTORY;
+    if (string == "angle") return Setting::ANGLE;
     return Setting::INVALID;
 }
 

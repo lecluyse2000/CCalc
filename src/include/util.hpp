@@ -19,24 +19,28 @@ namespace Util {
 
 inline constexpr std::size_t buffer_size = 256;
 
-inline constexpr std::size_t num_settings = 3;
+inline constexpr std::size_t num_settings = 4;
 inline constexpr std::array<Types::Setting, num_settings> setting_keys = {
     Types::Setting::PRECISION,
     Types::Setting::DISPLAY_PREC,
-    Types::Setting::MAX_HISTORY
+    Types::Setting::MAX_HISTORY,
+    Types::Setting::ANGLE
 };
 inline constexpr long default_precision = 320;
 inline constexpr long default_digits = 15;
 inline constexpr long default_history_max = 50;
-inline constexpr std::array<long, num_settings> default_setting_values = {
-    default_precision,
-    default_digits,
-    default_history_max
-};
+inline constexpr long default_angle = 0; // 0 is radians, 1 is degrees
 inline constexpr std::array<std::string_view, num_settings> setting_fields = {
     "precision=",
     "display_digits=",
-    "max_history="
+    "max_history=",
+    "angle="
+};
+inline constexpr std::array<long, num_settings> default_setting_values = {
+    default_precision,
+    default_digits,
+    default_history_max,
+    default_angle
 };
 
 inline std::unordered_map<Types::Setting, long> create_default_settings_map() {

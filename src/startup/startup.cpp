@@ -43,6 +43,7 @@ bool create_ini(const std::filesystem::path& full_path) {
         if (file.is_open()) [[likely]] {
             file << "[Settings]\n";
             for (std::size_t i = 0; i < Util::num_settings; ++i) {
+                if (i == Util::num_settings - 1) file << "# angle=0 (radians) or angle=1 (degrees)\n";
                 file << Util::setting_fields[i] << Util::default_setting_values[i] << '\n'; 
             }
             return true;
@@ -69,6 +70,9 @@ bool create_ini(const std::filesystem::path& full_path) {
 
     const std::string_view key = std::string_view(line).substr(0, equal_pos);
     const std::string_view value_string = std::string_view(line).substr(equal_pos + 1);
+    if (key == "angle" && value_string != "0" && value_string != "1") {
+        return create_ini_return_false(full_path);
+    }
     if(!std::ranges::all_of(value_string, ::isdigit)) [[unlikely]] {
         return create_ini_return_false(full_path);
     }
@@ -92,7 +96,6 @@ bool create_ini(const std::filesystem::path& full_path) {
     if (map.contains(Setting::INVALID)) {
         return create_ini_return_false(full_path);
     }
-
     return true;
 }
 
@@ -120,6 +123,7 @@ bool create_ini(const std::filesystem::path& full_path) {
     std::string line;
     while (std::getline(input_file, line)) {
         if (line == "[Settings]") continue;
+        if (line[0] == '#') continue;
         if(!create_retval(line, full_path, retval)) return Util::create_default_settings_map();
     }
     if (!final_verification(full_path, retval)) return Util::create_default_settings_map();

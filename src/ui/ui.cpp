@@ -323,11 +323,15 @@ void print_help() {
               << "\t - Multiplication (*) Performs repeated addition (3 * 3 = 3 + 3 + 3 = 9).\n"
               << "\t - Division (/) Performs repeated subtraction (9 / 3 = 9 - 3 - 3 = 3).\n"
               << "\t - Exponent (^) Multiplies a number by itself a certain number of times (3^3 = 3 * 3 * 3 = 27).\n"
-              << "\t - Factorial (!) Multiplies a number by every integer less than itself counting to 1 (4! = 4 * 3 * 2 * 1 = 24).\n\n"
-              << "* Precision settings:\n"
-              << "\t - You can modify the precision of the program by editing ~/.config/ccalc/settings.ini\n"
+              << "\t - Factorial (!) Multiplies a number by every integer less than itself counting to 1 (4! = 4 * 3 * 2 * 1 = 24).\n"
+              << "\t - e and pi are supported built-in variables.\n"
+              << "\t - sin(), cos(), tan() are supported trig operations.\n\n"
+              << "* Program settings:\n"
+              << "\t - You can modify the settings of the program by editing ~/.config/ccalc/settings.ini\n"
               << "\t - The 'precision=' field is set in bits, and it modifies the precision of internal computations (default = 320).\n"
-              << "\t - The 'display_digits=' field is set in digits, and it modifies the precision when printing the result (default = 15)."
+              << "\t - The 'display_digits=' field is set in digits, and it modifies the precision when printing the result (default = 15).\n"
+              << "\t - The 'max_history=' field sets the maximum entries of the history when in continuous mode (default = 50).\n"
+              << "\t - The 'angle=' setting specifies whether the program is using is radians or degrees. 0 means radians, 1 means degrees (default = 0)."
 
               << std::endl;
 }
