@@ -77,7 +77,7 @@ $   XOR
 !   Factorial   
 Why no sqrt? Because sqrt(x) = x^(1/2)   
 `pi` and `e` are supported variables   
-`sin`, `cos`, and `tan` are supported in radians   
+`sin`, `cos`, and `tan` are supported   
 
 ### Flags
 
