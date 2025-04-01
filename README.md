@@ -109,7 +109,7 @@ In continuous mode, there are four commands available:
 precision=320
 display_digits=15
 max_history=50
-angle=1
+angle=0
 ```
 
 ## Building from source

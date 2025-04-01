@@ -15,6 +15,37 @@ using namespace Types;
 
 namespace MathNodes {
 
+static void radians_to_degrees(mpfr_t& result, const mpfr_t& radians) {
+    // Create temporary variable
+    mpfr_t pi;
+    mpfr_init2(pi, mpfr_get_prec(result));
+    
+    mpfr_const_pi(pi, MPFR_RNDN);
+    
+    // Calculate 180/π
+    mpfr_t factor;
+    mpfr_init2(factor, mpfr_get_prec(result));
+    mpfr_set_ui(factor, 180, MPFR_RNDN);
+    mpfr_div(factor, factor, pi, MPFR_RNDN);
+    
+    mpfr_mul(result, radians, factor, MPFR_RNDN);
+    
+    mpfr_clear(pi);
+    mpfr_clear(factor);
+}
+
+static void degrees_to_radians(mpfr_t& result, const mpfr_t& degrees) {
+    // Create temporary variable for π/180
+    mpfr_t pi_div_180;
+    mpfr_init2(pi_div_180, mpfr_get_prec(result));
+    
+    mpfr_const_pi(pi_div_180, MPFR_RNDN);
+    mpfr_div_ui(pi_div_180, pi_div_180, 180, MPFR_RNDN);
+    mpfr_mul(result, degrees, pi_div_180, MPFR_RNDN);
+    
+    mpfr_clear(pi_div_180);
+}
+
 ValueMNode::ValueMNode(const std::string_view _value_mpz, const std::string_view _value_mpf) :
     value_mpz(_value_mpz.data()) {
     mpfr_init2(value_mpfr, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
@@ -100,15 +131,29 @@ mpfr_t& OperationMNode::evaluate_float() {
 
 mpfr_t& TrigMNode::evaluate_float() {
     const mpfr_t& left_value = m_left_child->evaluate_float();
+    const bool use_degrees = Startup::settings.at(Setting::ANGLE) == 1;
+    
     switch(key) {
         case Token::SIN:
-            mpfr_sin(node_result, left_value, MPFR_RNDN);
+            if (use_degrees) {
+                mpfr_sinu(node_result, left_value, 360, MPFR_RNDN);
+            } else {
+                mpfr_sin(node_result, left_value, MPFR_RNDN);
+            }
             return node_result;
         case Token::COS:
-            mpfr_cos(node_result, left_value, MPFR_RNDN);
+            if (use_degrees) {
+                mpfr_cosu(node_result, left_value, 360, MPFR_RNDN);
+            } else {
+                mpfr_cos(node_result, left_value, MPFR_RNDN);
+            }
             return node_result;
         case Token::TAN:
-            mpfr_tan(node_result, left_value, MPFR_RNDN);
+            if (use_degrees) {
+                mpfr_tanu(node_result, left_value, 360, MPFR_RNDN);
+            } else {
+                mpfr_tan(node_result, left_value, MPFR_RNDN);
+            }
             return node_result;
         default:
             throw std::runtime_error("Invalid trig node");
