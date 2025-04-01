@@ -177,7 +177,7 @@ You will also have to figure out how to install GMP and MPFR. Visual Studio/VSco
 
 ## TODO
 
-* Implement trig function support (degrees and rads)
+* ~~Implement trig function support (degrees and rads)~~
 * ~~Include e and pi as predefined variables~~
 * Add an 'ans' variable that stores the previous answer
 * Add the ability to store values in a variable
