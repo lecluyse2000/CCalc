@@ -40,7 +40,7 @@ constexpr void add_mult_signs(std::string& infix) {
     }
 }
 
-constexpr Token get_next_token(const MathParseState& state) {
+constexpr Token get_next_token(const MathParseState& state) { // Avoid UB by checking for the end of the string
     return (*state.itr + 1 != state.rend) ? static_cast<Token>(*(*state.itr + 1))
                                           : Token::NULLCHAR;
 }
@@ -66,7 +66,7 @@ std::optional<std::string> parse_trig(MathParseState& state, ParseResult& result
     if (*(*state.itr - 1) != '(') return std::optional<std::string>("Use parentheses with trig functions");
 
     std::string trig_op = std::string{**state.itr};
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2; ++i) { // Manually build the string for the trig operation
         const char next_token = static_cast<char>(get_next_token(state));
         if (next_token == '\0') return std::optional<std::string>("Invalid variable detected");
         trig_op.insert(0, 1, next_token);
@@ -75,8 +75,9 @@ std::optional<std::string> parse_trig(MathParseState& state, ParseResult& result
     if (trig_op != "SIN" && trig_op != "COS" && trig_op != "TAN") {
         return std::optional<std::string>("Expected sin, cos, tan, received: " + trig_op);
     }
-    add_trig_to_result(state, result, trig_op);
+    add_trig_to_result(state, result, trig_op); // Push the trig token onto the result
     (*state.itr)++;
+    if (*state.itr == state.rend) state.done_parsing = true;
     return std::nullopt;
 }
 
@@ -264,7 +265,6 @@ bool math_operator_found(MathParseState& state, ParseResult& result,
     
     return false;
 }
-
 // Main body of the loop for parsing math equations
 [[nodiscard]]
 std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& result,
@@ -276,9 +276,8 @@ std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& re
     // found, or an operator with a higher precedence
     const auto trig_check = parse_trig(state, result);
     if (trig_check) return trig_check;
-    if (*state.itr == state.rend || *state.itr + 1 == state.rend) {
-        return std::nullopt;
-    }
+    if (state.done_parsing) return std::nullopt;
+    // Only check for boundary if we're actually looking at a trig function
     const auto var_check = parse_var(state, result);
     if (var_check) return var_check;
     if (!is_valid_math_token(**state.itr)) {
@@ -320,10 +319,11 @@ std::optional<std::string> parse_math(std::string& infix_expression, ParseResult
     
     // All the algorithms I discovered for converting to prefix started by reversing the string,
     // so I thought why not just parse from right to left so we don't have to reverse
-    for (auto itr = infix_expression.rbegin(); itr < infix_expression.rend(); ++itr) {
+    for (auto itr = infix_expression.rbegin(); itr != infix_expression.rend(); ++itr) {
         state.itr = &itr;
         const auto loop_result = math_loop_body(state, result, operator_stack);
         if (loop_result) return loop_result;
+        if (state.done_parsing) break;
     }
     if (state.in_number) {
         for (const auto token : state.num_buffer) {

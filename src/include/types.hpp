@@ -144,6 +144,17 @@ enum struct Setting {
     }
 }
 
+[[nodiscard]] inline constexpr bool is_trig(const char token) noexcept {
+    switch (token) {
+        case 'S':
+        case 'C':
+        case 'T': 
+            return true;
+        default:
+            return false;
+    }
+}
+
 [[nodiscard]] inline constexpr bool is_trig(const Token token) noexcept {
     switch (token) {
         case Token::SIN:

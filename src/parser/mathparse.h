@@ -19,6 +19,7 @@ struct MathParseState {
     Types::Token current_token = Types::Token::NULLCHAR;
     Types::Token previous_token = Types::Token::NULLCHAR;
     bool in_number = false;
+    bool done_parsing = false;
 };
 
 inline void clear_num_buffer(MathParseState& state) noexcept {

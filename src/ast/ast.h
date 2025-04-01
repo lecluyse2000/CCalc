@@ -20,7 +20,7 @@ class BoolAST {
    private:
     std::unique_ptr<BoolNodes::BoolNode> build_ast() noexcept;
     const std::span<const Types::Token> m_prefix_expression;
-    std::size_t m_index;
+    std::size_t m_index = 0;
     std::unique_ptr<BoolNodes::BoolNode> m_root;
 };
 
@@ -33,7 +33,7 @@ class MathAST {
    private:
     std::unique_ptr<MathNodes::MathNode> build_ast();
     const std::span<const Types::Token> m_prefix_expression;
-    std::size_t m_index;
+    std::size_t m_index = 0;
     const bool m_floating_point;
     std::unique_ptr<MathNodes::MathNode> m_root;
 };

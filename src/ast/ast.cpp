@@ -33,7 +33,7 @@ std::unique_ptr<BoolNodes::BoolNode> BoolAST::build_ast() noexcept {
     return node;
 }
 
-BoolAST::BoolAST(const std::span<const Token> expression) noexcept :  m_prefix_expression(expression),  m_index(0), m_root(build_ast()){}
+BoolAST::BoolAST(const std::span<const Token> expression) noexcept :  m_prefix_expression(expression), m_root(build_ast()){}
 
 [[nodiscard]] bool BoolAST::evaluate() const { return m_root->evaluate(); }
 
@@ -80,9 +80,7 @@ std::unique_ptr<MathNodes::MathNode> MathAST::build_ast() {
 }
 
 MathAST::MathAST(const std::span<const Token> expression, const bool _floating_point) :
-    m_prefix_expression(expression), m_index(0), m_floating_point(_floating_point),
-    m_root(build_ast()) {
-}
+    m_prefix_expression(expression), m_floating_point(_floating_point), m_root(build_ast()) {}
 
 [[nodiscard]] mpz_class MathAST::evaluate() const { return m_root->evaluate(); }
 [[nodiscard]] mpfr_t& MathAST::evaluate_floating_point() const { return m_root->evaluate_float(); }
