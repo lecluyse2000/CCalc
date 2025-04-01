@@ -27,14 +27,17 @@ constexpr void add_mult_signs(std::string& infix) {
         };
 
         if (current_token == Token::RIGHT_PAREN && (next_token == Token::LEFT_PAREN || 
-                                                    is_math_operand(next_token))) {
+                                                    is_math_operand(next_token) ||
+                                                    is_trig(static_cast<char>(next_token)))) {
             insert_increment();
-        } else if (current_token == Token::FAC && is_math_operand(next_token)) {
+        } else if (current_token == Token::FAC && (is_math_operand(next_token) ||
+                                                   is_trig(static_cast<char>(next_token)))) {
             insert_increment();
         } else if (is_math_var(current_token) && is_math_var(next_token)) {
             insert_increment();
         } else if (is_math_operand(current_token)
-            && (is_math_var(next_token) || next_token == Token::LEFT_PAREN)) {
+                   && (is_math_var(next_token) || next_token == Token::LEFT_PAREN ||
+                   is_trig(static_cast<char>(next_token)))) {
             insert_increment();
         }
     }

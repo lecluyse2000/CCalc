@@ -71,6 +71,7 @@ inline void trim_trailing_zero_mpfr(std::vector<char>& buffer) {
     if (last_non_zero != buffer.rend()) {
         buffer.erase(last_non_zero.base(), buffer.end());
     } 
+    if (buffer.size() == 1 && buffer[0] == '-') buffer[0] = '0'; // Handle negative 0 case
 }
 
 // Convert an MPFR to a char vector
