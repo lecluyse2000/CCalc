@@ -102,7 +102,7 @@ In continuous mode, there are four commands available:
 - The `precision=` field is set in bits, and it modifies the precision of internal computations (default = 320).
 - The `display_digits=` field is set in digits, and it modifies the precision when printing the result (default = 15).
 - The `max_history=` field is set using a positive integer, and it modifies how many entries you can store in the program history (default = 50).
-- The `angle=` field sets whether the program uses radians are degrees. Enter 0 for radians, 1 for degrees (default = 0).
+- The `angle=` field sets whether the program uses radians or degrees. Enter 0 for radians, 1 for degrees (default = 0).
 
 ```ini
 [Settings]
