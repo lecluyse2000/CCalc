@@ -135,7 +135,7 @@ inline void add_to_history(std::string& orig_input, std::string&& final_val,
 // Prints an MPFR float using the two functions defined above
 std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_precision) {
     std::vector<char> buffer(Util::buffer_size);
-    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return std::string("");
+    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return "";
     std::cout << "Result: ";
     for (const char c : buffer) {
         std::cout << c;
@@ -321,7 +321,7 @@ void print_help() {
               << "\t - Addition (+) Adds two numbers together (2 + 2 = 4).\n"
               << "\t - Subtraction (-) Subtracts two numbers (3 - 2 = 1).\n"
               << "\t - Multiplication (*) Performs repeated addition (3 * 3 = 3 + 3 + 3 = 9).\n"
-              << "\t - Division (/) Performs repeated subtraction (9 / 3 = 9 - 3 - 3 = 3).\n"
+              << "\t - Division (/) Performs repeated subtraction, and counts the number of times it takes to get the divend to equal 0 (9 / 3 = 9 - 3 - 3 - 3 = 3).\n"
               << "\t - Exponent (^) Multiplies a number by itself a certain number of times (3^3 = 3 * 3 * 3 = 27).\n"
               << "\t - Factorial (!) Multiplies a number by every integer less than itself counting to 1 (4! = 4 * 3 * 2 * 1 = 24).\n"
               << "\t - e and pi are supported built-in variables.\n"
@@ -331,7 +331,7 @@ void print_help() {
               << "\t - The 'precision=' field is set in bits, and it modifies the precision of internal computations (default = 320).\n"
               << "\t - The 'display_digits=' field is set in digits, and it modifies the precision when printing the result (default = 15).\n"
               << "\t - The 'max_history=' field sets the maximum entries of the history when in continuous mode (default = 50).\n"
-              << "\t - The 'angle=' setting specifies whether the program is using is radians or degrees. 0 means radians, 1 means degrees (default = 0)."
+              << "\t - The 'angle=' setting specifies whether the program is using radians or degrees. 0 means radians, 1 means degrees (default = 0).\n"
 
               << std::endl;
 }
@@ -364,7 +364,7 @@ namespace {
     return false;
 }
 
-void math_procedure(ParseResult result) {
+void math_procedure(const ParseResult& result) {
     if (result.is_floating_point) {
         try {
             const auto tree = std::make_unique<MathAST>(result.result, result.is_floating_point);
