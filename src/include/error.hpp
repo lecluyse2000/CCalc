@@ -73,7 +73,7 @@ constexpr std::optional<std::string> check_missing_parentheses(const Token curre
 constexpr std::optional<std::string> check_consecutive_operators(const Token current_token, const Token previous_token) {
     if (is_bool_operator(current_token) && is_bool_operator(previous_token)) {
         return std::optional<std::string>("Two consecutive operators detected: " + std::string{static_cast<char>(current_token)} + " and " +
-                std::string{static_cast<char>(previous_token)} + "");
+                std::string{static_cast<char>(previous_token)});
     }
 
     return std::nullopt;
@@ -83,7 +83,7 @@ constexpr std::optional<std::string> check_consecutive_operators(const Token cur
 constexpr std::optional<std::string> check_consecutive_operands(const Token current_token, const Token previous_token) {
     if (isoperand(current_token) && isoperand(previous_token)) {
         return std::optional<std::string>("Two consecutive operands detected: " + std::string{static_cast<char>(current_token)} + " and " +
-                std::string{static_cast<char>(previous_token)} + "");
+                std::string{static_cast<char>(previous_token)});
     }
 
     return std::nullopt;
@@ -104,7 +104,7 @@ constexpr std::optional<std::string> check_missing_operator_math(const Token cur
         ((is_math_operand(current_token) && current_token != Token::UNARY) && previous_token == Token::LEFT_PAREN) || 
         (current_token == Token::RIGHT_PAREN && previous_token == Token::LEFT_PAREN)) {
         return std::optional<std::string>("Missing operator between " + std::string{static_cast<char>(current_token)}
-                                  + " and " + std::string{static_cast<char>(previous_token)} + "");
+                                  + " and " + std::string{static_cast<char>(previous_token)});
     }
 
     return std::nullopt;
@@ -116,7 +116,7 @@ constexpr std::optional<std::string> check_missing_operator_bool(const Token cur
         (is_bool_operand(current_token) && (previous_token == Token::LEFT_PAREN || isnot(previous_token))) ||
         (current_token == Token::RIGHT_PAREN && previous_token == Token::LEFT_PAREN)) {
         return std::optional<std::string>("Missing operator between " + std::string{static_cast<char>(current_token)}
-                                  + " and " + std::string{static_cast<char>(previous_token)} + "");
+                                  + " and " + std::string{static_cast<char>(previous_token)});
 
     }
 
@@ -158,7 +158,7 @@ constexpr std::optional<std::string> check_missing_operand_math(const Token curr
             for (const auto c : prev_tokens) {
                 if (previous_token == c) {
                     return std::optional<std::string>("Missing operand between " + std::string{static_cast<char>(current_token)}
-                                                      + " and " + std::string{static_cast<char>(previous_token)} + "");
+                                                      + " and " + std::string{static_cast<char>(previous_token)});
                 }
             }
         }
@@ -171,7 +171,7 @@ constexpr std::optional<std::string> check_missing_operand_bool(const Token curr
     if ((current_token == Token::LEFT_PAREN && is_bool_operator(previous_token)) ||
         (is_bool_operator(current_token) && previous_token == Token::RIGHT_PAREN)) {
         return std::optional<std::string>("Missing operand between " + std::string{static_cast<char>(current_token)}
-                                          + " and " + std::string{static_cast<char>(previous_token)} + "");
+                                          + " and " + std::string{static_cast<char>(previous_token)});
     }
 
     return std::nullopt;
@@ -244,16 +244,16 @@ constexpr std::optional<std::string> error_bool(const Token current_token, const
     if (token == ']' || token == '[') {
         return "Invalid use of brackets detected! Just use parentheses please.";
     }
-    return "Expected +, -, *, /, ^, received: " + std::string{token} + "";
+    return "Expected +, -, *, /, ^, received: " + std::string{token};
 }
 
 [[nodiscard]] inline constexpr std::string invalid_character_error_bool(const char token) {
     if (isalnum(token)) {
-        return "Expected T or F, received: " + std::string{token} + "";
+        return "Expected T or F, received: " + std::string{token};
     } else if (token == ']' || token == '[') {
         return "Invalid use of brackets detected! Just use parentheses please.";
     }
-    return "Expected &, |, !, @, $, received: " + std::string{token} + "";
+    return "Expected &, |, !, @, $, received: " + std::string{token};
 }
 
 }  // namespace Error
