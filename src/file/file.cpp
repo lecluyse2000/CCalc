@@ -75,7 +75,8 @@ bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec
 
 void math_float_procedure(FILE*& output_file, const std::span<const Token> result) {
     try {
-        const auto tree = std::make_unique<const MathAST>(result, true);
+        const auto tree = std::make_unique<MathAST>();
+        tree->build_ast(result, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         if (mpfr_integer_p(final_value)) {
             mpfr_fprintf(output_file, "Result: %.0Rf%s", final_value, escape_sequence.data());
@@ -90,7 +91,8 @@ void math_float_procedure(FILE*& output_file, const std::span<const Token> resul
 
 void math_int_procedure(FILE*& output_file, const std::span<const Token> result) {
     try {
-        const auto tree = std::make_unique<const MathAST>(result, false);
+        const auto tree = std::make_unique<MathAST>();
+        tree->build_ast(result, false);
         const mpz_class final_value = tree->evaluate();
         gmp_fprintf(output_file, "Result: %Zd%s", final_value.get_mpz_t(), escape_sequence.data());
     } catch (const std::bad_alloc& err) {
@@ -109,7 +111,8 @@ void math_procedure(FILE*& output_file, const ParseResult& result) {
 }
 
 void bool_procedure(FILE*& output_file, const std::span<const Token> result) {
-    const auto syntax_tree = std::make_unique<BoolAST>(result);
+    const auto syntax_tree = std::make_unique<BoolAST>();
+    syntax_tree->build_ast(result);
     if (syntax_tree->evaluate()) {
         fprintf(output_file, "Result: True%s", escape_sequence.data());
     } else {

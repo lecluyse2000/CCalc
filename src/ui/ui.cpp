@@ -189,7 +189,8 @@ inline void print_pi(std::string& orig_input,
 void math_float_procedure(std::string& orig_input, const std::span<const Token> prefix_input,
                           std::vector<std::pair<std::string, std::string> >& history) {
     try {
-        const auto tree = std::make_unique<const MathAST>(prefix_input, true);
+        const auto tree = std::make_unique<MathAST>();
+        tree->build_ast(prefix_input, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         std::string final_val = print_mpfr(final_value,
                                            static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
@@ -204,7 +205,8 @@ void math_float_procedure(std::string& orig_input, const std::span<const Token> 
 void math_int_procedure(std::string& orig_input, const std::span<const Token> prefix_input,
                         std::vector<std::pair<std::string, std::string> >& history) {
     try {
-        const auto tree = std::make_unique<const MathAST>(prefix_input, false);
+        const auto tree = std::make_unique<MathAST>();
+        tree->build_ast(prefix_input, false);
         const mpz_class final_value = tree->evaluate();
         std::cout << "Result: " << final_value.get_str() << '\n';
         add_to_history(orig_input, final_value.get_str(), history);
@@ -228,7 +230,8 @@ void math_procedure(std::string& orig_input, const ParseResult& result,
 // Bool is easier than math, just solve and add to history
 void bool_procedure(std::string& orig_input, const std::span<const Token> prefix_input,
                     std::vector<std::pair<std::string, std::string> >& history) {
-    const auto syntax_tree = std::make_unique<const BoolAST>(prefix_input);
+    const auto syntax_tree = std::make_unique<BoolAST>();
+    syntax_tree->build_ast(prefix_input);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
         std::cout << "True\n";
@@ -367,7 +370,8 @@ namespace {
 void math_procedure(const ParseResult& result) {
     if (result.is_floating_point) {
         try {
-            const auto tree = std::make_unique<const MathAST>(result.result, result.is_floating_point);
+            const auto tree = std::make_unique<MathAST>();
+            tree->build_ast(result.result, result.is_floating_point);
             const mpfr_t& final_value = tree->evaluate_floating_point();
             print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
         } catch (const std::exception& err) {
@@ -376,7 +380,8 @@ void math_procedure(const ParseResult& result) {
         return;
     }
     try {
-        const auto tree = std::make_unique<const MathAST>(result.result, result.is_floating_point);
+        const auto tree = std::make_unique<MathAST>();
+        tree->build_ast(result.result, result.is_floating_point);
         const mpz_class final_value = tree->evaluate();
         std::cout << "Result: " << final_value.get_str() << '\n';
     } catch (const std::bad_alloc& err) {
@@ -387,7 +392,8 @@ void math_procedure(const ParseResult& result) {
 }
 
 void bool_procedure(const std::span<const Token> result) {
-    const auto syntax_tree = std::make_unique<const BoolAST>(result);
+    const auto syntax_tree = std::make_unique<BoolAST>();
+    syntax_tree->build_ast(result);
     std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
         std::cout << "True\n";
