@@ -35,7 +35,7 @@ Please enter your expression, or enter help to see all available commands: T & F
 Result: False
 Please enter your expression, or enter help to see all available commands: T @ F
 Result: True
-Please enter your expression, or enter help to see all available commands: (T | F) $ (F & T)
+Please enter your expression, or enter help to see all available commands: (T | F) ^ (F & T)
 Result: True
 Please enter your expression, or enter help to see all available commands: 2 + 3 - 3 * 3
 Result: -4
@@ -46,7 +46,7 @@ Expression: T & F
 Result: False
 Expression: T @ F
 Result: True
-Expression: (T | F) $ (F & T)
+Expression: (T | F) ^ (F & T)
 Result: True
 Expression: 2 + 3 - 3 * 3
 Result: -4
@@ -63,7 +63,7 @@ Exiting...
 
 &   AND   
 |   OR   
-$   XOR   
+^   XOR   
 @   NAND   
 !   NOT   
 

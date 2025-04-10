@@ -317,7 +317,7 @@ void print_help() {
               << "* Boolean operations:\n"
               << "\t - AND (&) results in True when both values are True. (T & F = F).\n"
               << "\t - OR (|) returns True when at least one of the values is True. (T | F = T).\n"
-              << "\t - XOR ($) reults in True only when one of the values is True. (F $ F = F).\n"
+              << "\t - XOR (^) reults in True only when one of the values is True. (F ^ F = F).\n"
               << "\t - NAND (@) returns True when both values are not True simultaneously. (F @ F = T).\n"
               << "\t - NOT (!) negates the value it is in front of. (!F = T).\n\n"
               << "* Arithmetic operations:\n"

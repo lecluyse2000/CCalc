@@ -19,7 +19,7 @@ enum struct Token : char {
     SUB = '-',
     MULT = '*',
     DIV = '/',
-    POW = '^',
+    POW_XOR = '^',
     UNARY = '~',
     FAC = '!',
     ONE = '1',
@@ -49,7 +49,6 @@ enum struct Token : char {
     ANS = 'A',
     AND = '&',
     OR = '|',
-    XOR = '$',
     NAND = '@',
     TRUE = 'T',
     FALSE = 'F'
@@ -101,7 +100,7 @@ inline constexpr bool is_valid_bool_token(const char c) {
         case '!':
         case '&':
         case '|':
-        case '$':
+        case '^':
         case '@':
         case 'T':
         case 'F':
@@ -188,7 +187,7 @@ enum struct Setting {
         case Token::MULT:
         case Token::DIV:
         case Token::UNARY:
-        case Token::POW:
+        case Token::POW_XOR:
         case Token::FAC:
             return true;
         default:
@@ -201,7 +200,7 @@ enum struct Setting {
         case Token::AND:
         case Token::OR:
         case Token::NAND:
-        case Token::XOR:
+        case Token::POW_XOR:
             return true;
         default:
             return false;
@@ -224,7 +223,7 @@ enum struct Setting {
             return 2;
         case Token::UNARY:
             return 3;
-        case Token::POW:
+        case Token::POW_XOR:
             return 4;
         case Token::FAC:
             return 5;

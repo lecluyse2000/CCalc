@@ -21,10 +21,29 @@ namespace Parse {
 namespace {
 
 [[nodiscard]]
+constexpr bool pow_search(const std::string_view& infix_expression, auto current_itr) noexcept {
+    for (; current_itr != infix_expression.end(); ++current_itr) {
+        if (*current_itr == '(') continue;
+        if (*current_itr == 'F') return false;
+        else if (*current_itr == 'T') {
+            const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(),
+                                                                                              current_itr)), 3);
+            if (get_tan == "TAN") return true;
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+[[nodiscard]]
 constexpr std::optional<bool> is_math_equation(const std::string_view infix_expression) noexcept {
     for (auto itr = infix_expression.begin(); itr != infix_expression.end(); ++itr) {
         const char c = *itr;
         const char next_token = (itr + 1 != infix_expression.end()) ? *(itr + 1) : '\0';
+
+        // Special check since ^ is exponent for math and xor for boolean
+        if (c == '^') return pow_search(infix_expression, itr); 
         // Check if "TAN" is present in the expression, since TAN has a T and would mess things up
         if (c == 'T') {
             const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)), 3);

@@ -171,7 +171,7 @@ constexpr bool unary_third_case(const MathParseState& state) {
 // 4) Exponent raised to the negative power
 constexpr bool unary_fourth_case(const MathParseState& state) {
     const Token next_token = get_next_token(state); 
-    return next_token == Token::POW;
+    return next_token == Token::POW_XOR;
 }
 
 constexpr void 
@@ -190,7 +190,7 @@ constexpr void check_for_floating_point(const MathParseState& state, bool& float
     }
     // If raised to a negative exponent, we evaluate as a float
     // Have to iterate back in the other direction towards the end of the string
-    if (state.current_token == Token::POW) {
+    if (state.current_token == Token::POW_XOR) {
         for (auto new_itr = state.itr->base(); new_itr != state.end; ++new_itr) {
             if (*new_itr == '-' || *new_itr == '~') {
                 floating_point = true;

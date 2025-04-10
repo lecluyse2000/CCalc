@@ -127,7 +127,7 @@ constexpr std::optional<std::string> check_missing_operator_bool(const Token cur
 static inline constexpr std::initializer_list<Token> invalid_tokens_no_add_sub = {
     Token::MULT, 
     Token::DIV, 
-    Token::POW, 
+    Token::POW_XOR, 
     Token::FAC, 
     Token::RIGHT_PAREN
 };
@@ -137,7 +137,7 @@ static inline constexpr std::initializer_list<Token> invalid_tokens = {
     Token::SUB, 
     Token::MULT, 
     Token::DIV, 
-    Token::POW, 
+    Token::POW_XOR, 
     Token::FAC, 
     Token::RIGHT_PAREN
 };
@@ -147,7 +147,7 @@ std::array<std::pair<Token, std::initializer_list<Token> >, 7 > invalid_math_ope
     std::make_pair(Token::SUB, invalid_tokens_no_add_sub),
     std::make_pair(Token::MULT, invalid_tokens),
     std::make_pair(Token::DIV, invalid_tokens),
-    std::make_pair(Token::POW, invalid_tokens_no_add_sub), 
+    std::make_pair(Token::POW_XOR, invalid_tokens_no_add_sub), 
     std::make_pair(Token::LEFT_PAREN, invalid_tokens_no_add_sub)
 };
 
