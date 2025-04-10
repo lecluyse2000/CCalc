@@ -253,7 +253,7 @@ constexpr std::optional<std::string> error_bool(const Token current_token, const
     } else if (token == ']' || token == '[') {
         return "Invalid use of brackets detected! Just use parentheses please.";
     }
-    return "Expected &, |, !, @, $, received: " + std::string{token};
+    return "Expected &, |, !, @, ^, received: " + std::string{token};
 }
 
 }  // namespace Error
