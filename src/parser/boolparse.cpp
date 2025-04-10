@@ -22,9 +22,6 @@ std::optional<std::string> bool_loop_body(BoolParseState& state, std::vector<Tok
     // if the token is an operator or a closing parentheses, add it to the stack
     // If the token is an open parentheses, pop from the stack and add to the string until a closing parentheses is
     // found
-    if (!is_valid_bool_token(*state.itr)) {
-        return Error::invalid_character_error_bool(*state.itr);
-    }
     state.current_token = static_cast<Token>(*state.itr);
     // Check for various errors
     const auto checker_result = Error::error_bool(state.current_token, state.previous_token);
