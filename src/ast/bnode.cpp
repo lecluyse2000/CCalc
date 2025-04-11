@@ -21,8 +21,10 @@ BoolNode::BoolNode(const Types::Token token) noexcept : key(token){}
             return left_value || right_value;
         case Types::Token::NAND:
             return !(left_value && right_value);
-        default:
+        case Types::Token::POW_XOR:
             return (!left_value && right_value) || (left_value && !right_value);
+        default:
+            throw std::runtime_error("Invalid opkey: " + std::string{static_cast<char>(key)} );
     }
 
 }

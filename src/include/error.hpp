@@ -57,6 +57,7 @@ constexpr std::optional<std::string> check_trailing(const std::string_view infix
     } else if (rbegin == Token::LEFT_PAREN) {
         return std::optional<std::string>("Expression ends with open parentheses");
     }
+
     return std::nullopt;
 }
 
@@ -163,6 +164,7 @@ constexpr std::optional<std::string> check_missing_operand_math(const Token curr
             }
         }
     }
+
     return std::nullopt;
 }
 
@@ -211,6 +213,7 @@ constexpr std::optional<std::string> variable_error(const Token previous_token) 
     } else if (std::isdigit(static_cast<char>(previous_token))) {
         return std::optional<std::string>("Digit detected after variable");
     }
+
     return std::nullopt;
 }
 
@@ -224,6 +227,7 @@ constexpr std::optional<std::string> error_math(const Token current_token, const
         const auto result = check(current_token, previous_token);
         if (result) return result;
     }
+
     return std::nullopt;
 }
 
@@ -237,6 +241,7 @@ constexpr std::optional<std::string> error_bool(const Token current_token, const
         const auto result = check(current_token, previous_token);
         if (result) return result;
     }
+
     return std::nullopt;
 }
 
@@ -244,6 +249,7 @@ constexpr std::optional<std::string> error_bool(const Token current_token, const
     if (token == ']' || token == '[') {
         return "Invalid use of brackets detected! Just use parentheses please.";
     }
+
     return "Expected +, -, *, /, ^, received: " + std::string{token};
 }
 
@@ -253,10 +259,10 @@ constexpr std::optional<std::string> error_bool(const Token current_token, const
     } else if (token == ']' || token == '[') {
         return "Invalid use of brackets detected! Just use parentheses please.";
     }
+
     return "Expected &, |, !, @, ^, received: " + std::string{token};
 }
 
 }  // namespace Error
-
 
 #endif

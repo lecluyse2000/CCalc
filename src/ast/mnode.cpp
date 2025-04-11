@@ -67,8 +67,10 @@ static inline mpz_class mpz_exponent(mpz_class& left_value, mpz_class& right_val
             return left_value - right_value;
         case Token::MULT:
             return left_value * right_value;
-        default:
+        case Token::POW_XOR:
             return mpz_exponent(left_value, right_value);
+        default:
+            throw std::runtime_error("Invalid opkey: " + std::string{static_cast<char>(key)} );
     }
 }
 
@@ -92,9 +94,11 @@ mpfr_t& OperationMNode::evaluate_float() {
             }
             mpfr_div(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
-        default:
+        case Token::POW_XOR:
             mpfr_pow(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
+        default:
+            throw std::runtime_error("Invalid opkey: " + std::string{static_cast<char>(key)} );
     }
 }
 

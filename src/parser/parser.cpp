@@ -44,6 +44,7 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
 
         // Special check since ^ is exponent for math and xor for boolean
         if (c == '^') return pow_search(infix_expression, itr); 
+
         // Check if "TAN" is present in the expression, since TAN has a T and would mess things up
         if (c == 'T') {
             const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)), 3);
