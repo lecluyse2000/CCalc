@@ -40,15 +40,9 @@ void BoolAST::build_ast(const std::span<const Types::Token> prefix_expression) n
 
 [[nodiscard]] bool BoolAST::evaluate() const { return m_root->evaluate(); }
 
-std::unique_ptr<MathNodes::MathNode> MathAST::rec_build_ast(const std::span<const Types::Token>& prefix_expression, const bool floating_point,
-                                                            std::size_t& index) {
-    Token current_token = prefix_expression[index++];
-    if (current_token == Token::COMMA) {
-        current_token = prefix_expression[index++];
-    }
-
-    if (is_math_operand(current_token)) {
-        if (is_math_var(current_token) && current_token != Token::ANS) {
+std::unique_ptr<MathNodes::MathNode> build_value_node(const std::span<const Types::Token>& prefix_expression, const bool floating_point,
+                                                      std::size_t& index, const Token current_token) {
+        if (is_math_var(current_token)) {
             return std::make_unique<MathNodes::ValueMNode>(current_token); 
         }
         std::string current_num;
@@ -58,10 +52,22 @@ std::unique_ptr<MathNodes::MathNode> MathAST::rec_build_ast(const std::span<cons
             if (next_token == Token::COMMA) break;
             current_num += static_cast<char>(next_token); 
         }
+
         if (floating_point) {
             return std::make_unique<MathNodes::ValueMNode>("0", current_num);
         }
         return std::make_unique<MathNodes::ValueMNode>(current_num, "0");
+}
+
+std::unique_ptr<MathNodes::MathNode> MathAST::rec_build_ast(const std::span<const Types::Token>& prefix_expression,
+                                                            const bool floating_point, std::size_t& index) {
+    Token current_token = prefix_expression[index++];
+    if (current_token == Token::COMMA) {
+        current_token = prefix_expression[index++];
+    }
+
+    if (is_math_operand(current_token)) {
+        return build_value_node(prefix_expression, floating_point, index, current_token);
     }
 
     std::unique_ptr<MathNodes::MathNode> node;
