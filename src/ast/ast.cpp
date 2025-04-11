@@ -40,8 +40,8 @@ void BoolAST::build_ast(const std::span<const Types::Token> prefix_expression) n
 
 [[nodiscard]] bool BoolAST::evaluate() const { return m_root->evaluate(); }
 
-std::unique_ptr<MathNodes::MathNode> build_value_node(const std::span<const Types::Token>& prefix_expression, const bool floating_point,
-                                                      std::size_t& index, const Token current_token) {
+std::unique_ptr<MathNodes::MathNode> MathAST::build_value_node(const std::span<const Types::Token>& prefix_expression, const bool floating_point,
+                                                               std::size_t& index, const Token current_token) {
         if (is_math_var(current_token)) {
             return std::make_unique<MathNodes::ValueMNode>(current_token); 
         }
