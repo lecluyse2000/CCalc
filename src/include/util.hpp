@@ -69,12 +69,16 @@ inline void trim_trailing_zero_mpfr(std::vector<char>& buffer) {
         return c == '.';
     });
     if (find_decimal == buffer.end()) return;
-    const auto last_non_zero = std::find_if(buffer.rbegin(), buffer.rend(), [](const char c) {
+
+    const auto last_non_zero = std::ranges::find_if(buffer.rbegin(), buffer.rend(), [](const char c) {
         return c != '0' && c != '.';
     });
+
     if (last_non_zero != buffer.rend()) {
         buffer.erase(last_non_zero.base(), buffer.end());
-    } 
+    } else {
+        buffer.erase(find_decimal, buffer.end());
+    }
     if (buffer.size() == 1 && buffer[0] == '-') buffer[0] = '0'; // Handle negative 0 case
 }
 
