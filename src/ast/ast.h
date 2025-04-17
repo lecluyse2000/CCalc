@@ -32,7 +32,7 @@ class MathAST {
 
    private:
     std::unique_ptr<MathNodes::MathNode> build_value_node(const std::span<const Types::Token>& prefix_expression, const bool floating_point,
-                                                          std::size_t& index, const Token current_token);
+                                                          std::size_t& index, const Token current_token) const;
     std::unique_ptr<MathNodes::MathNode> rec_build_ast(const std::span<const Types::Token>& prefix_expression, const bool floating_point,
                                                        std::size_t& index);
     std::unique_ptr<MathNodes::MathNode> m_root;
