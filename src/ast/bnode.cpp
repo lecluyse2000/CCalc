@@ -21,6 +21,8 @@ BoolNode::BoolNode(const Types::Token token) noexcept : key(token){}
             return left_value || right_value;
         case Types::Token::NAND:
             return !(left_value && right_value);
+        case Types::Token::NOR:
+            return !(left_value || right_value);
         case Types::Token::POW_XOR:
             return (!left_value && right_value) || (left_value && !right_value);
         default:

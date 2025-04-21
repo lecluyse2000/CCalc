@@ -50,6 +50,7 @@ enum struct Token : char {
     AND = '&',
     OR = '|',
     NAND = '@',
+    NOR = '$',
     TRUE = 'T',
     FALSE = 'F'
 };
@@ -102,6 +103,7 @@ inline constexpr bool is_valid_bool_token(const char c) {
         case '|':
         case '^':
         case '@':
+        case '$':
         case 'T':
         case 'F':
             return true;
