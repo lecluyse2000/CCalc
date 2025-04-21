@@ -41,22 +41,22 @@ void BoolAST::build_ast(const std::span<const Types::Token> prefix_expression) n
 [[nodiscard]] bool BoolAST::evaluate() const { return m_root->evaluate(); }
 
 std::unique_ptr<MathNodes::MathNode> MathAST::build_value_node(const std::span<const Types::Token>& prefix_expression, const bool floating_point,
-                                                               std::size_t& index, const Token current_token) const {
-        if (is_math_var(current_token)) {
-            return std::make_unique<MathNodes::ValueMNode>(current_token); 
-        }
-        std::string current_num;
-        current_num += static_cast<char>(current_token);
-        while (index < prefix_expression.size()) {
-            const Token next_token = prefix_expression[index++];
-            if (next_token == Token::COMMA) break;
-            current_num += static_cast<char>(next_token); 
-        }
+                                                               std::size_t& index) const {
+    if (is_math_var(prefix_expression[index - 1])) {
+        return std::make_unique<MathNodes::ValueMNode>(prefix_expression[index - 1]); 
+    }
+    std::string current_num;
+    current_num += static_cast<char>(prefix_expression[index - 1]);
+    while (index < prefix_expression.size()) {
+        const Token next_token = prefix_expression[index++];
+        if (next_token == Token::COMMA) break;
+        current_num += static_cast<char>(next_token); 
+    }
 
-        if (floating_point) {
-            return std::make_unique<MathNodes::ValueMNode>("0", current_num);
-        }
-        return std::make_unique<MathNodes::ValueMNode>(current_num, "0");
+    if (floating_point) {
+        return std::make_unique<MathNodes::ValueMNode>("0", current_num);
+    }
+    return std::make_unique<MathNodes::ValueMNode>(current_num, "0");
 }
 
 std::unique_ptr<MathNodes::MathNode> MathAST::rec_build_ast(const std::span<const Types::Token>& prefix_expression,
@@ -67,7 +67,7 @@ std::unique_ptr<MathNodes::MathNode> MathAST::rec_build_ast(const std::span<cons
     }
 
     if (is_math_operand(current_token)) {
-        return build_value_node(prefix_expression, floating_point, index, current_token);
+        return build_value_node(prefix_expression, floating_point, index);
     }
 
     std::unique_ptr<MathNodes::MathNode> node;

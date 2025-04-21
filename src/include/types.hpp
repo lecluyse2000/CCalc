@@ -202,6 +202,7 @@ enum struct Setting {
         case Token::AND:
         case Token::OR:
         case Token::NAND:
+        case Token::NOR:
         case Token::POW_XOR:
             return true;
         default:
