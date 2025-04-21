@@ -62,21 +62,25 @@ Exiting...
 #### Boolean
 
 | Symbol | Operator |
-|-------------------|
+|--------|----------|
 |\&       |AND   |
 |   \|   |OR   |
 |\^       |XOR   |
 |\@       |NAND   |
+|\$       |NOR    |
 |\!       |NOT   |
 
 #### Arithmetic
 
-\+   Addition   
-\-   Subtraction   
-\*   Multiplication   
-/   Division   
-^   Exponent   
-!   Factorial   
+| Symbol | Operator |
+|--------|----------|
+|\+   |Addition   |
+|\-   |Subtraction   |
+|\*   |Multiplication |  
+|/    |Division   |
+|^    |Exponent   |
+|!    |Factorial   |
+
 Why no sqrt? Because sqrt(x) = x^(1/2)   
 `pi` and `e` are supported variables   
 `sin`, `cos`, and `tan` are supported   
