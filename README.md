@@ -61,11 +61,13 @@ Exiting...
 
 #### Boolean
 
-&   AND   
-|   OR   
-^   XOR   
-@   NAND   
-!   NOT   
+| Symbol | Operator |
+|-------------------|
+|\&       |AND   |
+|   \|   |OR   |
+|\^       |XOR   |
+|\@       |NAND   |
+|\!       |NOT   |
 
 #### Arithmetic
 
