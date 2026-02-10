@@ -97,7 +97,6 @@ inline void add_to_history(std::string& orig_input, std::string&& final_val,
     history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_val)));
 }
 
-
 inline void print_pi(std::string& orig_input,
                      std::vector<std::pair<std::string, std::string> >& history) {
     mpfr_t pi;
@@ -228,43 +227,6 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
     }
 }
 
-// Overloaded functions for non-continuous mode
-
-void math_procedure(const ParseResult& result) {
-    if (result.is_floating_point) {
-        try {
-            const auto tree = std::make_unique<MathAST>();
-            tree->build_ast(result.result, result.is_floating_point);
-            const mpfr_t& final_value = tree->evaluate_floating_point();
-            UI::print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
-        } catch (const std::exception& err) {
-            std::cerr << "Error: " << err.what() << '\n';
-        }
-        return;
-    }
-    try {
-        const auto tree = std::make_unique<MathAST>();
-        tree->build_ast(result.result, result.is_floating_point);
-        const mpz_class final_value = tree->evaluate();
-        std::cout << "Result: " << final_value.get_str() << '\n';
-    } catch (const std::bad_alloc& err) {
-        std::cerr << "Error: The number grew too big!\n";
-    } catch (const std::exception& err) {
-        std::cerr << "Error: " << err.what() << '\n';
-    }
-}
-
-void bool_procedure(const std::span<const Token> result) {
-    const auto syntax_tree = std::make_unique<BoolAST>();
-    syntax_tree->build_ast(result);
-    std::cout << "Result: ";
-    if (syntax_tree->evaluate()) {
-        std::cout << "True\n";
-    } else {
-        std::cout << "False\n";
-    }
-}
-
 [[nodiscard]] int program_loop() {
     std::string input_expression;
     std::vector<std::pair<std::string, std::string> > program_history;
@@ -298,6 +260,50 @@ void bool_procedure(const std::span<const Token> result) {
                 std::ranges::transform(input_expression, input_expression.begin(), [](const auto c){ return std::toupper(c); });
                 evaluate_expression(orig_input, input_expression, program_history);
         }
+    }
+}
+
+void math_procedure_float(const ParseResult& result) {
+    try {
+        const auto tree = std::make_unique<MathAST>();
+        tree->build_ast(result.result, result.is_floating_point);
+        const mpfr_t& final_value = tree->evaluate_floating_point();
+        UI::print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
+    } catch (const std::exception& err) {
+        std::cerr << "Error: " << err.what() << '\n';
+    }
+}
+
+void math_procedure_int(const ParseResult& result) {
+    try {
+        const auto tree = std::make_unique<MathAST>();
+        tree->build_ast(result.result, result.is_floating_point);
+        const mpz_class final_value = tree->evaluate();
+        std::cout << "Result: " << final_value.get_str() << '\n';
+    } catch (const std::bad_alloc& err) {
+        std::cerr << "Error: The number grew too big!\n";
+    } catch (const std::exception& err) {
+        std::cerr << "Error: " << err.what() << '\n';
+    }
+}
+
+// Overloaded functions for non-continuous mode
+void math_procedure(const ParseResult& result) {
+    if (result.is_floating_point) {
+        math_procedure_float(result);
+    } else {
+        math_procedure_int(result);
+    }
+}
+
+void bool_procedure(const std::span<const Token> result) {
+    const auto syntax_tree = std::make_unique<BoolAST>();
+    syntax_tree->build_ast(result);
+    std::cout << "Result: ";
+    if (syntax_tree->evaluate()) {
+        std::cout << "True\n";
+    } else {
+        std::cout << "False\n";
     }
 }
 
