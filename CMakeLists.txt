@@ -44,6 +44,7 @@ target_sources(ccalc PRIVATE
     "src/parser/mathparse.cpp"
     "src/file/file.cpp"
     "src/startup/startup.cpp"
+    "src/engine/engine.cpp"
 )
 
 #Includes the header files from src
@@ -55,6 +56,7 @@ target_include_directories(ccalc PRIVATE
     "src/file"
     "src/startup"
     "src/include"
+    "src/engine"
     ${GMP_INCLUDE_DIR}
     ${MPFR_INCLUDE_DIR}
 )
