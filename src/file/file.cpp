@@ -27,9 +27,9 @@ using namespace Types;
 namespace File {
 
 void output_history(const std::span<const std::pair<std::string, std::string> > history, 
-                    std::ofstream& output_file) noexcept {
+                    std::ofstream& output_file) {
     std::ranges::for_each(history, [&output_file](const auto& expression_result) {
-        const auto [expression, result] = expression_result;
+        const auto& [expression, result] = expression_result;
         output_file << "Expression: " << expression << std::endl <<"Result: " << result << std::endl;
     });
 }
