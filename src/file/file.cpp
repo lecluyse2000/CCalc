@@ -26,21 +26,16 @@ using namespace Types;
 // We have to use C style file output here since mpfr is a C library
 namespace File {
 
+// Utility function for outputting to a file
 void output_history(const std::span<const std::pair<std::string, std::string> > history, 
                     std::ofstream& output_file) {
     std::ranges::for_each(history, [&output_file](const auto& expression_result) {
         const auto& [expression, result] = expression_result;
-        output_file << "Expression: " << expression << std::endl <<"Result: " << result << std::endl;
+        output_file << "Expression: " << expression <<"\nResult: " << result << '\n';
     });
 }
 
 namespace {
-
-#ifdef _WIN32
-    inline constexpr std::string_view escape_sequence = "\r\n";
-#else
-    inline constexpr std::string_view escape_sequence = "\n";
-#endif
 
 [[nodiscard]] std::vector<std::string> get_expressions() noexcept {
     std::vector<std::string> expressions;
@@ -61,7 +56,6 @@ namespace {
     return expressions;
 }
 
-// Prints an MPFR float using the two functions defined above
 bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec_t display_precision) {
     std::vector<char> buffer(Util::buffer_size);
     if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return false;
@@ -69,7 +63,7 @@ bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec
     for (const auto c : buffer) {
         fprintf(output_file, "%c", c);
     }
-    fprintf(output_file, "%s", escape_sequence.data());
+    fprintf(output_file, "\n");
     return true;
 }
 
@@ -79,13 +73,13 @@ void math_float_procedure(FILE*& output_file, const std::span<const Token> resul
         tree->build_ast(result, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
         if (mpfr_integer_p(final_value)) {
-            mpfr_fprintf(output_file, "Result: %.0Rf%s", final_value, escape_sequence.data());
+            mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
         } else {
             if(!mpfr_to_file(output_file, final_value,
                              static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)))) [[unlikely]] return;
         }
     } catch (const std::exception& err) {
-        fprintf(output_file, "Error: %s%s", err.what(), escape_sequence.data()); 
+        fprintf(output_file, "Error: %s\n", err.what()); 
     }
 }
 
@@ -94,11 +88,11 @@ void math_int_procedure(FILE*& output_file, const std::span<const Token> result)
         const auto tree = std::make_unique<MathAST>();
         tree->build_ast(result, false);
         const mpz_class final_value = tree->evaluate();
-        gmp_fprintf(output_file, "Result: %Zd%s", final_value.get_mpz_t(), escape_sequence.data());
+        gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
     } catch (const std::bad_alloc& err) {
-        fprintf(output_file, "Error: The number grew too big!%s", escape_sequence.data()); 
+        fprintf(output_file, "Error: The number grew too big!\n"); 
     } catch (const std::exception& err) {
-        fprintf(output_file, "Error: %s%s", err.what(), escape_sequence.data()); 
+        fprintf(output_file, "Error: %s\n", err.what()); 
     }
 }
 
@@ -114,9 +108,9 @@ void bool_procedure(FILE*& output_file, const std::span<const Token> result) {
     const auto syntax_tree = std::make_unique<BoolAST>();
     syntax_tree->build_ast(result);
     if (syntax_tree->evaluate()) {
-        fprintf(output_file, "Result: True%s", escape_sequence.data());
+        fprintf(output_file, "Result: True\n");
     } else {
-        fprintf(output_file, "Result: False%s", escape_sequence.data());
+        fprintf(output_file, "Result: False\n");
     }
 }
 
@@ -126,9 +120,9 @@ void main_loop(FILE*& output_file, std::string& expression) {
     std::ranges::transform(expression, expression.begin(), [](const auto c){ return std::toupper(c); });
     const ParseResult result = Parse::create_prefix_expression(expression);
 
-    fprintf(output_file, "Expression: %s%s", orig_expression.c_str(), escape_sequence.data());
+    fprintf(output_file, "Expression: %s\n", orig_expression.c_str());
     if (!result.success) {
-        fprintf(output_file, "Error: %s%s", result.error_msg.c_str(), escape_sequence.data());
+        fprintf(output_file, "Error: %s\n", result.error_msg.c_str());
         return;
     }
     if(result.is_math) {
