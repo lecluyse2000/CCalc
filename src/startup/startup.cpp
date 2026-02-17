@@ -101,7 +101,6 @@ bool create_ini(const std::filesystem::path& full_path) {
     }
     return true;
 }
-
 }
 
 [[nodiscard]] std::unordered_map<Setting, long> source_ini() noexcept {
@@ -132,5 +131,7 @@ bool create_ini(const std::filesystem::path& full_path) {
 
     return retval;
 }
+
+const std::unordered_map<Types::Setting, long> settings = source_ini();
 
 }
