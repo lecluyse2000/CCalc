@@ -60,7 +60,7 @@ namespace {
 bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec_t display_precision) {
     std::string buffer;
     buffer.reserve(Util::buffer_size);
-    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return false;
+    if(!Util::convert_mpfr_string(buffer, final_value, display_precision)) [[unlikely]] return false;
     fprintf(output_file, "Result: ");
     for (const auto c : buffer) {
         fprintf(output_file, "%c", c);

@@ -41,7 +41,7 @@ inline void trim_trailing_zero_mpfr(std::string& buffer) {
 
 // Convert an MPFR to a string 
 [[nodiscard]]
-inline bool convert_mpfr_char_vec(std::string& out, const mpfr_t& val, const mpfr_prec_t display_precision) {
+inline bool convert_mpfr_string(std::string& out, const mpfr_t& val, const mpfr_prec_t display_precision) {
     // If the float is an integer, don't worry about the precision
     const int snprintf_result = mpfr_integer_p(val) ? mpfr_snprintf(out.data(), buffer_size, "%.0Rf", val)
                                                     : mpfr_snprintf(out.data(), buffer_size, "%.*Rf", display_precision, val);
