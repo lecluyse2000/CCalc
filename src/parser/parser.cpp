@@ -77,7 +77,7 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
 clear_stack(std::vector<Token>& prefix_expression, std::stack<Token>& operator_stack, const bool is_math) {
     while (!operator_stack.empty()) {
         if (operator_stack.top() == Token::RIGHT_PAREN) {
-            Util::empty_stack(operator_stack);
+            while (!operator_stack.empty()) operator_stack.pop();
             return std::optional<std::string_view>("Missing open parentheses");
         }
         prefix_expression.push_back(operator_stack.top());

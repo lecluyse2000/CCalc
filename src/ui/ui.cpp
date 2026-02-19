@@ -9,7 +9,6 @@
 #include <span>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "include/util.hpp"
 #include "version.hpp"
@@ -38,23 +37,21 @@ void print_result(const std::string_view result) {
     std::cout << "Result: " << result << '\n';
 }
 
-// Prints an MPFR float using the two functions defined above
-std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_precision) {
-    std::vector<char> buffer(Util::buffer_size);
-    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return "";
-    std::cout << "Result: ";
-    for (const char c : buffer) {
-        std::cout << c;
-    }
-    std::cout << '\n';
+void print_error(const std::string_view error) {
+    std::cerr << "Error: " << error << '\n';
+}
 
-    // Have to return using iterators since it's not null teriminated
-    return std::string(buffer.begin(), buffer.end()); 
+std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_precision) {
+    std::string buffer;
+    buffer.resize(Util::buffer_size);
+    if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return "";
+    UI::print_result(buffer);
+    return buffer; 
 }
 
 void print_history(const std::span<const std::pair<std::string, std::string> > history) {
     std::ranges::for_each(history, [](const auto& expression_result) {
-        const auto [expression, result] = expression_result;
+        const auto& [expression, result] = expression_result;
         std::cout << "Expression: " << expression << "\nResult: " << result << "\n";
     });
     std::cout << std::endl;

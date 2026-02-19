@@ -20,6 +20,7 @@
 #include "include/util.hpp"
 #include "parser/parser.h"
 #include "startup/startup.h"
+#include "ui/ui.h"
 
 using namespace Types;
 
@@ -57,7 +58,8 @@ namespace {
 }
 
 bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec_t display_precision) {
-    std::vector<char> buffer(Util::buffer_size);
+    std::string buffer;
+    buffer.reserve(Util::buffer_size);
     if(!Util::convert_mpfr_char_vec(buffer, final_value, display_precision)) [[unlikely]] return false;
     fprintf(output_file, "Result: ");
     for (const auto c : buffer) {
@@ -142,7 +144,7 @@ void initiate_file_mode() {
     FILE* output_file;
     output_file = fopen(output_file_name->c_str(), "w");
     if(!output_file) [[unlikely]] {
-        std::cerr << "Error opening file!\n";
+        UI::print_error("Error opening file");
         return;
     }
 

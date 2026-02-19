@@ -37,7 +37,7 @@ namespace {
 
     std::ofstream output_file(*filename);
     if (!output_file.is_open()) [[unlikely]] {
-        std::cerr << "Output file could not be created!\n\n";
+        UI::print_error("Output file could not be created!\n\n");
         return false;
     }
 
@@ -53,14 +53,14 @@ namespace {
         return InputResult::CONTINUE;
     } else if (input_expression == "history") {
         if (program_history.empty()) {
-            std::cerr << "You haven't evaluated any expressions yet\n";
+            UI::print_error("You haven't evaluated any expressions yet\n");
             return InputResult::CONTINUE;
         }
         UI::print_history(program_history);
         return InputResult::CONTINUE;
     } else if (input_expression == "save") {
         if (program_history.empty()) {
-            std::cerr << "You haven't evaluated any expressions yet\n";
+            UI::print_error("You haven't evaluated any expressions yet\n");
             return InputResult::CONTINUE;
         }
 
@@ -74,7 +74,7 @@ namespace {
         std::cout << "History cleared\n";
         return InputResult::CONTINUE;
     } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
-        std::cout << "Exiting...\n" << std::endl;
+        std::cout << "Exiting...\n\n";
         return InputResult::QUIT_SUCCESS;
     }
 
@@ -110,6 +110,8 @@ inline void print_pi(std::string& orig_input,
 
 inline std::string trim_euler() {
     std::string euler_retval = std::string(euler);
+
+    // The "+ 2" is to keep the 2 and the decimal of e
     euler_retval.erase(static_cast<std::size_t>(Startup::settings.at(Setting::DISPLAY_PREC) + 2), std::string::npos);
     return euler_retval;
 }
@@ -148,7 +150,7 @@ void math_float_procedure(std::string& orig_input, const std::span<const Token> 
         if (final_val.empty()) [[unlikely]] return;
         add_to_history(orig_input, final_val, history);
     } catch (const std::exception& err) {
-        std::cerr << "Error: " << err.what() << '\n';
+        UI::print_error(err.what());
     }
     return;
 }
@@ -159,12 +161,12 @@ void math_int_procedure(std::string& orig_input, const std::span<const Token> pr
         const auto tree = std::make_unique<MathAST>();
         tree->build_ast(prefix_input, false);
         const mpz_class final_value = tree->evaluate();
-        std::cout << "Result: " << final_value.get_str() << '\n';
+        UI::print_result(final_value.get_str());
         add_to_history(orig_input, final_value.get_str(), history);
     } catch (const std::bad_alloc& err) {
-        std::cerr << "Error: The number grew too big\n";
+        UI::print_error("The number grew too big\n");
     } catch (const std::exception& err) {
-        std::cerr << "Error: " << err.what() << '\n';
+        UI::print_error(err.what());
     }
 }
 
@@ -183,22 +185,21 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
                     std::vector<std::pair<std::string, std::string> >& history) {
     const auto syntax_tree = std::make_unique<BoolAST>();
     syntax_tree->build_ast(prefix_input);
-    std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
-        std::cout << "True\n";
+        UI::print_result("True");
         add_to_history(orig_input, "True", history);
     } else {
-        std::cout << "False\n";
+        UI::print_result("False");
         add_to_history(orig_input, "False", history);
     }
 }
 
 [[nodiscard]] bool check_num_input(std::string& expression) {
     if (std::ranges::all_of(expression, ::isdigit)) {
-        std::cout << "Result: " << expression << '\n';
+        UI::print_result(expression);
         return true;
     } else if (expression == "E") {
-        std::cout << "Result: " << trim_euler() << '\n';
+        UI::print_result(trim_euler());
         return true;
     } else if (expression == "PI") {
         mpfr_t pi;
@@ -217,7 +218,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
     if (check_num_input(orig_input, expression, history)) return;
     const ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
-        std::cerr << "Error: " << result.error_msg << '\n';
+        UI::print_error(result.error_msg);
         return;
     }
     if(result.is_math) {
@@ -240,7 +241,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
             std::cerr << "Unknown error ocurred in receiving input. Aborting...\n\n";
             return 1;
         } else if (input_expression.empty()) {
-            std::cerr << "Error: Empty input received\n";
+            UI::print_error("Empty input received");
             continue;
         }
         std::string orig_input = input_expression;
@@ -270,7 +271,7 @@ void math_procedure_float(const ParseResult& result) {
         const mpfr_t& final_value = tree->evaluate_floating_point();
         UI::print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
     } catch (const std::exception& err) {
-        std::cerr << "Error: " << err.what() << '\n';
+        UI::print_error(err.what());
     }
 }
 
@@ -279,11 +280,11 @@ void math_procedure_int(const ParseResult& result) {
         const auto tree = std::make_unique<MathAST>();
         tree->build_ast(result.result, result.is_floating_point);
         const mpz_class final_value = tree->evaluate();
-        std::cout << "Result: " << final_value.get_str() << '\n';
+        UI::print_result(final_value.get_str());
     } catch (const std::bad_alloc& err) {
-        std::cerr << "Error: The number grew too big!\n";
+        UI::print_error("Error: The number grew too big!");
     } catch (const std::exception& err) {
-        std::cerr << "Error: " << err.what() << '\n';
+        UI::print_error(err.what());
     }
 }
 
@@ -299,11 +300,10 @@ void math_procedure(const ParseResult& result) {
 void bool_procedure(const std::span<const Token> result) {
     const auto syntax_tree = std::make_unique<BoolAST>();
     syntax_tree->build_ast(result);
-    std::cout << "Result: ";
     if (syntax_tree->evaluate()) {
-        std::cout << "True\n";
+        UI::print_result("True");
     } else {
-        std::cout << "False\n";
+        UI::print_result("False");
     }
 }
 
@@ -348,7 +348,7 @@ void evaluate_expression(std::string& expression) {
 
     const ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
-        std::cerr << "Error: " << result.error_msg << '\n';
+        UI::print_error(result.error_msg);
         return;
     }
     if(result.is_math) {

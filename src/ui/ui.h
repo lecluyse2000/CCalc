@@ -13,7 +13,8 @@ namespace UI {
 void print_excessive_arguments(const int arguments);
 void print_insufficient_arguments();
 void print_help_continuous();
-void print_result(const std::string_view);
+void print_result(const std::string_view result);
+void print_error(const std::string_view error);
 std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_precision);
 void print_history(const std::span<const std::pair<std::string, std::string> > history);
 void print_version();

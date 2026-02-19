@@ -1,4 +1,4 @@
-#include "startup.h"
+#include "startup/startup.h"
 
 #include <algorithm>
 #include <cctype>
@@ -11,7 +11,7 @@
 #include <unordered_map>
 
 #include "include/types.hpp"
-#include "include/util.hpp"
+#include "ui/ui.h"
 
 using namespace Types;
 
@@ -42,10 +42,10 @@ bool create_ini(const std::filesystem::path& full_path) {
         std::ofstream file(full_path, std::ios::trunc);
         if (file.is_open()) [[likely]] {
             file << "[Settings]\n";
-            for (std::size_t i = 0; i < Util::num_settings; ++i) {
+            for (std::size_t i = 0; i < num_settings; ++i) {
                 // Comment for angle setting
-                if (Util::setting_fields[i] == "angle=") file << "# angle=0 (radians) or angle=1 (degrees)\n";
-                file << Util::setting_fields[i] << Util::default_setting_values[i] << '\n'; 
+                if (setting_fields[i] == "angle=") file << "# angle=0 (radians) or angle=1 (degrees)\n";
+                file << setting_fields[i] << default_setting_values[i] << '\n'; 
             }
             return true;
         }
@@ -57,7 +57,7 @@ bool create_ini(const std::filesystem::path& full_path) {
 
 [[nodiscard]] inline bool create_ini_return_false(const std::filesystem::path& full_path) {
     if (!create_ini(full_path)) [[unlikely]] {
-        std::cerr << "Unable to create settings.ini\n";
+        UI::print_error("Unable to create settings.ini");
     }
     return false;
 }
@@ -93,7 +93,7 @@ bool create_ini(const std::filesystem::path& full_path) {
 // Verify there is no invalid setting in the map
 [[nodiscard]] bool final_verification(const std::filesystem::path& full_path,
                                       const std::unordered_map<Setting, long>& map) {
-    if (map.size() != Util::setting_keys.size()) {
+    if (map.size() != setting_keys.size()) {
         return create_ini_return_false(full_path);
     }
     if (map.contains(Setting::INVALID)) {
@@ -101,33 +101,42 @@ bool create_ini(const std::filesystem::path& full_path) {
     }
     return true;
 }
+
+inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
+    std::unordered_map<Types::Setting, long> retval;
+    for (std::size_t i = 0; i < num_settings; ++i) {
+        retval.emplace(setting_keys[i], default_setting_values[i]);
+    }
+    return retval;
+}
+
 }
 
 [[nodiscard]] std::unordered_map<Setting, long> source_ini() noexcept {
     std::unordered_map<Setting, long> retval;
     const std::filesystem::path parent_path = get_home_path();
-    if (parent_path.empty()) return Util::create_default_settings_map();
+    if (parent_path.empty()) return create_default_settings_map();
     const std::filesystem::path full_path = get_home_path() / ini_path;
 
     if (!std::filesystem::exists(full_path)) {
         if (!create_ini(full_path)) [[unlikely]] {
-            std::cerr << "Unable to create settings.ini\n";
+            UI::print_error("Unable to create settings.ini\n");
         }
-        return Util::create_default_settings_map();
+        return create_default_settings_map();
     }
 
     std::ifstream input_file(full_path);
     if (!input_file) [[unlikely]] {
         create_ini(full_path);
-        return Util::create_default_settings_map();
+        return create_default_settings_map();
     }
     std::string line;
     while (std::getline(input_file, line)) {
         if (line == "[Settings]") continue;
         if (line[0] == '#') continue; // Ignore comments
-        if(!create_retval(line, full_path, retval)) return Util::create_default_settings_map();
+        if(!create_retval(line, full_path, retval)) return create_default_settings_map();
     }
-    if (!final_verification(full_path, retval)) return Util::create_default_settings_map();
+    if (!final_verification(full_path, retval)) return create_default_settings_map();
 
     return retval;
 }
