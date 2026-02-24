@@ -1,6 +1,6 @@
 // Author: Caden LeCluyse
 
-#include "ast.h"
+#include "ast/ast.h"
 
 #include <cctype>
 #include <gmpxx.h>
@@ -8,8 +8,8 @@
 #include <span>
 
 #include "include/types.hpp"
-#include "bnode.h"
-#include "mnode.h"
+#include "ast/bnode.h"
+#include "ast/mnode.h"
 
 using namespace Types;
 

@@ -9,8 +9,8 @@
 #include <span>
 
 #include "include/types.hpp"
-#include "bnode.h"
-#include "mnode.h"
+#include "ast/bnode.h"
+#include "ast/mnode.h"
 
 class BoolAST {
    public:

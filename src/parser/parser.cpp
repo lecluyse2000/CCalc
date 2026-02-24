@@ -1,5 +1,5 @@
 // Author: Caden LeCluyse
-#include "parser.h"
+#include "parser/parser.h"
 
 #include <algorithm>
 #include <cctype>
@@ -11,7 +11,6 @@
 #include "boolparse.h"
 #include "include/error.hpp"
 #include "include/types.hpp"
-#include "include/util.hpp"
 #include "mathparse.h"
 
 using namespace Types;

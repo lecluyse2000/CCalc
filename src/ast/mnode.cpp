@@ -1,6 +1,6 @@
 // Author: Caden LeCluyse
 
-#include "mnode.h"
+#include "ast/mnode.h"
 
 #include <cctype>
 #include <gmpxx.h>

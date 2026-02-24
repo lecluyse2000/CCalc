@@ -1,6 +1,6 @@
 // Author: Caden LeCluyse
 
-#include "engine.h"
+#include "engine/engine.h"
 
 #include <algorithm>
 #include <cctype>
@@ -10,6 +10,8 @@
 #include <memory>
 #include <mpfr.h>
 #include <optional>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include <span>
 #include <string_view>
 #include <utility>
@@ -229,25 +231,29 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
 }
 
 [[nodiscard]] int program_loop() {
-    std::string input_expression;
+    char* input_expression;
     std::vector<std::pair<std::string, std::string> > program_history;
     program_history.reserve(static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY)));
 
     while (true) {
-        std::cout << "Please enter your expression, or enter help to see all available commands: ";
+        input_expression = readline("Please enter your expression, or enter help to see all available commands: ");
 
         // If the input fails for some reason
-        if (!std::getline(std::cin, input_expression)) [[unlikely]] {
+        if (!input_expression) [[unlikely]] {
             std::cerr << "Unknown error ocurred in receiving input. Aborting...\n\n";
             return 1;
-        } else if (input_expression.empty()) {
+        }
+        std::string input_expression_string(input_expression);
+        free(input_expression);
+
+        if (input_expression_string.empty()) {
             UI::print_error("Empty input received");
             continue;
         }
-        std::string orig_input = input_expression;
+        std::string orig_input = input_expression_string;
         // Remove spaces from the user's input
-        input_expression.erase(remove(input_expression.begin(), input_expression.end(), ' '), input_expression.end());
-        const Engine::InputResult result = handle_input(input_expression, program_history);
+        input_expression_string.erase(remove(input_expression_string.begin(), input_expression_string.end(), ' '), input_expression_string.end());
+        const Engine::InputResult result = handle_input(input_expression_string, program_history);
 
         // Based upon the input the program exits, continues, or evaluates the expression
         switch (result) {
@@ -258,8 +264,8 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
             case Engine::InputResult::CONTINUE:
                 continue;
             default:
-                std::ranges::transform(input_expression, input_expression.begin(), [](const auto c){ return std::toupper(c); });
-                evaluate_expression(orig_input, input_expression, program_history);
+                std::ranges::transform(input_expression_string, input_expression_string.begin(), [](const auto c){ return std::toupper(c); });
+                evaluate_expression(orig_input, input_expression_string, program_history);
         }
     }
 }
