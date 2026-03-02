@@ -9,6 +9,7 @@
 #include <iostream>
 #include <mpfr.h>
 #include <optional>
+#include <readline/history.h>
 #include <span>
 #include <string>
 #include <stdio.h>
@@ -28,12 +29,19 @@ using namespace Types;
 namespace File {
 
 // Utility function for outputting to a file
-void output_history(const std::span<const std::pair<std::string, std::string> > history, 
-                    std::ofstream& output_file) {
-    std::ranges::for_each(history, [&output_file](const auto& expression_result) {
-        const auto& [expression, result] = expression_result;
-        output_file << "Expression: " << expression << "\nResult: " << result << '\n';
-    });
+void output_history(std::ofstream& output_file) {
+    const HIST_ENTRY* const * const history = history_list(); 
+
+    for (int i = 0; history[i] != NULL; ++i) {
+        const HIST_ENTRY* const entry = history_get(i);
+
+        if (!entry) {
+            UI::print_error("NULL pointer reached in print_history! This should not happen");
+            return;
+        }
+        
+        output_file << "Result: " << entry->line << "\nResult: " << static_cast<char*>(entry->data);
+    }
 }
 
 namespace {

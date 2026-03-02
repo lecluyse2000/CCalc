@@ -2,13 +2,11 @@
 
 #include "ui/ui.h"
 
-#include <algorithm>
 #include <gmpxx.h>
 #include <iostream>
 #include <mpfr.h>
-#include <span>
+#include <readline/history.h>
 #include <string>
-#include <utility>
 
 #include "startup/startup.h"
 #include "include/util.hpp"
@@ -51,12 +49,19 @@ std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_prec
     return buffer; 
 }
 
-void print_history(const std::span<const std::pair<std::string, std::string> > history) {
-    std::ranges::for_each(history, [](const auto& expression_result) {
-        const auto& [expression, result] = expression_result;
-        std::cout << "Expression: " << expression << "\nResult: " << result << "\n";
-    });
-    std::cout << std::endl;
+void print_history() {
+    const HIST_ENTRY* const * const history = history_list(); 
+
+    for (int i = 0; history[i] != NULL; ++i) {
+        const HIST_ENTRY* const entry = history_get(i);
+
+        if (!entry) {
+            print_error("NULL pointer reached in print_history! This should not happen");
+            return;
+        }
+        
+        std::cout << "Result: " << entry->line << "\nResult: " << static_cast<char*>(entry->data);
+    }
 }
 
 void print_version() {
@@ -100,7 +105,6 @@ void print_help() {
               << "\t - The 'display_digits=' field is set in digits, and it modifies the precision when printing the result (default = 15).\n"
               << "\t - The 'max_history=' field sets the maximum entries of the history when in continuous mode (default = 50).\n"
               << "\t - The 'angle=' setting specifies whether the program is using radians or degrees. 0 means radians, 1 means degrees (default = 0).\n"
-
               << std::endl;
 }
 

@@ -19,18 +19,8 @@ namespace Startup {
 
 namespace {
 
-#ifdef _WIN32
-    inline constexpr std::string_view ini_path = "AppData\\Local\\ccalc\\settings.ini";
-#else
-    inline constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
-#endif
-
 [[nodiscard]] std::filesystem::path get_home_path() {
-    #ifdef _WIN32
-        const char* const home_path = getenv("USERPROFILE");
-    #else
-        const char* const home_path = getenv("HOME");
-    #endif
+    const char* const home_path = getenv("HOME");
 
     if (!home_path) return "";
     return std::filesystem::path(home_path);
@@ -113,6 +103,7 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
 }
 
 [[nodiscard]] std::unordered_map<Setting, long> source_ini() noexcept {
+    static constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
     std::unordered_map<Setting, long> retval;
     const std::filesystem::path parent_path = get_home_path();
     if (parent_path.empty()) return create_default_settings_map();

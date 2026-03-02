@@ -32,6 +32,7 @@ inline constexpr std::array<long, num_settings> default_setting_values = {
     default_history_max,
     default_angle
 };
+
 extern const std::unordered_map<Types::Setting, long> settings;
 [[nodiscard]] std::unordered_map<Types::Setting, long> source_ini() noexcept;
 
