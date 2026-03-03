@@ -5,14 +5,17 @@
 
 #include <fstream>
 #include <readline/history.h>
+#include <span>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 namespace File {
 
-void output_history(std::ofstream& output_file);
-void write_history(std::ofstream& output_file, const std::unordered_map<HIST_ENTRY*, std::string>& history);
-std::unordered_map<HIST_ENTRY*, std::string> read_history(std::ifstream& input_file);
+void read_history(std::vector<std::pair<std::string, std::string> >& history, std::ifstream& input_file);
+void write_history(const std::span<const std::pair<std::string, std::string> > history, 
+                    std::ofstream& output_file);
+void output_history(const std::span<const std::pair<std::string, std::string> > history, 
+                    std::ofstream& output_file);
 void initiate_file_mode();
 
 }  // namespace File

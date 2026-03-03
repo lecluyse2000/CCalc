@@ -28,58 +28,33 @@ using namespace Types;
 // We have to use C style file output here since mpfr is a C library
 namespace File {
 
-// Utility function for outputting to a file for a user
-void output_history(std::ofstream& output_file) {
-    for (int i = history_base; i < history_base + history_length; ++i) {
-        const HIST_ENTRY* const entry = history_get(i);
-
-        if (!entry) {
-            UI::print_error("NULL pointer reached in print_history! This should not happen");
-            return;
-        }
-        
-        output_file << "Expression: " << entry->line << "\nResult: " << static_cast<char*>(entry->data)
-                    << "\nTime: " << entry->timestamp << '\n';
-    }
-}
-
-// Utility function for outputting to a file on shutdown
-void write_history(std::ofstream& output_file, const std::unordered_map<HIST_ENTRY*, std::string>& history) {
-    while (history_length > 0) {
-        HIST_ENTRY* entry = remove_history(0); 
-
-        if (!entry) {
-            UI::print_error("NULL pointer reached in print_history! This should not happen");
-            return;
-        }
-        output_file << 'E' << (entry->line ? entry->line : "") << '\n'
-                    << 'T' << (entry->timestamp ? entry->timestamp : "") << '\n'
-                    << 'D' << history.at(entry) << '\n';
-        Util::free_history_entry(entry);
-    }
-}
-
-namespace { void add_entry(std::string& line, std::unordered_map<HIST_ENTRY*, std::string>& history) {
-    if (line[0] == 'E') {
-        add_history(line.c_str() + 1);
-    } else if (line[0] == 'T') {
-        add_history_time(line.c_str() + 1);
-    } else if (line[0] == 'D') {
-        line.erase(line.begin());
-        HIST_ENTRY* const entry = history_get(history_base + history_length - 1);
-        history.try_emplace(entry, std::move(line));
-    }
-}}
-
-std::unordered_map<HIST_ENTRY*, std::string> read_history(std::ifstream& input_file) {
-    std::unordered_map<HIST_ENTRY*, std::string> retval; 
+void read_history(std::vector<std::pair<std::string, std::string> >& history, std::ifstream& input_file) {
     std::string line;
-    while (std::getline(input_file, line)) {
-        if (line.empty()) continue; // Skip blank lines
-        add_entry(line, retval);
-    }
+    std::string line2;
 
-    return retval;
+    while (std::getline(input_file, line)) {
+        std::getline(input_file,line2);
+        add_history(line.data());
+        history.emplace_back(std::move(line), std::move(line2));
+    }
+}
+
+// Utility function for outputting to a file
+void write_history(const std::span<const std::pair<std::string, std::string> > history, 
+                    std::ofstream& output_file) {
+    std::ranges::for_each(history, [&output_file](const auto& expression_result) {
+        const auto& [expression, result] = expression_result;
+        output_file << expression << "\n" << result << '\n';
+    });
+}
+
+// Utility function for outputting to a file
+void output_history(const std::span<const std::pair<std::string, std::string> > history, 
+                    std::ofstream& output_file) {
+    std::ranges::for_each(history, [&output_file](const auto& expression_result) {
+        const auto& [expression, result] = expression_result;
+        output_file << "Expression: " << expression << "\nResult: " << result << '\n';
+    });
 }
 
 namespace {

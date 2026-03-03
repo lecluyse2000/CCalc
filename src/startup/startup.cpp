@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <iostream>
+#include <unistd.h>
 #include <unordered_map>
 
 #include "include/types.hpp"
@@ -100,10 +101,10 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
     return retval;
 }
 
-[[nodiscard]] std::string get_history_location() {
-    const char* const home_path = getenv("HOME");
-    if (!home_path) return std::string(Types::history_file_name);
-    return std::string(home_path) + std::string(Types::history_file_name);
+[[nodiscard]] std::filesystem::path get_history_location() {
+    const std::string home = get_home_path();
+    if (home.empty()) return std::string(Types::history_file_name);
+    return home / std::filesystem::path(Types::history_file_name);
 }
 
 }
