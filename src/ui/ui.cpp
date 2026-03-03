@@ -7,6 +7,7 @@
 #include <mpfr.h>
 #include <readline/history.h>
 #include <string>
+#include <unordered_map>
 
 #include "startup/startup.h"
 #include "include/util.hpp"
@@ -49,16 +50,16 @@ std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_prec
     return buffer; 
 }
 
-void print_history() {
+void print_history(const std::unordered_map<HIST_ENTRY*, std::string>& history) {
     for (int i = history_base; i < history_base + history_length; ++i) {
-        const HIST_ENTRY* const entry = history_get(i);
+        HIST_ENTRY* const entry = history_get(i);
 
         if (!entry) {
             print_error("NULL pointer reached in print_history! This should not happen");
             return;
         }
         
-        std::cout << "Expression: " << entry->line << "\nResult: " << static_cast<char*>(entry->data) << '\n';
+        std::cout << "Expression: " << entry->line << "\nResult: " << history.at(entry);
     }
 }
 

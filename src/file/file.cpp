@@ -44,7 +44,7 @@ void output_history(std::ofstream& output_file) {
 }
 
 // Utility function for outputting to a file on shutdown
-void write_history(std::ofstream& output_file) {
+void write_history(std::ofstream& output_file, const std::unordered_map<HIST_ENTRY*, std::string>& history) {
     while (history_length > 0) {
         HIST_ENTRY* entry = remove_history(0); 
 
@@ -54,30 +54,32 @@ void write_history(std::ofstream& output_file) {
         }
         output_file << 'E' << (entry->line ? entry->line : "") << '\n'
                     << 'T' << (entry->timestamp ? entry->timestamp : "") << '\n'
-                    << 'D' << (entry->data ? static_cast<char*>(entry->data) : "") << '\n';
+                    << 'D' << history.at(entry) << '\n';
         Util::free_history_entry(entry);
     }
 }
 
-void add_entry(std::string& line) {
+namespace { void add_entry(std::string& line, std::unordered_map<HIST_ENTRY*, std::string>& history) {
     if (line[0] == 'E') {
         add_history(line.c_str() + 1);
     } else if (line[0] == 'T') {
         add_history_time(line.c_str() + 1);
     } else if (line[0] == 'D') {
         line.erase(line.begin());
-        char* new_cstring = strdup(line.c_str());
         HIST_ENTRY* const entry = history_get(history_base + history_length - 1);
-        entry->data = static_cast<histdata_t>(new_cstring);
+        history.try_emplace(entry, std::move(line));
     }
-}
+}}
 
-void read_history(std::ifstream& input_file) {
+std::unordered_map<HIST_ENTRY*, std::string> read_history(std::ifstream& input_file) {
+    std::unordered_map<HIST_ENTRY*, std::string> retval; 
     std::string line;
     while (std::getline(input_file, line)) {
         if (line.empty()) continue; // Skip blank lines
-        add_entry(line);
+        add_entry(line, retval);
     }
+
+    return retval;
 }
 
 namespace {

@@ -71,13 +71,14 @@ inline void startup() {
 }
 
 // Determines the status of the program based on the user input, return an enum defined above
-[[nodiscard]] InputResult handle_input(std::string_view input_expression) {
+[[nodiscard]] InputResult handle_input(std::string_view input_expression,
+                                       std::unordered_map<HIST_ENTRY*, std::string>& history_map) {
     if (input_expression == "help") {
         UI::print_help_continuous();
         return InputResult::CONTINUE;
     } else if (input_expression == "history") {
         if (is_empty_history()) return InputResult::CONTINUE;
-        UI::print_history();
+        UI::print_history(history_map);
         return InputResult::CONTINUE;
     } else if (input_expression == "save") {
         if (is_empty_history()) return InputResult::CONTINUE;
@@ -99,20 +100,20 @@ inline void startup() {
     return InputResult::CONTINUE_TO_EVALUATE;
 }
 
-inline void add_to_history(const std::string& orig_input, const std::string& final_value) {
-    char* hist_data = strdup(final_value.c_str());
+inline void add_to_history(const std::string& orig_input, const std::string& final_value,
+                           std::unordered_map<HIST_ENTRY*, std::string>& history) {
     add_history(orig_input.c_str());
 
-    HIST_ENTRY* const entry = current_history();
-    entry->data = static_cast<histdata_t>(hist_data); 
+    HIST_ENTRY* const entry = history_get(history_base + history_length - 1);
+    history.try_emplace(entry, final_value);
 }
 
-inline void print_pi(std::string& orig_input) {
+inline void print_pi(std::string& orig_input, std::unordered_map<HIST_ENTRY*, std::string>& history) {
     mpfr_t pi;
     mpfr_init2(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
     mpfr_const_pi(pi, MPFR_RNDN); 
     std::string pi_str = UI::print_mpfr(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
-    add_to_history(orig_input, pi_str);
+    add_to_history(orig_input, pi_str, history);
     mpfr_free_cache();
     mpfr_clear(pi);
 }
@@ -125,29 +126,31 @@ inline std::string trim_euler() {
     return euler_retval;
 }
 
-inline void print_euler(std::string& orig_input) {
+inline void print_euler(std::string& orig_input, std::unordered_map<HIST_ENTRY*, std::string>& history) {
     std::string euler = trim_euler();
     UI::print_result(euler);
-    add_to_history(orig_input, euler);
+    add_to_history(orig_input, euler, history);
 }
 
-[[nodiscard]] bool check_num_input(std::string& orig_input, const std::string& expression) {
+[[nodiscard]] bool check_num_input(std::string& orig_input, const std::string& expression,
+                                   std::unordered_map<HIST_ENTRY*, std::string>& history) {
     if (std::ranges::all_of(expression, ::isdigit)) {
         UI::print_result(expression);
-        add_to_history(orig_input, expression);
+        add_to_history(orig_input, expression, history);
         return true;
     } else if (expression == "E") {
-        print_euler(orig_input);
+        print_euler(orig_input, history);
         return true;
     } else if (expression == "PI") {
-        print_pi(orig_input);
+        print_pi(orig_input, history);
         return true;
     }
     return false;
 }
 
 // Make the tree, evaluate, print the result, then add it to the history
-void math_float_procedure(std::string& orig_input, const std::span<const Token> prefix_input) {
+void math_float_procedure(std::string& orig_input, const std::span<const Token> prefix_input,
+                          std::unordered_map<HIST_ENTRY*, std::string>& history) {
     try {
         const auto tree = std::make_unique<MathAST>();
         tree->build_ast(prefix_input, true);
@@ -155,20 +158,21 @@ void math_float_procedure(std::string& orig_input, const std::span<const Token> 
         const std::string final_val = UI::print_mpfr(final_value,
                                            static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
         if (final_val.empty()) [[unlikely]] return;
-        add_to_history(orig_input, final_val);
+        add_to_history(orig_input, final_val, history);
     } catch (const std::exception& err) {
         UI::print_error(err.what());
     }
     return;
 }
 
-void math_int_procedure(std::string& orig_input, const std::span<const Token> prefix_input) {
+void math_int_procedure(std::string& orig_input, const std::span<const Token> prefix_input,
+                        std::unordered_map<HIST_ENTRY*, std::string>& history) {
     try {
         const auto tree = std::make_unique<MathAST>();
         tree->build_ast(prefix_input, false);
         const mpz_class final_value = tree->evaluate();
         UI::print_result(final_value.get_str());
-        add_to_history(orig_input, final_value.get_str());
+        add_to_history(orig_input, final_value.get_str(), history);
     } catch (const std::bad_alloc& err) {
         UI::print_error("The number grew too big\n");
     } catch (const std::exception& err) {
@@ -177,24 +181,26 @@ void math_int_procedure(std::string& orig_input, const std::span<const Token> pr
 }
 
 // Calls the float or int procedure based on float_point status
-void math_procedure(std::string& orig_input, const ParseResult& result) {
+void math_procedure(std::string& orig_input, const ParseResult& result,
+                    std::unordered_map<HIST_ENTRY*, std::string>& history) {
     if (result.is_floating_point) {
-        math_float_procedure(orig_input, result.result);
+        math_float_procedure(orig_input, result.result, history);
     } else {
-        math_int_procedure(orig_input, result.result);
+        math_int_procedure(orig_input, result.result, history);
     }
 }
 
 // Bool is easier than math, just solve and add to history
-void bool_procedure(std::string& orig_input, const std::span<const Token> prefix_input) {
+void bool_procedure(std::string& orig_input, const std::span<const Token> prefix_input,
+                    std::unordered_map<HIST_ENTRY*, std::string>& history) {
     const auto syntax_tree = std::make_unique<BoolAST>();
     syntax_tree->build_ast(prefix_input);
     if (syntax_tree->evaluate()) {
         UI::print_result("True");
-        add_to_history(orig_input, "True");
+        add_to_history(orig_input, "True", history);
     } else {
         UI::print_result("False");
-        add_to_history(orig_input, "False");
+        add_to_history(orig_input, "False", history);
     }
 }
 
@@ -217,27 +223,30 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
     return false;
 }
 
-void evaluate_expression(std::string& orig_input, std::string& expression) {
-    if (check_num_input(orig_input, expression)) return;
+void evaluate_expression(std::string& orig_input, std::string& expression,
+                         std::unordered_map<HIST_ENTRY*, std::string>& history) {
+    if (check_num_input(orig_input, expression, history)) return;
     const ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
         UI::print_error(result.error_msg);
         return;
     }
     if(result.is_math) {
-        math_procedure(orig_input, result);
+        math_procedure(orig_input, result, history);
     } else {
-        bool_procedure(orig_input, result.result);
+        bool_procedure(orig_input, result.result, history);
     }
 }
 
-inline void shutdown() {
+inline void shutdown(std::unordered_map<HIST_ENTRY*, std::string>& history_map) {
     std::ofstream history_output;
     history_output.open(Startup::history_location);
-    if(history_output.is_open()) File::write_history(history_output);
+    if(history_output.is_open()) File::write_history(history_output, history_map);
 }
 
 [[nodiscard]] int program_loop() {
+    std::unordered_map<HIST_ENTRY*, std::string> history_map;
+
     while (true) {
         char* const input_expression = readline("Please enter your expression, or enter help to see all available commands: ");
 
@@ -258,21 +267,21 @@ inline void shutdown() {
 
         // Remove spaces from the user's input
         input_expression_string.erase(remove(input_expression_string.begin(), input_expression_string.end(), ' '), input_expression_string.end());
-        const Engine::InputResult result = handle_input(input_expression_string);
+        const Engine::InputResult result = handle_input(input_expression_string, history_map);
 
         // Based upon the input the program exits, continues, or evaluates the expression
         switch (result) {
             case Engine::InputResult::QUIT_SUCCESS:
-                shutdown();
+                shutdown(history_map);
                 return 0;
             case Engine::InputResult::QUIT_FAILURE:
-                shutdown();
+                shutdown(history_map);
                 return 1;
             case Engine::InputResult::CONTINUE:
                 continue;
             default:
                 std::ranges::transform(input_expression_string, input_expression_string.begin(), [](const auto c){ return std::toupper(c); });
-                evaluate_expression(orig_input, input_expression_string);
+                evaluate_expression(orig_input, input_expression_string, history_map);
         }
     }
     
