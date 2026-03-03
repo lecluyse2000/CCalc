@@ -50,9 +50,7 @@ std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_prec
 }
 
 void print_history() {
-    const HIST_ENTRY* const * const history = history_list(); 
-
-    for (int i = 0; history[i] != NULL; ++i) {
+    for (int i = history_base; i < history_base + history_length; ++i) {
         const HIST_ENTRY* const entry = history_get(i);
 
         if (!entry) {
@@ -60,7 +58,7 @@ void print_history() {
             return;
         }
         
-        std::cout << "Result: " << entry->line << "\nResult: " << static_cast<char*>(entry->data);
+        std::cout << "Expression: " << entry->line << "\nResult: " << static_cast<char*>(entry->data) << '\n';
     }
 }
 

@@ -100,6 +100,12 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
     return retval;
 }
 
+[[nodiscard]] std::string get_history_location() {
+    const char* const home_path = getenv("HOME");
+    if (!home_path) return std::string(Types::history_file_name);
+    return std::string(home_path) + std::string(Types::history_file_name);
+}
+
 }
 
 [[nodiscard]] std::unordered_map<Setting, long> source_ini() noexcept {
@@ -133,5 +139,6 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
 }
 
 const std::unordered_map<Types::Setting, long> settings = source_ini();
+const std::string history_location = get_history_location();
 
 }

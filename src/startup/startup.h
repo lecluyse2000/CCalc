@@ -1,6 +1,7 @@
 #ifndef STARTUP_H
 #define STARTUP_H
 
+#include <array>
 #include <gmpxx.h>
 #include <mpfr.h>
 #include <unordered_map>
@@ -33,8 +34,9 @@ inline constexpr std::array<long, num_settings> default_setting_values = {
     default_angle
 };
 
-extern const std::unordered_map<Types::Setting, long> settings;
 [[nodiscard]] std::unordered_map<Types::Setting, long> source_ini() noexcept;
+extern const std::unordered_map<Types::Setting, long> settings;
+extern const std::string history_location;
 
 }
 

@@ -6,6 +6,7 @@
 #include <limits>
 #include <mpfr.h>
 #include <optional>
+#include <readline/history.h>
 #include <string>
 
 #include "ui/ui.h"
@@ -91,6 +92,13 @@ inline bool convert_mpfr_string(std::string& out, const mpfr_t& val, const mpfr_
     }
 
     return std::optional<std::string>(filename);
+}
+
+inline void free_history_entry(HIST_ENTRY*& entry) {
+    if (entry->line) free(entry->line);
+    if (entry->timestamp) free(entry->timestamp);
+    if (entry->data) free(entry->data);
+    free(entry);
 }
 
 }

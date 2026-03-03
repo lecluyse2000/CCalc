@@ -28,11 +28,9 @@ using namespace Types;
 // We have to use C style file output here since mpfr is a C library
 namespace File {
 
-// Utility function for outputting to a file
+// Utility function for outputting to a file for a user
 void output_history(std::ofstream& output_file) {
-    const HIST_ENTRY* const * const history = history_list(); 
-
-    for (int i = 0; history[i] != NULL; ++i) {
+    for (int i = history_base; i < history_base + history_length; ++i) {
         const HIST_ENTRY* const entry = history_get(i);
 
         if (!entry) {
@@ -40,7 +38,45 @@ void output_history(std::ofstream& output_file) {
             return;
         }
         
-        output_file << "Result: " << entry->line << "\nResult: " << static_cast<char*>(entry->data);
+        output_file << "Expression: " << entry->line << "\nResult: " << static_cast<char*>(entry->data)
+                    << "\nTime: " << entry->timestamp << '\n';
+    }
+}
+
+// Utility function for outputting to a file on shutdown
+void write_history(std::ofstream& output_file) {
+    while (history_length > 0) {
+        HIST_ENTRY* entry = remove_history(0); 
+
+        if (!entry) {
+            UI::print_error("NULL pointer reached in print_history! This should not happen");
+            return;
+        }
+        output_file << 'E' << (entry->line ? entry->line : "") << '\n'
+                    << 'T' << (entry->timestamp ? entry->timestamp : "") << '\n'
+                    << 'D' << (entry->data ? static_cast<char*>(entry->data) : "") << '\n';
+        Util::free_history_entry(entry);
+    }
+}
+
+void add_entry(std::string& line) {
+    if (line[0] == 'E') {
+        add_history(line.c_str() + 1);
+    } else if (line[0] == 'T') {
+        add_history_time(line.c_str() + 1);
+    } else if (line[0] == 'D') {
+        line.erase(line.begin());
+        char* new_cstring = strdup(line.c_str());
+        HIST_ENTRY* const entry = history_get(history_base + history_length - 1);
+        entry->data = static_cast<histdata_t>(new_cstring);
+    }
+}
+
+void read_history(std::ifstream& input_file) {
+    std::string line;
+    while (std::getline(input_file, line)) {
+        if (line.empty()) continue; // Skip blank lines
+        add_entry(line);
     }
 }
 

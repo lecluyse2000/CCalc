@@ -14,9 +14,7 @@
 #include <readline/history.h>
 #include <span>
 #include <string_view>
-#include <utility>
 #include <unordered_map>
-#include <vector>
 
 #include "ast/ast.h"
 #include "file/file.h"
@@ -29,6 +27,23 @@
 namespace Engine {
 
 namespace {
+
+[[nodiscard]] int check_argc(const int argc) {
+    if (argc > 2) {
+        UI::print_excessive_arguments(argc - 1);
+        return 1;
+    } else if (argc == 1) {
+        UI::print_insufficient_arguments();
+        return 1;
+    }
+    return 0;
+}
+
+inline void startup() {
+    std::ifstream history_file;
+    history_file.open(Startup::history_location);
+    if(history_file.is_open()) File::read_history(history_file);
+}
 
 [[nodiscard]] bool save_history() {
     // Get the file from the user, then output the history to it
@@ -84,8 +99,12 @@ namespace {
     return InputResult::CONTINUE_TO_EVALUATE;
 }
 
-inline void add_to_history(std::string& orig_input, std::string& final_value){
+inline void add_to_history(const std::string& orig_input, const std::string& final_value) {
+    char* hist_data = strdup(final_value.c_str());
+    add_history(orig_input.c_str());
 
+    HIST_ENTRY* const entry = current_history();
+    entry->data = static_cast<histdata_t>(hist_data); 
 }
 
 inline void print_pi(std::string& orig_input) {
@@ -112,7 +131,7 @@ inline void print_euler(std::string& orig_input) {
     add_to_history(orig_input, euler);
 }
 
-[[nodiscard]] bool check_num_input(std::string& orig_input, std::string& expression) {
+[[nodiscard]] bool check_num_input(std::string& orig_input, const std::string& expression) {
     if (std::ranges::all_of(expression, ::isdigit)) {
         UI::print_result(expression);
         add_to_history(orig_input, expression);
@@ -133,7 +152,7 @@ void math_float_procedure(std::string& orig_input, const std::span<const Token> 
         const auto tree = std::make_unique<MathAST>();
         tree->build_ast(prefix_input, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
-        std::string final_val = UI::print_mpfr(final_value,
+        const std::string final_val = UI::print_mpfr(final_value,
                                            static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
         if (final_val.empty()) [[unlikely]] return;
         add_to_history(orig_input, final_val);
@@ -167,7 +186,7 @@ void math_procedure(std::string& orig_input, const ParseResult& result) {
 }
 
 // Bool is easier than math, just solve and add to history
-void bool_procedure(std::string& orig_input, const std::span<const Token> prefix_input,) {
+void bool_procedure(std::string& orig_input, const std::span<const Token> prefix_input) {
     const auto syntax_tree = std::make_unique<BoolAST>();
     syntax_tree->build_ast(prefix_input);
     if (syntax_tree->evaluate()) {
@@ -212,18 +231,22 @@ void evaluate_expression(std::string& orig_input, std::string& expression) {
     }
 }
 
+inline void shutdown() {
+    std::ofstream history_output;
+    history_output.open(Startup::history_location);
+    if(history_output.is_open()) File::write_history(history_output);
+}
+
 [[nodiscard]] int program_loop() {
-    using_history();
     while (true) {
         char* const input_expression = readline("Please enter your expression, or enter help to see all available commands: ");
 
-        // If the input fails for some reason
+        // If the input fails
         if (!input_expression) [[unlikely]] {
             std::cerr << "Unknown error ocurred in receiving input. Aborting...\n\n";
             return 1;
         }
 
-        add_history(input_expression);
         std::string input_expression_string(input_expression);
         free(input_expression);
 
@@ -240,8 +263,10 @@ void evaluate_expression(std::string& orig_input, std::string& expression) {
         // Based upon the input the program exits, continues, or evaluates the expression
         switch (result) {
             case Engine::InputResult::QUIT_SUCCESS:
+                shutdown();
                 return 0;
             case Engine::InputResult::QUIT_FAILURE:
+                shutdown();
                 return 1;
             case Engine::InputResult::CONTINUE:
                 continue;
@@ -250,6 +275,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression) {
                 evaluate_expression(orig_input, input_expression_string);
         }
     }
+    
 }
 
 void math_procedure_float(const ParseResult& result) {
@@ -320,16 +346,12 @@ void evaluate_expression(std::string& expression) {
 }
 
 [[nodiscard]] int start_engine(const int argc, const char* const argv[]) {
+    if (check_argc(argc)) return 1;
+
+    using_history();
     // Sets the max history entries to the user setting
     stifle_history(static_cast<int>(Startup::settings.at(Setting::MAX_HISTORY)));
-
-    if (argc > 2) {
-        UI::print_excessive_arguments(argc - 1);
-        return 1;
-    } else if (argc == 1) {
-        UI::print_insufficient_arguments();
-        return 1;
-    }
+    startup();
 
     std::string expression = argv[1];
     if (expression == "-c" || expression == "--continuous") {

@@ -2,7 +2,6 @@
 
 #include "ast/ast.h"
 
-#include <cctype>
 #include <gmpxx.h>
 #include <mpfr.h>
 #include <span>
