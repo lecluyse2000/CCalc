@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <csignal>
 #include <fstream>
 #include <gmpxx.h>
 #include <iostream>
@@ -28,6 +29,9 @@ namespace Engine {
 
 namespace {
 
+static volatile sig_atomic_t g_got_sigint = 0;
+static volatile sig_atomic_t g_got_sigterm = 0;
+
 [[nodiscard]] int check_argc(const int argc) {
     if (argc > 2) {
         UI::print_excessive_arguments(argc - 1);
@@ -39,10 +43,44 @@ namespace {
     return 0;
 }
 
+int check_signals_hook() {
+    if (g_got_sigint || g_got_sigterm) {
+        rl_done = 1;
+    }
+    return 0;
+}
+
+void sigint_handler(int) {
+    g_got_sigint = 1;
+}
+void sigterm_handler(int) {
+    g_got_sigterm = 1;
+}
+
+inline void register_handlers() {
+    struct sigaction sa;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sa.sa_handler = sigint_handler;
+    if(sigaction(SIGINT, &sa, nullptr) == -1) {
+        UI::print_error("SIGINT handler error!");
+    }
+
+    sa.sa_handler = sigterm_handler;
+    if(sigaction(SIGTERM, &sa, nullptr) == -1) {
+        UI::print_error("SIGTERM handler error!");
+    }
+}
+
 inline void startup(std::vector<std::pair<std::string, std::string> >& history) {
+    using_history();
+    stifle_history(static_cast<int>(Startup::settings.at(Setting::MAX_HISTORY)));
+    rl_event_hook = check_signals_hook;
+    rl_catch_signals = 0;
     std::ifstream history_file;
     history_file.open(Startup::history_location);
     if(history_file.is_open()) File::read_history(history, history_file);
+    register_handlers();
 }
 
 [[nodiscard]] bool save_history(std::vector<std::pair<std::string, std::string> >& history) {
@@ -261,24 +299,39 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
     }
 }
 
-inline void shutdown(std::vector<std::pair<std::string, std::string> >& history_map) {
+
+inline void shutdown(const std::vector<std::pair<std::string, std::string> >& history_map) {
     std::ofstream history_output;
     history_output.open(Startup::history_location, std::ios::trunc);
     if(history_output.is_open()) File::write_history(history_map, history_output);
     cleanup_history();
 }
 
+bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >& history) {
+    if (g_got_sigint || g_got_sigterm) {
+        rl_free_line_state();
+        rl_cleanup_after_signal();
+        write(STDOUT_FILENO, "\n", 1);
+        shutdown(history);
+        return true;
+    }
+    return false;
+}
+
 [[nodiscard]] int program_loop() {
     std::vector<std::pair<std::string, std::string> > history;
     history.reserve(static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY)));
-
     startup(history);
+
     while (true) {
         char* const input_expression = readline("Please enter your expression, or enter help to see all available commands: ");
+        
+        if (check_signal_flags(history)) return 1;
 
         // If the input fails
         if (!input_expression) [[unlikely]] {
             std::cerr << "Unknown error ocurred in receiving input. Aborting...\n\n";
+            shutdown(history);
             return 1;
         }
 
@@ -382,10 +435,6 @@ void evaluate_expression(std::string& expression) {
 
 [[nodiscard]] int start_engine(const int argc, const char* const argv[]) {
     if (check_argc(argc)) return 1;
-
-    using_history();
-    // Sets the max history entries to the user setting
-    stifle_history(static_cast<int>(Startup::settings.at(Setting::MAX_HISTORY)));
 
     std::string expression = argv[1];
     if (expression == "-c" || expression == "--continuous") {

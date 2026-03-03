@@ -6,7 +6,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_INSTALL_PREFIX "/usr")
 else()
-    set(CMAKE_INSTALL_PREFIX "C:\\Program Files\\ccalc")
+    message(FATAL_ERROR "Windows is not supported!")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -91,12 +91,7 @@ target_link_libraries(ccalc PRIVATE
     ${READLINE_LIBRARIES}
 )
 
-if(MSVC)
-    target_compile_options(ccalc PRIVATE 
-        /O2
-        /fp:strict
-    )
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(ccalc PRIVATE 
         -g 
         -O2 

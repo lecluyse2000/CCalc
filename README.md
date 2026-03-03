@@ -129,6 +129,7 @@ angle=0
 - [CMake](https://cmake.org/)
 - [GNU GMP](https://gmplib.org/)
 - [GNU MPFR](https://www.mpfr.org/)
+- [GNU Readline](https://tiswww.case.edu/php/chet/readline/rltop.html)
 
 #### Debian
 
@@ -154,7 +155,7 @@ sudo pacman -S base-devel cmake gmp mpfr
 
 ```bash
 xcode-select --install
-brew install cmake gmp mpfr
+brew install cmake gmp mpfr readline
 ```
 
 ### Build    
@@ -178,8 +179,6 @@ ccalc -c
 ### Windows
 
 Use [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) and install via [Linux](#Debian)    
-Windows is not officially supported, but I have made an effort for it to work. If wsl is not an option, CMake, Clang, and Ninja might work.
-You will also have to figure out how to install GMP and MPFR. Visual Studio/VScode might make this a lot easier, I am not sure though as I don't use Windows.
 
 ## TODO
 
