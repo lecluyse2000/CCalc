@@ -5,12 +5,15 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <readline/readline.h>
 #include <string>
 #include <string_view>
 #include <iostream>
 #include <unistd.h>
 #include <unordered_map>
 
+#include "engine/signal.h"
+#include "file/file.h"
 #include "include/types.hpp"
 #include "ui/ui.h"
 
@@ -141,5 +144,16 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
 
 const std::unordered_map<Types::Setting, long> settings = source_ini();
 const std::string history_location = get_history_location();
+
+void startup(std::vector<std::pair<std::string, std::string> >& history) {
+    using_history();
+    stifle_history(static_cast<int>(Startup::settings.at(Setting::MAX_HISTORY)));
+    rl_event_hook = Signal::check_signals_hook;
+    rl_catch_signals = 0;
+    std::ifstream history_file;
+    history_file.open(Startup::history_location);
+    if(history_file.is_open()) File::read_history(history, history_file);
+    Signal::register_handlers();
+}
 
 }

@@ -66,6 +66,7 @@ add_executable(ccalc)
 target_sources(ccalc PRIVATE
     "src/main.cpp"
     "src/engine/engine.cpp"
+    "src/engine/signal.cpp"
     "src/ui/ui.cpp"
     "src/ast/ast.cpp"
     "src/ast/bnode.cpp"

@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cctype>
-#include <csignal>
 #include <fstream>
 #include <gmpxx.h>
 #include <iostream>
@@ -18,6 +17,7 @@
 #include <unordered_map>
 
 #include "ast/ast.h"
+#include "engine/signal.h"
 #include "file/file.h"
 #include "include/types.hpp"
 #include "include/util.hpp"
@@ -29,9 +29,6 @@ namespace Engine {
 
 namespace {
 
-static volatile sig_atomic_t g_got_sigint = 0;
-static volatile sig_atomic_t g_got_sigterm = 0;
-
 [[nodiscard]] int check_argc(const int argc) {
     if (argc > 2) {
         UI::print_excessive_arguments(argc - 1);
@@ -41,46 +38,6 @@ static volatile sig_atomic_t g_got_sigterm = 0;
         return 1;
     }
     return 0;
-}
-
-int check_signals_hook() {
-    if (g_got_sigint || g_got_sigterm) {
-        rl_done = 1;
-    }
-    return 0;
-}
-
-void sigint_handler(int) {
-    g_got_sigint = 1;
-}
-void sigterm_handler(int) {
-    g_got_sigterm = 1;
-}
-
-inline void register_handlers() {
-    struct sigaction sa;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    sa.sa_handler = sigint_handler;
-    if(sigaction(SIGINT, &sa, nullptr) == -1) {
-        UI::print_error("SIGINT handler error!");
-    }
-
-    sa.sa_handler = sigterm_handler;
-    if(sigaction(SIGTERM, &sa, nullptr) == -1) {
-        UI::print_error("SIGTERM handler error!");
-    }
-}
-
-inline void startup(std::vector<std::pair<std::string, std::string> >& history) {
-    using_history();
-    stifle_history(static_cast<int>(Startup::settings.at(Setting::MAX_HISTORY)));
-    rl_event_hook = check_signals_hook;
-    rl_catch_signals = 0;
-    std::ifstream history_file;
-    history_file.open(Startup::history_location);
-    if(history_file.is_open()) File::read_history(history, history_file);
-    register_handlers();
 }
 
 [[nodiscard]] bool save_history(std::vector<std::pair<std::string, std::string> >& history) {
@@ -113,7 +70,7 @@ inline void cleanup_history() {
         HIST_ENTRY* entry = remove_history(0); 
 
         if (!entry) {
-            UI::print_error("NULL pointer reached in print_history! This should not happen");
+            UI::print_error("NULL pointer reached in cleanup_history! This should not happen");
             return;
         }
         Util::free_history_entry(entry);
@@ -308,7 +265,7 @@ inline void shutdown(const std::vector<std::pair<std::string, std::string> >& hi
 }
 
 bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >& history) {
-    if (g_got_sigint || g_got_sigterm) {
+    if (Signal::signal_received()) {
         rl_free_line_state();
         rl_cleanup_after_signal();
         write(STDOUT_FILENO, "\n", 1);
@@ -321,7 +278,7 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
 [[nodiscard]] int program_loop() {
     std::vector<std::pair<std::string, std::string> > history;
     history.reserve(static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY)));
-    startup(history);
+    Startup::startup(history);
 
     while (true) {
         char* const input_expression = readline("Please enter your expression, or enter help to see all available commands: ");
