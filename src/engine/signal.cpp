@@ -23,8 +23,12 @@ void sigterm_handler(int) {
 
 }
 
+[[nodiscard]] bool signal_received() {
+    return g_got_sigint || g_got_sigterm;
+}
+
 int check_signals_hook() {
-    if (g_got_sigint || g_got_sigterm) {
+    if (signal_received()) {
         rl_done = 1;
     }
     return 0;
@@ -45,8 +49,5 @@ void register_handlers() {
     }
 }
 
-[[nodiscard]] bool signal_received() {
-    return g_got_sigint || g_got_sigterm;
-}
 
 }

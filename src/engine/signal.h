@@ -3,9 +3,9 @@
 
 namespace Signal {
 
+[[nodiscard]] bool signal_received();
 int check_signals_hook();
 void register_handlers();
-[[nodiscard]] bool signal_received();
 
 }
 

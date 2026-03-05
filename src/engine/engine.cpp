@@ -268,7 +268,7 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
     if (Signal::signal_received()) {
         rl_free_line_state();
         rl_cleanup_after_signal();
-        write(STDOUT_FILENO, "\n", 1);
+        std::cout << '\n';
         shutdown(history);
         return true;
     }
