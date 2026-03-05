@@ -57,8 +57,8 @@ namespace {
     return true;
 }
 
-[[nodiscard]] bool is_empty_history(std::vector<std::pair<std::string, std::string> >& history_map) {
-    if (history_map.empty()) {
+[[nodiscard]] bool is_empty_history(const std::vector<std::pair<std::string, std::string> >& history) {
+    if (history.empty()) {
         UI::print_error("You haven't evaluated any expressions yet\n");
         return true;
     }
@@ -79,25 +79,25 @@ inline void cleanup_history() {
 
 // Determines the status of the program based on the user input, return an enum defined above
 [[nodiscard]] InputResult handle_input(std::string_view input_expression,
-                                       std::vector<std::pair<std::string, std::string> >& history_map) {
+                                       std::vector<std::pair<std::string, std::string> >& history) {
     if (input_expression == "help") {
         UI::print_help_continuous();
         return InputResult::CONTINUE;
     } else if (input_expression == "history") {
-        if (is_empty_history(history_map)) return InputResult::CONTINUE;
-        UI::print_history(history_map);
+        if (is_empty_history(history)) return InputResult::CONTINUE;
+        UI::print_history(history);
         return InputResult::CONTINUE;
     } else if (input_expression == "save") {
-        if (is_empty_history(history_map)) return InputResult::CONTINUE;
+        if (is_empty_history(history)) return InputResult::CONTINUE;
 
-        if (!save_history(history_map)) {
+        if (!save_history(history)) {
             return InputResult::QUIT_FAILURE;
         }
         std::cout << "History saved\n";
         return InputResult::CONTINUE;
     } else if (input_expression == "clear") {
         cleanup_history();
-        history_map.clear();
+        history.clear();
         std::cout << "History cleared\n";
         return InputResult::CONTINUE;
     } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
@@ -110,19 +110,19 @@ inline void cleanup_history() {
 
 inline void add_to_history(std::string& orig_input, std::string&& final_value,
                            std::vector<std::pair<std::string, std::string> >& history) {
-    add_history(orig_input.c_str());
     if (history.size() + 1 > static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY))) {
         history.erase(history.begin());
     }
+    add_history(orig_input.c_str());
     history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_value)));
 }
 
 inline void add_to_history(std::string& orig_input, std::string& final_value,
                            std::vector<std::pair<std::string, std::string> >& history) {
-    add_history(orig_input.c_str());
     if (history.size() + 1 > static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY))) {
         history.erase(history.begin());
     }
+    add_history(orig_input.c_str());
     history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_value)));
 }
 
@@ -222,25 +222,6 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
     }
 }
 
-[[nodiscard]] bool check_num_input(std::string& expression) {
-    if (std::ranges::all_of(expression, ::isdigit)) {
-        UI::print_result(expression);
-        return true;
-    } else if (expression == "E") {
-        UI::print_result(trim_euler());
-        return true;
-    } else if (expression == "PI") {
-        mpfr_t pi;
-        mpfr_init2(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
-        mpfr_const_pi(pi, MPFR_RNDN); 
-        UI::print_mpfr(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
-        mpfr_free_cache();
-        mpfr_clear(pi);
-        return true;
-    }
-    return false;
-}
-
 void evaluate_expression(std::string& orig_input, std::string& expression,
                          std::vector<std::pair<std::string, std::string> >& history) {
     if (check_num_input(orig_input, expression, history)) return;
@@ -256,11 +237,10 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
     }
 }
 
-
-inline void shutdown(const std::vector<std::pair<std::string, std::string> >& history_map) {
+inline void shutdown(const std::vector<std::pair<std::string, std::string> >& history) {
     std::ofstream history_output;
     history_output.open(Startup::history_location, std::ios::trunc);
-    if(history_output.is_open()) File::write_history(history_map, history_output);
+    if(history_output.is_open()) File::write_history(history, history_output);
     cleanup_history();
 }
 
@@ -282,7 +262,6 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
 
     while (true) {
         char* const input_expression = readline("Please enter your expression, or enter help to see all available commands: ");
-        
         if (check_signal_flags(history)) return 1;
 
         // If the input fails
@@ -323,58 +302,23 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
     
 }
 
-void math_procedure_float(const ParseResult& result) {
-    try {
-        const auto tree = std::make_unique<MathAST>();
-        tree->build_ast(result.result, result.is_floating_point);
-        const mpfr_t& final_value = tree->evaluate_floating_point();
-        UI::print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
-    } catch (const std::exception& err) {
-        UI::print_error(err.what());
-    }
-}
-
-void math_procedure_int(const ParseResult& result) {
-    try {
-        const auto tree = std::make_unique<MathAST>();
-        tree->build_ast(result.result, result.is_floating_point);
-        const mpz_class final_value = tree->evaluate();
-        UI::print_result(final_value.get_str());
-    } catch (const std::bad_alloc& err) {
-        UI::print_error("Error: The number grew too big!");
-    } catch (const std::exception& err) {
-        UI::print_error(err.what());
-    }
-}
-
-// Overloaded functions for non-continuous mode
-void math_procedure(const ParseResult& result) {
-    if (result.is_floating_point) {
-        math_procedure_float(result);
-    } else {
-        math_procedure_int(result);
-    }
-}
-
-void bool_procedure(const std::span<const Token> result) {
-    const auto syntax_tree = std::make_unique<BoolAST>();
-    syntax_tree->build_ast(result);
-    if (syntax_tree->evaluate()) {
-        UI::print_result("True");
-    } else {
-        UI::print_result("False");
-    }
-}
-
 // Non continuous mode
 void evaluate_expression(std::string& expression) {
+    std::vector<std::pair<std::string, std::string> > history;
+    history.reserve(static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY)));
+    Startup::startup(history);
+
+    std::string orig_input = expression;
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
     if (expression.empty()) {
         UI::print_error("Empty input received");
         return;
     }
     std::ranges::transform(expression, expression.begin(), [](const auto c){ return std::toupper(c); });
-    if (check_num_input(expression)) return;
+    if (check_num_input(orig_input, expression, history)) {
+        shutdown(history);
+        return;
+    };
 
     const ParseResult result = Parse::create_prefix_expression(expression);
     if (!result.success) {
@@ -382,17 +326,18 @@ void evaluate_expression(std::string& expression) {
         return;
     }
     if(result.is_math) {
-        math_procedure(result);
+        math_procedure(orig_input, result, history);
     } else {
-        bool_procedure(result.result);
+        bool_procedure(orig_input, result.result, history);
     }
+    shutdown(history);
 }
 
 void history_flag() {
     std::vector<std::pair<std::string, std::string> > history;
     history.reserve(static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY)));
     Startup::startup(history);
-    UI::print_history(history);
+    if (!is_empty_history(history)) UI::print_history(history);
     cleanup_history();
 }
 
