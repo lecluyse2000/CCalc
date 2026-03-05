@@ -157,6 +157,7 @@ sudo pacman -S base-devel cmake gmp mpfr
 ```bash
 xcode-select --install
 brew install cmake gmp mpfr readline
+brew link --force readline
 ```
 
 ### Build    
