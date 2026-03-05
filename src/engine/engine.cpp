@@ -388,6 +388,13 @@ void evaluate_expression(std::string& expression) {
     }
 }
 
+void history_flag() {
+    std::vector<std::pair<std::string, std::string> > history;
+    history.reserve(static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY)));
+    Startup::startup(history);
+    UI::print_history(history);
+}
+
 }
 
 [[nodiscard]] int start_engine(const int argc, const char* const argv[]) {
@@ -404,6 +411,9 @@ void evaluate_expression(std::string& expression) {
         return 0;
     } else if (expression == "-h" || expression == "--help") {
         UI::print_help();
+        return 0;
+    } else if (expression == "-H" || expression == "--history") {
+        history_flag();
         return 0;
     } else if (expression[0] == '-' && (expression.size() == 1 ||
               (expression.size() >= 2 && (!std::isdigit(expression[1]) && expression[1] != '(')))) {
