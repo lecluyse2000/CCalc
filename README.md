@@ -91,6 +91,7 @@ Why no sqrt? Because sqrt(x) = x^(1/2)
 - With the `-c` or `--continuous` flag, the program will run in continuous mode. The user will be prompted for expressions to evaluate until exiting the program by typing `exit`, `quit`, or `q`. Passing in any other arguments along with `-c` will result in an error and the program will not run.
 - The flag `-f` or `--file` runs the program in file mode. You will be prompted for an input file, and the input file must be placed in the current working directory. The input file must contain an expression on each line. The program will then prompt you for an output file name and put the results in that file.
 - With the `-v` or `--version` flag. The program simply displays the version information of the program.    
+- The `-H` or `--history` flag prints the program history.    
 - The `--help` flag prints a screen explaining all the flags and general program usage.
 
 ### Continuous Mode

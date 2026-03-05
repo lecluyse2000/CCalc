@@ -73,6 +73,7 @@ void print_help() {
                  "expressions.txt file must be placed in the current working directory."
               << std::endl
               << "\t - The [-v|--version] flag prints the version of the program.\n"
+              << "\t - The [-H|--history] flag prints the program history.\n"
               << "\t - The [-h|--help] flag prints this screen.\n\n"
               << "* If no flags are passed in, the program expects an expression to be passed in. Wrap the expression "
                  "in single quotes.\n"
