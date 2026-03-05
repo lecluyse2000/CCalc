@@ -393,6 +393,7 @@ void history_flag() {
     history.reserve(static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY)));
     Startup::startup(history);
     UI::print_history(history);
+    cleanup_history();
 }
 
 }
