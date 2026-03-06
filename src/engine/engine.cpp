@@ -74,6 +74,7 @@ inline void cleanup_history() {
             return;
         }
         Util::free_history_entry(entry);
+        entry = nullptr;
     }
 }
 
