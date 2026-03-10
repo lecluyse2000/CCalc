@@ -14,10 +14,10 @@ namespace {
 volatile sig_atomic_t g_got_sigint = 0;
 volatile sig_atomic_t g_got_sigterm = 0;
 
-void sigint_handler(int) {
+void sigint_handler([[maybe_unused]] int sig) {
     g_got_sigint = 1;
 }
-void sigterm_handler(int) {
+void sigterm_handler([[maybe_unused]] int sig) {
     g_got_sigterm = 1;
 }
 

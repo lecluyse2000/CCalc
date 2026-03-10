@@ -40,7 +40,7 @@ namespace {
     return 0;
 }
 
-[[nodiscard]] bool save_history(std::vector<std::pair<std::string, std::string> >& history) {
+[[nodiscard]] bool save_history(const std::vector<std::pair<std::string, std::string> >& history) {
     // Get the file from the user, then output the history to it
     const std::optional<std::string> filename = Util::get_filename(true);
     if (!filename) [[unlikely]] {
@@ -223,21 +223,6 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
     }
 }
 
-void evaluate_expression(std::string& orig_input, std::string& expression,
-                         std::vector<std::pair<std::string, std::string> >& history) {
-    if (check_num_input(orig_input, expression, history)) return;
-    const ParseResult result = Parse::create_prefix_expression(expression);
-    if (!result.success) {
-        UI::print_error(result.error_msg);
-        return;
-    }
-    if(result.is_math) {
-        math_procedure(orig_input, result, history);
-    } else {
-        bool_procedure(orig_input, result.result, history);
-    }
-}
-
 inline void shutdown(const std::vector<std::pair<std::string, std::string> >& history) {
     std::ofstream history_output;
     history_output.open(Startup::history_location, std::ios::trunc);
@@ -256,10 +241,26 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
     return false;
 }
 
+void evaluate_expression(std::string& orig_input, std::string& expression,
+                         std::vector<std::pair<std::string, std::string> >& history) {
+    if (check_num_input(orig_input, expression, history)) return;
+    const ParseResult result = Parse::create_prefix_expression(expression);
+    if (!result.success) {
+        UI::print_error(result.error_msg);
+        return;
+    }
+    if(result.is_math) {
+        math_procedure(orig_input, result, history);
+    } else {
+        bool_procedure(orig_input, result.result, history);
+    }
+}
+
 [[nodiscard]] int program_loop() {
     std::vector<std::pair<std::string, std::string> > history;
     history.reserve(static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY)));
-    Startup::startup(history);
+    std::unordered_map<char, std::string> var_map;
+    Startup::startup(history, var_map);
 
     while (true) {
         char* const input_expression = readline("Please enter your expression, or enter help to see all available commands: ");

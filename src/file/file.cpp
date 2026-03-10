@@ -39,6 +39,16 @@ void read_history(std::vector<std::pair<std::string, std::string> >& history, st
     }
 }
 
+void read_vars(std::unordered_map<char, std::string>& history, std::ifstream& input_file) {
+    std::string line;
+    std::string line2;
+
+    while (std::getline(input_file, line)) {
+        std::getline(input_file,line2);
+        history.try_emplace(line[0], std::move(line2));
+    }
+}
+
 // Utility function for outputting to a file
 void write_history(const std::span<const std::pair<std::string, std::string> > history, 
                     std::ofstream& output_file) {
@@ -48,12 +58,19 @@ void write_history(const std::span<const std::pair<std::string, std::string> > h
     });
 }
 
-// Utility function for outputting to a file
+// Utility function for outputting to a file for a user
 void output_history(const std::span<const std::pair<std::string, std::string> > history, 
                     std::ofstream& output_file) {
     std::ranges::for_each(history, [&output_file](const auto& expression_result) {
         const auto& [expression, result] = expression_result;
         output_file << "Expression: " << expression << "\nResult: " << result << '\n';
+    });
+}
+
+void write_vars(const std::unordered_map<char, std::string>& vars, std::ofstream& output_file) {
+    std::ranges::for_each(vars, [&output_file](const auto& expression_result) {
+        const auto& [var, result] = expression_result;
+        output_file << var << '\n' << result << '\n';
     });
 }
 

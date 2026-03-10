@@ -110,6 +110,12 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
     return home / std::filesystem::path(Types::history_file_name);
 }
 
+[[nodiscard]] std::filesystem::path get_vars_location() {
+    const std::string home = get_home_path();
+    if (home.empty()) return std::string(Types::vars_filename);
+    return home / std::filesystem::path(Types::vars_filename);
+}
+
 }
 
 [[nodiscard]] std::unordered_map<Setting, long> source_ini() noexcept {
@@ -142,17 +148,24 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
     return retval;
 }
 
-const std::unordered_map<Types::Setting, long> settings = source_ini();
 const std::string history_location = get_history_location();
+const std::string var_map_location = get_vars_location();
+const std::unordered_map<Types::Setting, long> settings = source_ini();
 
-void startup(std::vector<std::pair<std::string, std::string> >& history) {
+void startup(std::vector<std::pair<std::string, std::string> >& history,
+             std::unordered_map<char, std::string>& var_map) {
     using_history();
     stifle_history(static_cast<int>(Startup::settings.at(Setting::MAX_HISTORY)));
     rl_event_hook = Signal::check_signals_hook;
     rl_catch_signals = 0;
-    std::ifstream history_file;
-    history_file.open(Startup::history_location);
-    if(history_file.is_open()) File::read_history(history, history_file);
+
+    std::ifstream file;
+    file.open(history_location);
+    if(file.is_open()) File::read_history(history, file);
+    file.close();
+    file.open(var_map_location);
+    if(file.is_open()) File::read_vars(history, file);
+
     Signal::register_handlers();
 }
 

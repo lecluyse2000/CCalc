@@ -14,6 +14,7 @@ inline constexpr std::string_view euler =
 "2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274274663919320030599218174135966290435";
 
 inline constexpr std::string_view history_file_name = ".local/share/.ccalc_history";
+inline constexpr std::string_view vars_filename = ".local/share/.ccalc_vars";
 
 enum struct Token : char {
     NULLCHAR = '\0',

@@ -37,9 +37,10 @@ inline constexpr std::array<long, num_settings> default_setting_values = {
 [[nodiscard]] std::unordered_map<Types::Setting, long> source_ini() noexcept;
 extern const std::unordered_map<Types::Setting, long> settings;
 extern const std::string history_location;
+extern const std::string var_map_location;
 
-void startup(std::vector<std::pair<std::string, std::string> >& history);
-
+void startup(std::vector<std::pair<std::string, std::string> >& history,
+             std::unordered_map<char, std::string>& var_map);
 }
 
 #endif
