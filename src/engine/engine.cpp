@@ -178,12 +178,13 @@ inline std::string print_euler(std::string& orig_input, std::vector<std::pair<st
     return euler_copy;
 }
 
+// Moving the strings into the map/history means that we have to remember to make copies
 [[nodiscard]] std::string check_num_input(std::string& orig_input, std::string& expression,
                                           std::vector<std::pair<std::string, std::string> >& history,
                                           std::unordered_map<char, std::string>& var_map) {
     if (std::ranges::all_of(expression, ::isdigit)) {
         UI::print_result(expression);
-        std::string expr_copy = expression;
+        const std::string expr_copy = expression;
         add_to_history(orig_input, expression, history);
         return expr_copy;
     } else if (expression == "E") {
@@ -258,6 +259,7 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
     }
 }
 
+// \0 is what I decided to store ANS in. So we always need to save the answer in the var map to update ANS
 void evaluate_expression(std::string& orig_input, std::string& expression,
                          std::vector<std::pair<std::string, std::string> >& history,
                          std::unordered_map<char, std::string>& var_map) {

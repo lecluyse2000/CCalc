@@ -39,13 +39,13 @@ void read_history(std::vector<std::pair<std::string, std::string> >& history, st
     }
 }
 
-void read_vars(std::unordered_map<char, std::string>& history, std::ifstream& input_file) {
+void read_vars(std::unordered_map<char, std::string>& vars, std::ifstream& input_file) {
     std::string line;
     std::string line2;
 
     while (std::getline(input_file, line)) {
         std::getline(input_file,line2);
-        history.try_emplace(line[0], std::move(line2));
+        vars.emplace(line[0], std::move(line2));
     }
 }
 
@@ -154,7 +154,7 @@ void bool_procedure(FILE*& output_file, const std::span<const Token> result) {
     }
 }
 
-void main_loop(FILE*& output_file, std::string& expression, std::unordered_map<char, std::string> var_map) {
+void main_loop(FILE*& output_file, std::string& expression, const std::unordered_map<char, std::string>& var_map) {
     const std::string orig_expression = expression;
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
     std::ranges::transform(expression, expression.begin(), [](const auto c){ return std::toupper(c); });
@@ -187,6 +187,9 @@ void initiate_file_mode() {
     }
 
     std::unordered_map<char, std::string> var_map;
+    std::ifstream vars;
+    vars.open(Startup::var_map_location);
+    read_vars(var_map, vars);
     for (auto& expression : expressions) {
         main_loop(output_file, expression, var_map);
     }
