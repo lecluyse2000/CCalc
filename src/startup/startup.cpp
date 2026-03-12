@@ -106,13 +106,13 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
 
 [[nodiscard]] std::filesystem::path get_history_location() {
     const std::string home = get_home_path();
-    if (home.empty()) return std::string(Types::history_file_name);
+    if (home.empty()) return std::filesystem::path(Types::history_file_name);
     return home / std::filesystem::path(Types::history_file_name);
 }
 
 [[nodiscard]] std::filesystem::path get_vars_location() {
     const std::string home = get_home_path();
-    if (home.empty()) return std::string(Types::vars_filename);
+    if (home.empty()) return std::filesystem::path(Types::vars_filename);
     return home / std::filesystem::path(Types::vars_filename);
 }
 
@@ -164,7 +164,7 @@ void startup(std::vector<std::pair<std::string, std::string> >& history,
     if(file.is_open()) File::read_history(history, file);
     file.close();
     file.open(var_map_location);
-    if(file.is_open()) File::read_vars(history, file);
+    if(file.is_open()) File::read_vars(var_map, file);
 
     Signal::register_handlers();
 }

@@ -27,6 +27,7 @@ inline void clear_num_buffer(MathParseState& state) noexcept {
     state.num_buffer.clear();
 }
 
+[[nodiscard]]
 std::optional<std::string> parse_math(std::string& infix_expression, Types::ParseResult& result,
                                       std::stack<Types::Token>& operator_stack);
 }

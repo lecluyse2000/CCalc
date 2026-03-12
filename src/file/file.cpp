@@ -154,11 +154,11 @@ void bool_procedure(FILE*& output_file, const std::span<const Token> result) {
     }
 }
 
-void main_loop(FILE*& output_file, std::string& expression) {
+void main_loop(FILE*& output_file, std::string& expression, std::unordered_map<char, std::string> var_map) {
     const std::string orig_expression = expression;
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
     std::ranges::transform(expression, expression.begin(), [](const auto c){ return std::toupper(c); });
-    const ParseResult result = Parse::create_prefix_expression(expression);
+    const ParseResult result = Parse::create_prefix_expression(expression, var_map);
 
     fprintf(output_file, "Expression: %s\n", orig_expression.c_str());
     if (!result.success) {
@@ -186,8 +186,9 @@ void initiate_file_mode() {
         return;
     }
 
+    std::unordered_map<char, std::string> var_map;
     for (auto& expression : expressions) {
-        main_loop(output_file, expression);
+        main_loop(output_file, expression, var_map);
     }
     fclose(output_file);
 }
