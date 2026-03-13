@@ -52,7 +52,7 @@ inline void cleanup_history() {
         entry = nullptr;
     }
 }
-
+nn
 inline void shutdown(const std::vector<std::pair<std::string, std::string> >& history,
                      const std::unordered_map<char, std::string>& var_map) {
     std::ofstream output;
@@ -85,7 +85,7 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
 
     std::ofstream output_file(*filename);
     if (!output_file.is_open()) [[unlikely]] {
-        UI::print_error("Output file could not be created!\n\n");
+        UI::print_error("Output file could not be created!");
         return false;
     }
 
@@ -95,7 +95,7 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
 
 [[nodiscard]] bool is_empty_history(const std::vector<std::pair<std::string, std::string> >& history) {
     if (history.empty()) {
-        UI::print_error("You haven't evaluated any expressions yet\n");
+        UI::print_error("You haven't evaluated any expressions yet");
         return true;
     }
     return false;
@@ -117,15 +117,15 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
         if (!save_history(history)) {
             return InputResult::QUIT_FAILURE;
         }
-        std::cout << "History saved\n";
+        std::cout << "History saved";
         return InputResult::CONTINUE;
     } else if (input_expression == "clear") {
         cleanup_history();
         history.clear();
-        std::cout << "History cleared\n";
+        std::cout << "History cleared";
         return InputResult::CONTINUE;
     } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
-        std::cout << "Exiting...\n\n";
+        std::cout << "Exiting...\n";
         return InputResult::QUIT_SUCCESS;
     }
 
@@ -228,7 +228,7 @@ std::string math_int_procedure(std::string& orig_input, const std::span<const To
         add_to_history(orig_input, final_value.get_str(), history);
         return final_val_copy;
     } catch (const std::bad_alloc& err) {
-        UI::print_error("The number grew too big\n");
+        UI::print_error("The number grew too big");
     } catch (const std::exception& err) {
         UI::print_error(err.what());
     }
@@ -299,7 +299,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
 
         // If the input fails
         if (!input_expression) [[unlikely]] {
-            std::cerr << "Unknown error ocurred in receiving input. Aborting...\n\n";
+            std::cerr << "Unknown error ocurred in receiving input. Aborting...\n";
             shutdown(history, var_map);
             return 1;
         }
