@@ -89,6 +89,10 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
 void expand_vars(std::string& infix, const std::unordered_map<char, std::string>& var_map) {
     for (std::size_t i = 0; i < infix.size(); ++i) {
         if (!var_map.contains(infix[i])) continue;
+        if (infix[i] == 'P' && i + 1 < infix.size() && infix[i + 1] == 'I') {
+            i++;
+            continue;
+        }
 
         infix.replace(i, 1, "(" + var_map.at(infix[i]) + ")");
         while (++i < infix.size() && infix[i] != ')');

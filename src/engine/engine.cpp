@@ -117,12 +117,12 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
         if (!save_history(history)) {
             return InputResult::QUIT_FAILURE;
         }
-        std::cout << "History saved";
+        std::cout << "History saved\n";
         return InputResult::CONTINUE;
     } else if (input_expression == "clear") {
         cleanup_history();
         history.clear();
-        std::cout << "History cleared";
+        std::cout << "History cleared\n";
         return InputResult::CONTINUE;
     } else if (input_expression == "quit" || input_expression == "exit" || input_expression == "q") {
         std::cout << "Exiting...\n";
@@ -263,10 +263,13 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
 void evaluate_expression(std::string& orig_input, std::string& expression,
                          std::vector<std::pair<std::string, std::string> >& history,
                          std::unordered_map<char, std::string>& var_map) {
-    const char var_char = expression[1] == '=' ? static_cast<char>(std::toupper(expression[0])) : '\0';
+    const char var_char = expression[1] == '=' ? static_cast<char>(expression[0]) : '\0';
     if (var_char != '\0') expression = expression.substr(2);
     if (expression.empty()) {
         UI::print_error("Empty input received");
+        return;
+    } else if (var_char == 'E') {
+        UI::print_error("e is reserved for euler");
         return;
     }
     std::string num_check = check_num_input(orig_input, expression, history, var_map);
