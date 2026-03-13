@@ -71,9 +71,9 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
         if (c == '!' && is_bool_operand(static_cast<Token>(next_token))) {
             return false;
             // I think this is a more robust check than just looking for a digit
-        } else if (std::isdigit(c) && (next_token == '!' || next_token == ')' ||
-                                       is_math_var(static_cast<Token>(next_token)) ||
-                                       var_map.contains(next_token))) {
+        } else if ((std::isdigit(c) || var_map.contains(c))  && (next_token == '!' || next_token == ')' ||
+                                                                 is_math_var(static_cast<Token>(next_token)) ||
+                                                                 var_map.contains(next_token))) {
             return true;
         }
         if ((is_math_var(static_cast<Token>(c)) || var_map.contains(c)) &&
