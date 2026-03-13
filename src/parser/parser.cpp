@@ -41,7 +41,7 @@ constexpr bool contains_bool_op(const std::string_view& infix_expression) noexce
         if (is_bool_operator(static_cast<Token>(*itr))) {
             if (*itr == '^' && !pow_search(infix_expression, itr)) {
                 return true;
-            } else return false;
+            } else if (*itr == '^') return false;
             return true;
         }
     }

@@ -52,7 +52,7 @@ inline void cleanup_history() {
         entry = nullptr;
     }
 }
-nn
+
 inline void shutdown(const std::vector<std::pair<std::string, std::string> >& history,
                      const std::unordered_map<char, std::string>& var_map) {
     std::ofstream output;
