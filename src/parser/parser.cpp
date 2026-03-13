@@ -91,7 +91,7 @@ void expand_vars(std::string& infix, const std::unordered_map<char, std::string>
         if (!var_map.contains(infix[i])) continue;
 
         infix.replace(i, 1, "(" + var_map.at(infix[i]) + ")");
-        while (infix[i++ + 1] != ')');
+        while (++i < infix.size() && infix[i] != ')');
     }
 }
 
