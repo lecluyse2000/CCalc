@@ -271,6 +271,9 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
     } else if (var_char == 'E') {
         UI::print_error("e is reserved for euler");
         return;
+    } else if (std::isdigit(var_char)) {
+        UI::print_error("You can't assign a number to another number");
+        return;
     }
     std::string num_check = check_num_input(orig_input, expression, history, var_map);
     if (!num_check.empty()) {
