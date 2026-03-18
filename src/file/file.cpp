@@ -99,11 +99,7 @@ bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec
     std::string buffer;
     buffer.reserve(Util::buffer_size);
     if(!Util::convert_mpfr_string(buffer, final_value, display_precision)) [[unlikely]] return false;
-    fprintf(output_file, "Result: ");
-    for (const auto c : buffer) {
-        fprintf(output_file, "%c", c);
-    }
-    fprintf(output_file, "\n");
+    fprintf(output_file, "Result: %s\n", buffer.c_str());
     return true;
 }
 
