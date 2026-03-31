@@ -117,7 +117,7 @@ constexpr void expand_vars(std::string& infix, const std::unordered_map<char, st
 }
 
 [[nodiscard]] std::optional<std::string_view>
-constexpr clear_stack(std::vector<Token>& prefix_expression, std::stack<Token>& operator_stack, const bool is_math) {
+clear_stack(std::vector<Token>& prefix_expression, std::stack<Token>& operator_stack, const bool is_math) {
     while (!operator_stack.empty()) {
         if (operator_stack.top() == Token::RIGHT_PAREN) {
             while (!operator_stack.empty()) operator_stack.pop();
