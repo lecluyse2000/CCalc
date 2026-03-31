@@ -45,7 +45,8 @@ void read_vars(std::unordered_map<char, std::string>& vars, std::ifstream& input
 
     while (std::getline(input_file, line)) {
         std::getline(input_file,line2);
-        vars.emplace(line[0], std::move(line2));
+        if (line == "ANS") vars.emplace('\0', std::move(line2));
+        else vars.emplace(line[0], std::move(line2));
     }
 }
 
@@ -70,7 +71,8 @@ void output_history(const std::span<const std::pair<std::string, std::string> > 
 void write_vars(const std::unordered_map<char, std::string>& vars, std::ofstream& output_file) {
     std::ranges::for_each(vars, [&output_file](const auto& expression_result) {
         const auto& [var, result] = expression_result;
-        output_file << var << '\n' << result << '\n';
+        if (var == '\0') output_file << "ANS\n" << result << '\n';
+        else output_file << var << '\n' << result << '\n';
     });
 }
 

@@ -186,8 +186,8 @@ Use [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) and install via
 
 * ~~Implement trig function support (degrees and rads)~~
 * ~~Include e and pi as predefined variables~~
-* Add an 'ans' variable that stores the previous answer
-* Add the ability to store values in a variable
+* ~~Add an 'ans' variable that stores the previous answer~~
+* ~~Add the ability to store values in a variable~~
 * Give the user the ability to print in scientific notation
 * Add modulus support
 * Introduce the ability for the program to generate truth tables

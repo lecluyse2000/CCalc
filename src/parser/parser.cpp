@@ -71,9 +71,10 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
         if (c == '!' && is_bool_operand(static_cast<Token>(next_token))) {
             return false;
             // I think this is a more robust check than just looking for a digit
+            // This needs to be changed at some point
         } else if ((std::isdigit(c) || var_map.contains(c))  && (next_token == '!' || next_token == ')' ||
                                                                  is_math_var(static_cast<Token>(next_token)) ||
-                                                                 var_map.contains(next_token))) {
+                                                                 var_map.contains(next_token) || next_token == 'A')) {
             return true;
         }
         if ((is_math_var(static_cast<Token>(c)) || var_map.contains(c)) &&
@@ -86,13 +87,29 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
     return std::nullopt;
 } 
 
-void expand_vars(std::string& infix, const std::unordered_map<char, std::string>& var_map) {
+constexpr bool check_ans(std::string& infix, const std::unordered_map<char, std::string>& var_map, std::size_t& index) {
+    if (index + 2 >= infix.size()) return false;
+    if (infix[index + 1] == 'N' && infix[index + 2] == 'S') {
+        infix.replace(index, 3, "(" + var_map.at('\0') + ")");
+        while (++index < infix.size() && infix[index] != ')');
+        return true;
+    }
+
+    return false;
+}
+
+constexpr void expand_vars(std::string& infix, const std::unordered_map<char, std::string>& var_map) {
     for (std::size_t i = 0; i < infix.size(); ++i) {
-        if (!var_map.contains(infix[i])) continue;
+        if (!var_map.contains(infix[i]) && infix[i] != 'A') continue;
         if (infix[i] == 'P' && i + 1 < infix.size() && infix[i + 1] == 'I') {
             i++;
             continue;
         }
+        if (infix[i] == 'A' && i > 0 && infix[i - 1] == 'T' &&
+            i + 1 < infix.size() && infix[i + 1] == 'N') {
+            continue;
+        }
+        if (infix[i] == 'A' && check_ans(infix, var_map, i)) continue;
 
         infix.replace(i, 1, "(" + var_map.at(infix[i]) + ")");
         while (++i < infix.size() && infix[i] != ')');
@@ -100,7 +117,7 @@ void expand_vars(std::string& infix, const std::unordered_map<char, std::string>
 }
 
 [[nodiscard]] std::optional<std::string_view>
-clear_stack(std::vector<Token>& prefix_expression, std::stack<Token>& operator_stack, const bool is_math) {
+constexpr clear_stack(std::vector<Token>& prefix_expression, std::stack<Token>& operator_stack, const bool is_math) {
     while (!operator_stack.empty()) {
         if (operator_stack.top() == Token::RIGHT_PAREN) {
             while (!operator_stack.empty()) operator_stack.pop();
@@ -142,15 +159,14 @@ ParseResult create_prefix_expression(std::string& infix_expression, const std::u
         return parse_result;
     }
     const auto stack_result = clear_stack(parse_result.result, operator_stack, *is_math);
+    parse_result.is_math = *is_math;
     if (stack_result) {
         parse_result.error_msg = *stack_result;
-        parse_result.is_math = *is_math;
         return parse_result; 
     }
 
     std::ranges::reverse(parse_result.result);
     parse_result.success = true;
-    parse_result.is_math = *is_math;
     return parse_result;
 }
 

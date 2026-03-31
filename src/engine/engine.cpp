@@ -178,6 +178,17 @@ inline std::string print_euler(std::string& orig_input, std::vector<std::pair<st
     return euler_copy;
 }
 
+inline void print_ans(std::string& orig_input, std::vector<std::pair<std::string, std::string> >& history,
+                      const std::unordered_map<char, std::string>& var_map) {
+    if (!var_map.contains('\0')) {
+        UI::print_error("There is no ANS present");
+        return;
+    }
+    std::string ans_copy = var_map.at('\0');
+    UI::print_result(ans_copy);
+    add_to_history(orig_input, ans_copy, history);
+}
+
 // Moving the strings into the map/history means that we have to remember to make copies
 [[nodiscard]] std::string check_num_input(std::string& orig_input, std::string& expression,
                                           std::vector<std::pair<std::string, std::string> >& history,
@@ -191,6 +202,9 @@ inline std::string print_euler(std::string& orig_input, std::vector<std::pair<st
         return print_euler(orig_input, history);
     } else if (expression == "PI") {
         return print_pi(orig_input, history);
+    } else if (expression == "ANS") {
+        print_ans(orig_input, history, var_map); 
+        return "ANS";
     } else if (expression.size() == 1 && var_map.contains(expression[0])) {
         UI::print_result(var_map.at(expression[0]));
         return var_map.at(expression[0]);
@@ -276,6 +290,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
         return;
     }
     std::string num_check = check_num_input(orig_input, expression, history, var_map);
+    if (num_check == "ANS") return;
     if (!num_check.empty()) {
         var_map.insert_or_assign(var_char, std::move(num_check));
         return;
