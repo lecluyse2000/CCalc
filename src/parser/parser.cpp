@@ -50,6 +50,30 @@ constexpr bool contains_bool_op(const std::string_view& infix_expression) noexce
 }
 
 [[nodiscard]]
+constexpr bool trig_check(const std::string_view infix_expression,
+                          const std::unordered_map<char, std::string>& var_map,
+                          const auto& itr, const char c) noexcept {
+    // Check if "TAN" is present in the expression, since TAN has a T and would mess things up
+    if (c == 'T') {
+        if (static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)) + 2 >= infix_expression.size()) return false;
+        const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)), 3);
+        if (get_tan == "TAN" || var_map.contains('T')) return true;
+        return false;
+    } else if (c == 'S') {
+        if (static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)) + 2 >= infix_expression.size()) return false;
+        const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)), 3);
+        if (get_tan == "SIN" || var_map.contains('S')) return true;
+        return false;
+    } else if (c == 'C') {
+        if (static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)) + 2 >= infix_expression.size()) return false;
+        const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)), 3);
+        if (get_tan == "COS" || var_map.contains('C')) return true;
+        return false;
+    }
+    return false;
+}
+
+[[nodiscard]]
 constexpr std::optional<bool> is_math_equation(const std::string_view infix_expression,
                                                const std::unordered_map<char, std::string>& var_map) noexcept {
     if (contains_bool_op(infix_expression)) return false;
@@ -59,12 +83,9 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
         const char c = *itr;
         const char next_token = (itr + 1 != infix_expression.end()) ? *(itr + 1) : '\0';
 
-        // Check if "TAN" is present in the expression, since TAN has a T and would mess things up
-        if (c == 'T') {
-            const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)), 3);
-            if (get_tan == "TAN" || var_map.contains('T')) return true;
-            return false;
-        } else if (c == 'F' && var_map.contains('F')) { 
+        if (trig_check(infix_expression, var_map, itr, c)) return true;
+
+        if (c == 'F' && var_map.contains('F')) { 
             return true;
         } else if (c == 'F') return false;
 
@@ -72,9 +93,9 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
             return false;
             // I think this is a more robust check than just looking for a digit
             // This needs to be changed at some point
-        } else if ((std::isdigit(c) || var_map.contains(c))  && (next_token == '!' || next_token == ')' ||
-                                                                 is_math_var(static_cast<Token>(next_token)) ||
-                                                                 var_map.contains(next_token) || next_token == 'A')) {
+        } else if ((std::isdigit(c) || var_map.contains(c)) && (next_token == '!' || next_token == ')' ||
+                                                                is_math_var(static_cast<Token>(next_token)) ||
+                                                                var_map.contains(next_token) || next_token == 'A')) {
             return true;
         }
         if ((is_math_var(static_cast<Token>(c)) || var_map.contains(c)) &&
