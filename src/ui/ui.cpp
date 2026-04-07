@@ -19,16 +19,17 @@ namespace UI {
 void print_excessive_arguments(const int arguments) {
     std::cerr << "Expected 1 argument, received " << arguments
               << ". Use the --help flag to see all flags, or pass in an expression.\n"
-              << "Make sure to wrap the expression in quotes.\n\n";
+              << "Make sure to wrap the expression in quotes.\n";
 }
 
 void print_insufficient_arguments() {
     std::cerr << "Expected an argument to be passed in. Use the --help flag to see all available flags, or pass in an "
-                 "expression to be evaluated.\nWrap the expression in single quotes.\n\n";
+                 "expression to be evaluated.\nWrap the expression in single quotes.\n";
 }
 
 void print_help_continuous() {
     std::cout << "* Enter 'history' to view your history.\n"
+              << "* Enter 'vars' to view assigned variables.\n"
               << "* Enter 'save' to save your program history to a file.\n"
               << "* Enter 'clear' to clear your history.\n"
               << "* Enter 'exit', 'quit', or 'q' to exit the program.\n\n";
