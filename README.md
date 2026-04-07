@@ -37,10 +37,10 @@ Please enter your expression, or enter help to see all available commands: T @ F
 Result: True
 Please enter your expression, or enter help to see all available commands: (T | F) ^ (F & T)
 Result: True
-Please enter your expression, or enter help to see all available commands: 2 + 3 - 3 * 3
+Please enter your expression, or enter help to see all available commands: x = 2 + 3 - 3 * 3
 Result: -4
-Please enter your expression, or enter help to see all available commands: 3^2 / 3
-Result: 3
+Please enter your expression, or enter help to see all available commands: x^2 / 3
+Result: 5.3333333333 
 Please enter your expression, or enter help to see all available commands: history
 Expression: T & F
 Result: False
@@ -48,10 +48,10 @@ Expression: T @ F
 Result: True
 Expression: (T | F) ^ (F & T)
 Result: True
-Expression: 2 + 3 - 3 * 3
+Expression: x = 2 + 3 - 3 * 3
 Result: -4
-Expression: 3^2 / 3
-Result: 3
+Expression: x^2 / 3
+Result: 5.3333333333
 
 Please enter your expression, or enter help to see all available commands: quit
 Exiting...
@@ -93,6 +93,11 @@ Why no sqrt? Because sqrt(x) = x^(1/2)
 - With the `-v` or `--version` flag. The program simply displays the version information of the program.    
 - The `-H` or `--history` flag prints the program history.    
 - The `--help` flag prints a screen explaining all the flags and general program usage.
+
+### Variables
+
+CCalc supports assigning the result of arithmetic expressions to a single character variable. The expected format is: {char} = {math expression}. See the [start guide](#start guide) for examples.
+ANS is a program variable that stores the previous answer.
 
 ### Continuous Mode
 
