@@ -95,8 +95,8 @@ Why no sqrt? Because sqrt(x) = x^(1/2)
 
 ### Variables
 
-CCalc supports assigning the result of arithmetic expressions to a single character variable. The expected format is: {char} = {math expression}. See the [start guide](#start guide) for examples.
-ANS is a program variable that stores the previous answer.
+CCalc supports assigning the result of arithmetic expressions to a single character variable. The expected format is: `{char} = {math expression}`. See the [start guide](#start-guide) for examples.
+`ANS` is a program variable that always stores the previous answer.
 
 ### Continuous Mode
 
