@@ -25,7 +25,6 @@ Below are examples of general program usage.
 ```console
 user@archlinux:~$ ccalc 'T & F'
 Result: False
-
 user@archlinux:~$ ccalc -c 'T & F'
 Expected 1 argument, received 2. Use the --help flag to see all flags, or pass in an expression.
 Make sure to wrap the expression in quotes.
