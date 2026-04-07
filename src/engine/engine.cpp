@@ -101,15 +101,28 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
     return false;
 }
 
+[[nodiscard]] bool is_empty_var_map(const std::unordered_map<char, std::string>& vars) {
+    if (vars.empty()) {
+        UI::print_error("There are no valid variables assigned");
+        return true;
+    }
+    return false;
+}
+
 // Determines the status of the program based on the user input, return an enum defined in Types.hpp 
-[[nodiscard]] InputResult handle_input(std::string_view input_expression,
-                                       std::vector<std::pair<std::string, std::string> >& history) {
+[[nodiscard]] InputResult handle_input(const std::string_view input_expression,
+                                       std::vector<std::pair<std::string, std::string> >& history,
+                                       const std::unordered_map<char, std::string>& vars) {
     if (input_expression == "help") {
         UI::print_help_continuous();
         return InputResult::CONTINUE;
     } else if (input_expression == "history") {
         if (is_empty_history(history)) return InputResult::CONTINUE;
         UI::print_history(history);
+        return InputResult::CONTINUE;
+    } else if (input_expression == "vars" || input_expression == "variables") {
+        if (is_empty_var_map(vars)) return InputResult::CONTINUE;
+        UI::print_vars(vars);
         return InputResult::CONTINUE;
     } else if (input_expression == "save") {
         if (is_empty_history(history)) return InputResult::CONTINUE;
@@ -345,7 +358,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
 
         // Remove spaces from the user's input
         input_expression_string.erase(remove(input_expression_string.begin(), input_expression_string.end(), ' '), input_expression_string.end());
-        const Engine::InputResult result = handle_input(input_expression_string, history);
+        const Engine::InputResult result = handle_input(input_expression_string, history, var_map);
 
         // Based upon the input the program exits, continues, or evaluates the expression
         switch (result) {

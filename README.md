@@ -103,6 +103,7 @@ CCalc supports assigning the result of arithmetic expressions to a single charac
 In continuous mode, there are four commands available:
 
 1. `history` prints the program history to the screen.
+2. `vars` prints all assigned variables in the program.
 2. `save` prompts you for a filename, then outputs the program history to that file.
 3. `clear` clears the history.
 4. `exit`, `quit`, or `q` exits the program.

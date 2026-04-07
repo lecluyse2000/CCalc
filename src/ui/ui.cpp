@@ -54,9 +54,16 @@ std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_prec
 void print_history(const std::span<const std::pair<std::string, std::string> > history) {
     std::ranges::for_each(history, [](const auto& expression_result) {
         const auto& [expression, result] = expression_result;
-        std::cout << "Expression: " << expression << "\nResult: " << result << "\n";
+        std::cout << "Expression: " << expression << "\nResult: " << result << '\n';
     });
-    std::cout << std::endl;
+}
+
+void print_vars(const std::unordered_map<char, std::string>& vars) {
+    std::ranges::for_each(vars, [](const auto& expression_result) {
+        const auto& [var, result] = expression_result;
+        if (var == '\0') return;
+        std::cout << var << ": " << result << '\n';
+    });
 }
 
 void print_version() {
