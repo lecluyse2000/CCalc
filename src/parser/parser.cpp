@@ -108,7 +108,26 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
     return std::nullopt;
 } 
 
-constexpr bool check_ans(std::string& infix, const std::unordered_map<char, std::string>& var_map, std::size_t& index) {
+// Checks for tan, sin, and cos while expanding vars
+[[nodiscard]] constexpr bool check_trig_expand(const std::string_view infix, std::size_t& i) {
+    if (infix[i] == 'T' && i + 2 < infix.size() && infix[i + 1] == 'A' && infix[i + 2] == 'N') {
+        while (infix[++i] != 'N');
+        return true;
+    }
+    if (infix[i] == 'S' && i + 2 < infix.size() && infix[i + 1] == 'I' && infix[i + 2] == 'N') {
+        while (infix[++i] != 'N');
+        return true;
+    }
+    if (infix[i] == 'C' && i + 2 < infix.size() && infix[i + 1] == 'O' && infix[i + 2] == 'S') {
+        while (infix[++i] != 'S');
+        return true;
+    }
+    return false;
+}
+
+// Checks for ans while expanding vars
+[[nodiscard]]
+constexpr bool check_ans_expand(std::string& infix, const std::unordered_map<char, std::string>& var_map, std::size_t& index) {
     if (index + 2 >= infix.size()) return false;
     if (infix[index + 1] == 'N' && infix[index + 2] == 'S') {
         infix.replace(index, 3, "(" + var_map.at('\0') + ")");
@@ -126,11 +145,8 @@ constexpr void expand_vars(std::string& infix, const std::unordered_map<char, st
             i++;
             continue;
         }
-        if (infix[i] == 'A' && i > 0 && infix[i - 1] == 'T' &&
-            i + 1 < infix.size() && infix[i + 1] == 'N') {
-            continue;
-        }
-        if (infix[i] == 'A' && check_ans(infix, var_map, i)) continue;
+        if (check_trig_expand(infix, i)) continue;
+        if (infix[i] == 'A' && check_ans_expand(infix, var_map, i)) continue;
 
         infix.replace(i, 1, "(" + var_map.at(infix[i]) + ")");
         while (++i < infix.size() && infix[i] != ')');
