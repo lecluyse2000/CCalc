@@ -9,6 +9,7 @@
 #include <readline/history.h>
 #include <string>
 
+#include "include/types.hpp"
 #include "ui/ui.h"
 
 namespace Util {
@@ -94,6 +95,35 @@ inline bool convert_mpfr_string(std::string& out, const mpfr_t& val, const mpfr_
     return std::optional<std::string>(filename);
 }
 
+[[nodiscard]]
+constexpr bool pow_search(const std::string_view& infix_expression, auto current_itr) noexcept {
+    for (; current_itr != infix_expression.end(); ++current_itr) {
+        if (*current_itr == '(') continue;
+        if (*current_itr == 'F') return false;
+        else if (*current_itr == 'T') {
+            const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(),
+                                                                                              current_itr)), 3);
+            if (get_tan == "TAN") return true;
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+[[nodiscard]]
+constexpr bool contains_bool_op(const std::string_view& infix_expression) noexcept {
+    for (auto itr = infix_expression.begin(); itr != infix_expression.end(); ++itr) {
+        if (is_bool_operator(static_cast<Types::Token>(*itr))) {
+            if (*itr == '^' && !pow_search(infix_expression, itr)) {
+                return true;
+            } else if (*itr == '^') return false;
+            return true;
+        }
+    }
+
+    return false;
+}
 inline void free_history_entry(HIST_ENTRY*& entry) {
     if (entry->line) free(entry->line);
     if (entry->timestamp) free(entry->timestamp);

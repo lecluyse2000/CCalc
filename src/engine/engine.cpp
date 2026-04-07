@@ -273,22 +273,31 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
     }
 }
 
+[[nodiscard]] constexpr bool check_var_assign_error(const std::string_view expression, const char var_char) {
+    if (expression.empty()) {
+        UI::print_error("Empty input received");
+        return true;
+    } else if (var_char == 'E') {
+        UI::print_error("e is reserved for euler");
+        return true;
+    } else if (std::isdigit(var_char)) {
+        UI::print_error("You can't assign a number to another number");
+        return true;
+    } else if (Util::contains_bool_op(expression)) {
+        UI::print_error("Variables are for math expressions only");
+        return true;
+    }
+    return false;
+}
+
 // \0 is what I decided to store ANS in. So we always need to save the answer in the var map to update ANS
 void evaluate_expression(std::string& orig_input, std::string& expression,
                          std::vector<std::pair<std::string, std::string> >& history,
                          std::unordered_map<char, std::string>& var_map) {
     const char var_char = expression[1] == '=' ? static_cast<char>(expression[0]) : '\0';
     if (var_char != '\0') expression = expression.substr(2);
-    if (expression.empty()) {
-        UI::print_error("Empty input received");
-        return;
-    } else if (var_char == 'E') {
-        UI::print_error("e is reserved for euler");
-        return;
-    } else if (std::isdigit(var_char)) {
-        UI::print_error("You can't assign a number to another number");
-        return;
-    }
+    if (var_char != '\0' && check_var_assign_error(expression, var_char)) return;
+
     std::string num_check = check_num_input(orig_input, expression, history, var_map);
     if (num_check == "ANS") return;
     if (!num_check.empty()) {

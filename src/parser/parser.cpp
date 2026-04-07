@@ -10,6 +10,7 @@
 
 #include "boolparse.h"
 #include "include/error.hpp"
+#include "include/util.hpp"
 #include "include/types.hpp"
 #include "mathparse.h"
 
@@ -18,36 +19,6 @@ using namespace Types;
 namespace Parse {
 
 namespace {
-
-[[nodiscard]]
-constexpr bool pow_search(const std::string_view& infix_expression, auto current_itr) noexcept {
-    for (; current_itr != infix_expression.end(); ++current_itr) {
-        if (*current_itr == '(') continue;
-        if (*current_itr == 'F') return false;
-        else if (*current_itr == 'T') {
-            const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(),
-                                                                                              current_itr)), 3);
-            if (get_tan == "TAN") return true;
-            return false;
-        }
-    }
-    
-    return true;
-}
-
-[[nodiscard]]
-constexpr bool contains_bool_op(const std::string_view& infix_expression) noexcept {
-    for (auto itr = infix_expression.begin(); itr != infix_expression.end(); ++itr) {
-        if (is_bool_operator(static_cast<Token>(*itr))) {
-            if (*itr == '^' && !pow_search(infix_expression, itr)) {
-                return true;
-            } else if (*itr == '^') return false;
-            return true;
-        }
-    }
-
-    return false;
-}
 
 [[nodiscard]]
 constexpr bool trig_check(const std::string_view infix_expression,
@@ -76,7 +47,7 @@ constexpr bool trig_check(const std::string_view infix_expression,
 [[nodiscard]]
 constexpr std::optional<bool> is_math_equation(const std::string_view infix_expression,
                                                const std::unordered_map<char, std::string>& var_map) noexcept {
-    if (contains_bool_op(infix_expression)) return false;
+    if (Util::contains_bool_op(infix_expression)) return false;
 
     // From now on, we are operating on the assumption that there are no boolean operators
     for (auto itr = infix_expression.begin(); itr != infix_expression.end(); ++itr) {
