@@ -30,17 +30,17 @@ Expected 1 argument, received 2. Use the --help flag to see all flags, or pass i
 Make sure to wrap the expression in quotes.
 
 user@archlinux:~$ ccalc -c
-Please enter your expression, or enter help to see all available commands: T & F
+[ccalc]$ T & F
 Result: False
-Please enter your expression, or enter help to see all available commands: T @ F
+[ccalc]$ T @ F
 Result: True
-Please enter your expression, or enter help to see all available commands: (T | F) ^ (F & T)
+[ccalc]$ (T | F) ^ (F & T)
 Result: True
-Please enter your expression, or enter help to see all available commands: x = 2 + 3 - 3 * 3
+[ccalc]$ x = 2 + 3 - 3 * 3
 Result: -4
-Please enter your expression, or enter help to see all available commands: x^2 / 3
+[ccalc]$ x^2 / 3
 Result: 5.3333333333 
-Please enter your expression, or enter help to see all available commands: history
+[ccalc]$ history
 Expression: T & F
 Result: False
 Expression: T @ F
@@ -52,7 +52,7 @@ Result: -4
 Expression: x^2 / 3
 Result: 5.3333333333
 
-Please enter your expression, or enter help to see all available commands: quit
+[ccalc]$ quit
 Exiting...
 ```
 

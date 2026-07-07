@@ -337,7 +337,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
     Startup::startup(history, var_map);
 
     while (true) {
-        char* const input_expression = readline("Please enter your expression, or enter help to see all available commands: ");
+        char* const input_expression = readline("[ccalc]$ ");
         if (check_signal_flags(history, var_map)) return 1;
 
         // If the input fails
