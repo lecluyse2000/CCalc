@@ -77,9 +77,7 @@ void print_help() {
               << "\t - The [-c|--continuous] flag starts the program in continuous mode. You will be prompted for "
                  "expressions until you exit.\n"
               << "\t - The [-f|--file] flag runs the program in file mode. Launching the program in this mode will "
-                 "take a list of expressions from expressions.txt and place the results in results.txt.\n\t   The "
-                 "expressions.txt file must be placed in the current working directory."
-              << std::endl
+                 "take a list of expressions from a file and place the results in another.\n"
               << "\t - The [-v|--version] flag prints the version of the program.\n"
               << "\t - The [-H|--history] flag prints the program history.\n"
               << "\t - The [-h|--help] flag prints this screen.\n\n"
