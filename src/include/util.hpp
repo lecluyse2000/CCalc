@@ -21,24 +21,18 @@ inline void clear_input_stream() {
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-// Remove the trailing zeros from a MPFR float in string form
 inline void trim_trailing_zero_mpfr(std::string& buffer) {
-    // If there is no decimal, return early
-    const auto find_decimal = std::ranges::find_if(buffer, [](const char c) {
-        return c == '.';
-    });
-    if (find_decimal == buffer.end()) return;
+    if (buffer.find('.') == std::string::npos) return;
 
-    const auto last_non_zero = std::ranges::find_if(buffer.rbegin(), buffer.rend(), [](const char c) {
-        return c != '0' && c != '.';
-    });
-
-    if (last_non_zero != buffer.rend()) {
-        buffer.erase(last_non_zero.base(), buffer.end());
-    } else {
-        buffer.erase(find_decimal, buffer.end());
+    while (!buffer.empty() && buffer.back() == '0') {
+        buffer.pop_back();
     }
-    if (buffer.size() == 1 && buffer[0] == '-') buffer[0] = '0'; // Handle negative 0 case
+
+    if (!buffer.empty() && buffer.back() == '.') {
+        buffer.pop_back();
+    }
+
+    if (buffer == "-0") buffer = "0";
 }
 
 // Convert an MPFR to a string 

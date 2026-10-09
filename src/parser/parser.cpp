@@ -116,8 +116,8 @@ constexpr void expand_vars(std::string& infix, const std::unordered_map<char, st
             continue;
         }
         if (check_trig_expand(infix, i)) continue;
-        if (!var_map.contains(infix[i]) && infix[i] != 'A') continue;
         if (infix[i] == 'A' && check_ans_expand(infix, var_map, i)) continue;
+        if (!var_map.contains(infix[i])) continue;
 
         infix.replace(i, 1, "(" + var_map.at(infix[i]) + ")");
         while (++i < infix.size() && infix[i] != ')');
