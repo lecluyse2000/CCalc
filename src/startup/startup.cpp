@@ -154,6 +154,7 @@ const std::unordered_map<Types::Setting, long> settings = source_ini();
 
 void startup(std::vector<std::pair<std::string, std::string> >& history,
              std::unordered_map<char, std::string>& var_map) {
+    std::filesystem::create_directories(std::filesystem::path(var_map_location).parent_path());
     using_history();
     stifle_history(static_cast<int>(Startup::settings.at(Setting::MAX_HISTORY)));
     rl_event_hook = Signal::check_signals_hook;
