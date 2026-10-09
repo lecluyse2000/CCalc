@@ -111,12 +111,12 @@ constexpr bool check_ans_expand(std::string& infix, const std::unordered_map<cha
 
 constexpr void expand_vars(std::string& infix, const std::unordered_map<char, std::string>& var_map) {
     for (std::size_t i = 0; i < infix.size(); ++i) {
-        if (!var_map.contains(infix[i]) && infix[i] != 'A') continue;
         if (infix[i] == 'P' && i + 1 < infix.size() && infix[i + 1] == 'I') {
             i++;
             continue;
         }
         if (check_trig_expand(infix, i)) continue;
+        if (!var_map.contains(infix[i]) && infix[i] != 'A') continue;
         if (infix[i] == 'A' && check_ans_expand(infix, var_map, i)) continue;
 
         infix.replace(i, 1, "(" + var_map.at(infix[i]) + ")");
