@@ -92,32 +92,15 @@ target_link_libraries(ccalc PRIVATE
     ${READLINE_LIBRARIES}
 )
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(ccalc PRIVATE 
-        -g 
-        -O2 
-        -Wall 
-        -Wextra 
-        -Wshadow 
-        -Wconversion 
-        -Wpedantic
-        -fno-fast-math
-    )
-else()
-    target_compile_options(ccalc PRIVATE 
-        -g 
-        -O2
-        -Wall 
-        -Wextra 
-        -Wshadow 
-        -Wconversion 
-        -Wpedantic
-        -fno-fast-math
-        -fexcess-precision=standard
-        -frounding-math
-        -fsignaling-nans
-    )
-endif()
+target_compile_options(ccalc PRIVATE 
+    -g 
+    -O2
+    -Wall 
+    -Wextra 
+    -Wshadow 
+    -Wconversion 
+    -Wpedantic
+)
 
 install(TARGETS ccalc
     DESTINATION bin 
