@@ -349,15 +349,14 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
 
         std::string input_expression_string(input_expression);
         free(input_expression);
-
-        if (input_expression_string.empty()) {
-            UI::print_error("Empty input received");
-            continue;
-        }
         std::string orig_input = input_expression_string;
 
         // Remove spaces from the user's input
         input_expression_string.erase(remove(input_expression_string.begin(), input_expression_string.end(), ' '), input_expression_string.end());
+        if (input_expression_string.empty()) {
+            UI::print_error("Empty input received");
+            continue;
+        }
         const Engine::InputResult result = handle_input(input_expression_string, history, var_map);
 
         // Based upon the input the program exits, continues, or evaluates the expression
