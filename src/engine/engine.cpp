@@ -299,7 +299,11 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
     } else if (Util::contains_bool_op(expression)) {
         UI::print_error("Variables are for math expressions only");
         return true;
+    } else if(!std::isalpha(var_char)) {
+        UI::print_error("Variables can only be assigned to characters a-z");
+        return true;
     }
+
     return false;
 }
 
