@@ -128,7 +128,8 @@ angle=0
 
 ### Required dependencies
 
-- A valid c++ compiler, I recommend [g++](https://gcc.gnu.org/)   
+- A c++ compiler supporting c++20
+  - [g++](https://gcc.gnu.org/)   
   - [LLVM](https://www.llvm.org/)
     * [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
     * [clang++](https://clang.llvm.org/)
