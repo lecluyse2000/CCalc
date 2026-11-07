@@ -10,7 +10,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "startup/startup.h"
 #include "include/util.hpp"
 #include "version.hpp"
 
@@ -45,8 +44,6 @@ void print_error(const std::string_view error) {
 
 std::string print_mpfr(const mpfr_t& final_value, const mpfr_prec_t display_precision) {
     std::string buffer;
-    // Resize the buffer to the display precision from config, and add 2 bytes for good measure
-    buffer.resize(static_cast<std::size_t>(Startup::settings.at(Types::Setting::DISPLAY_PREC)) + 2);
     if(!Util::convert_mpfr_string(buffer, final_value, display_precision)) [[unlikely]] return "";
     UI::print_result(buffer);
     return buffer; 

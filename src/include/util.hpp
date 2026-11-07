@@ -1,7 +1,6 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
-#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <mpfr.h>
@@ -14,45 +13,50 @@
 
 namespace Util {
 
-inline constexpr std::size_t buffer_size = 128;
-
 inline void clear_input_stream() {
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
 inline void trim_trailing_zero_mpfr(std::string& buffer) {
-    if (buffer.find('.') == std::string::npos) return;
+    if (buffer.find('.') != std::string::npos) {
+        while (!buffer.empty() && buffer.back() == '0') {
+            buffer.pop_back();
+        }
 
-    while (!buffer.empty() && buffer.back() == '0') {
-        buffer.pop_back();
-    }
-
-    if (!buffer.empty() && buffer.back() == '.') {
-        buffer.pop_back();
+        if (!buffer.empty() && buffer.back() == '.') {
+            buffer.pop_back();
+        }
     }
 
     if (buffer == "-0") buffer = "0";
 }
 
-// Convert an MPFR to a string 
 [[nodiscard]]
 inline bool convert_mpfr_string(std::string& out, const mpfr_t& val, const mpfr_prec_t display_precision) {
     // If the float is an integer, don't worry about the precision
-    const int snprintf_result = mpfr_integer_p(val) ? mpfr_snprintf(out.data(), buffer_size, "%.0Rf", val)
-                                                    : mpfr_snprintf(out.data(), buffer_size, "%.*Rf", display_precision, val);
-    if (snprintf_result < 0) [[unlikely]] {
+    const int digits = mpfr_integer_p(val) ? 0 : static_cast<int>(display_precision);
+
+    const int length = mpfr_snprintf(nullptr, 0, "%.*Rf", digits, val);
+    if (length < 0) [[unlikely]] {
         UI::print_error("mpfr_snprintf failure");
         return false;
-    } else if (static_cast<std::size_t>(snprintf_result) >= buffer_size) {
-        UI::print_error("buffer too small for mpfr_snprintf, output may be truncated.\n");
     }
+    out.resize(static_cast<std::size_t>(length) + 1);
+
+    const int written = mpfr_snprintf(out.data(), out.size(), "%.*Rf", digits, val);
+    if (written < 0) [[unlikely]] {
+        UI::print_error("mpfr_snprintf failure");
+        return false;
+    }
+
+    out.resize(static_cast<std::size_t>(written));
     trim_trailing_zero_mpfr(out);
-    return true; 
+    return true;
 }
 
 // This function grabs the filename the user wants to print to
-// write indicates if we are reading or writing
+// "write" indicates if we are reading or writing
 [[nodiscard]] inline std::optional<std::string> get_filename(const bool write) {
     std::string filename;
     char filename_flag = 'f';
