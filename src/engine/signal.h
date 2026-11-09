@@ -7,6 +7,6 @@ namespace Signal {
 int check_signals_hook();
 void register_handlers();
 
-}
+}  // namespace Signal
 
 #endif

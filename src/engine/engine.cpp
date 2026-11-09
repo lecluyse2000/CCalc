@@ -2,16 +2,17 @@
 
 #include "engine/engine.h"
 
+#include <gmpxx.h>
+#include <mpfr.h>
+#include <readline/history.h>
+#include <readline/readline.h>
+
 #include <algorithm>
 #include <cctype>
 #include <fstream>
-#include <gmpxx.h>
 #include <iostream>
 #include <memory>
-#include <mpfr.h>
 #include <optional>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <span>
 #include <string_view>
 #include <unordered_map>
@@ -42,7 +43,7 @@ namespace {
 
 inline void cleanup_history() {
     while (history_length) {
-        HIST_ENTRY* entry = remove_history(0); 
+        HIST_ENTRY* entry = remove_history(0);
 
         if (!entry) {
             UI::print_error("NULL pointer reached in cleanup_history! This should not happen");
@@ -57,10 +58,10 @@ inline void shutdown(const std::vector<std::pair<std::string, std::string> >& hi
                      const std::unordered_map<char, std::string>& var_map) {
     std::ofstream output;
     output.open(Startup::history_location, std::ios::trunc);
-    if(output.is_open()) File::write_history(history, output);
+    if (output.is_open()) File::write_history(history, output);
     output.close();
     output.open(Startup::var_map_location);
-    if(output.is_open()) File::write_vars(var_map, output);
+    if (output.is_open()) File::write_vars(var_map, output);
     cleanup_history();
 }
 
@@ -109,9 +110,8 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
     return false;
 }
 
-// Determines the status of the program based on the user input, return an enum defined in Types.hpp 
-[[nodiscard]] InputResult handle_input(const std::string_view input_expression,
-                                       std::vector<std::pair<std::string, std::string> >& history,
+// Determines the status of the program based on the user input, return an enum defined in Types.hpp
+[[nodiscard]] InputResult handle_input(const std::string_view input_expression, std::vector<std::pair<std::string, std::string> >& history,
                                        const std::unordered_map<char, std::string>& vars) {
     if (input_expression == "help") {
         UI::print_help_continuous();
@@ -145,8 +145,7 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
     return InputResult::CONTINUE_TO_EVALUATE;
 }
 
-inline void add_to_history(std::string& orig_input, std::string&& final_value,
-                           std::vector<std::pair<std::string, std::string> >& history) {
+inline void add_to_history(std::string& orig_input, std::string&& final_value, std::vector<std::pair<std::string, std::string> >& history) {
     if (history.size() + 1 > static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY))) {
         history.erase(history.begin());
     }
@@ -154,8 +153,7 @@ inline void add_to_history(std::string& orig_input, std::string&& final_value,
     history.emplace_back(std::make_pair(std::move(orig_input), std::move(final_value)));
 }
 
-inline void add_to_history(std::string& orig_input, std::string& final_value,
-                           std::vector<std::pair<std::string, std::string> >& history) {
+inline void add_to_history(std::string& orig_input, std::string& final_value, std::vector<std::pair<std::string, std::string> >& history) {
     if (history.size() + 1 > static_cast<std::size_t>(Startup::settings.at(Setting::MAX_HISTORY))) {
         history.erase(history.begin());
     }
@@ -166,7 +164,7 @@ inline void add_to_history(std::string& orig_input, std::string& final_value,
 inline std::string print_pi(std::string& orig_input, std::vector<std::pair<std::string, std::string> >& history) {
     mpfr_t pi;
     mpfr_init2(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
-    mpfr_const_pi(pi, MPFR_RNDN); 
+    mpfr_const_pi(pi, MPFR_RNDN);
     std::string pi_str = UI::print_mpfr(pi, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
     std::string pi_copy = pi_str;
     add_to_history(orig_input, pi_str, history);
@@ -216,7 +214,7 @@ inline void print_ans(std::string& orig_input, std::vector<std::pair<std::string
     } else if (expression == "PI") {
         return print_pi(orig_input, history);
     } else if (expression == "ANS") {
-        print_ans(orig_input, history, var_map); 
+        print_ans(orig_input, history, var_map);
         return "ANS";
     } else if (expression.size() == 1 && var_map.contains(expression[0])) {
         UI::print_result(var_map.at(expression[0]));
@@ -232,9 +230,9 @@ std::string math_float_procedure(std::string& orig_input, const std::span<const 
         const auto tree = std::make_unique<MathAST>();
         tree->build_ast(prefix_input, true);
         const mpfr_t& final_value = tree->evaluate_floating_point();
-        std::string final_val = UI::print_mpfr(final_value,
-                                           static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
-        if (final_val.empty()) [[unlikely]] return "";
+        std::string final_val = UI::print_mpfr(final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)));
+        if (final_val.empty()) [[unlikely]]
+            return "";
         std::string final_val_copy = final_val;
         add_to_history(orig_input, final_val, history);
         return final_val_copy;
@@ -263,8 +261,7 @@ std::string math_int_procedure(std::string& orig_input, const std::span<const To
 }
 
 // Calls the float or int procedure based on float_point status
-std::string math_procedure(std::string& orig_input, const ParseResult& result,
-                           std::vector<std::pair<std::string, std::string> >& history) {
+std::string math_procedure(std::string& orig_input, const ParseResult& result, std::vector<std::pair<std::string, std::string> >& history) {
     if (result.is_floating_point) {
         return math_float_procedure(orig_input, result.result, history);
     } else {
@@ -299,7 +296,7 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
     } else if (Util::contains_bool_op(expression)) {
         UI::print_error("Variables are for math expressions only");
         return true;
-    } else if(!std::isalpha(var_char)) {
+    } else if (!std::isalpha(var_char)) {
         UI::print_error("Variables can only be assigned to characters a-z");
         return true;
     }
@@ -308,8 +305,7 @@ void bool_procedure(std::string& orig_input, const std::span<const Token> prefix
 }
 
 // \0 is what I decided to store ANS in. So we always need to save the answer in the var map to update ANS
-void evaluate_expression(std::string& orig_input, std::string& expression,
-                         std::vector<std::pair<std::string, std::string> >& history,
+void evaluate_expression(std::string& orig_input, std::string& expression, std::vector<std::pair<std::string, std::string> >& history,
                          std::unordered_map<char, std::string>& var_map) {
     const char var_char = expression[1] == '=' ? static_cast<char>(expression[0]) : '\0';
     if (var_char != '\0') expression = expression.substr(2);
@@ -326,7 +322,7 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
         UI::print_error(result.error_msg);
         return;
     }
-    if(result.is_math) {
+    if (result.is_math) {
         std::string result_copy = math_procedure(orig_input, result, history);
         if (!result_copy.empty()) var_map.insert_or_assign(var_char, std::move(result_copy));
     } else {
@@ -356,7 +352,8 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
         std::string orig_input = input_expression_string;
 
         // Remove spaces from the user's input
-        input_expression_string.erase(remove(input_expression_string.begin(), input_expression_string.end(), ' '), input_expression_string.end());
+        input_expression_string.erase(remove(input_expression_string.begin(), input_expression_string.end(), ' '),
+                                      input_expression_string.end());
         if (input_expression_string.empty()) {
             UI::print_error("Empty input received");
             continue;
@@ -374,11 +371,11 @@ void evaluate_expression(std::string& orig_input, std::string& expression,
             case Engine::InputResult::CONTINUE:
                 continue;
             default:
-                std::ranges::transform(input_expression_string, input_expression_string.begin(), [](const auto c){ return std::toupper(c); });
+                std::ranges::transform(input_expression_string, input_expression_string.begin(),
+                                       [](const auto c) { return std::toupper(c); });
                 evaluate_expression(orig_input, input_expression_string, history, var_map);
         }
     }
-    
 }
 
 // Non continuous mode
@@ -395,7 +392,7 @@ void evaluate_expression(std::string& expression) {
         return;
     }
 
-    std::ranges::transform(expression, expression.begin(), [](const auto c){ return std::toupper(c); });
+    std::ranges::transform(expression, expression.begin(), [](const auto c) { return std::toupper(c); });
     evaluate_expression(orig_input, expression, history, var_map);
     shutdown(history, var_map);
 }
@@ -408,13 +405,13 @@ void history_flag() {
 
     std::ifstream file;
     file.open(Startup::history_location);
-    if(file.is_open()) File::read_history(history, file);
+    if (file.is_open()) File::read_history(history, file);
 
     if (!is_empty_history(history)) UI::print_history(history);
     cleanup_history();
 }
 
-}
+}  // namespace
 
 [[nodiscard]] int start_engine(const int argc, const char* const argv[]) {
     if (check_argc(argc)) return 1;
@@ -434,8 +431,8 @@ void history_flag() {
     } else if (expression == "-H" || expression == "--history") {
         history_flag();
         return 0;
-    } else if (expression[0] == '-' && (expression.size() == 1 ||
-              (expression.size() >= 2 && (!std::isdigit(expression[1]) && expression[1] != '(')))) {
+    } else if (expression[0] == '-' &&
+               (expression.size() == 1 || (expression.size() >= 2 && (!std::isdigit(expression[1]) && expression[1] != '(')))) {
         UI::print_invalid_flag(expression);
         return 1;
     }
@@ -444,4 +441,4 @@ void history_flag() {
     return 0;
 }
 
-}
+}  // namespace Engine

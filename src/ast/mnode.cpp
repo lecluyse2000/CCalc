@@ -2,11 +2,12 @@
 
 #include "ast/mnode.h"
 
-#include <cctype>
 #include <gmpxx.h>
+#include <mpfr.h>
+
+#include <cctype>
 #include <limits>
 #include <memory>
-#include <mpfr.h>
 #include <stdexcept>
 
 #include "include/types.hpp"
@@ -15,8 +16,7 @@ using namespace Types;
 
 namespace MathNodes {
 
-ValueMNode::ValueMNode(const std::string_view _value_mpz, const std::string_view _value_mpf) :
-    value_mpz(_value_mpz.data()) {
+ValueMNode::ValueMNode(const std::string_view _value_mpz, const std::string_view _value_mpf) : value_mpz(_value_mpz.data()) {
     mpfr_init2(value_mpfr, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
     const int successful = mpfr_set_str(value_mpfr, _value_mpf.data(), 10, MPFR_RNDN);
     if (successful != 0) [[unlikely]] {
@@ -32,7 +32,7 @@ ValueMNode::ValueMNode(const Token token) : value_mpz(0) {
         const int successful = mpfr_set_str(value_mpfr, euler.data(), 10, MPFR_RNDN);
         if (successful != 0) [[unlikely]] {
             mpfr_clear(value_mpfr);
-            throw std::invalid_argument("Invalid floating point, token type: " + std::string{static_cast<char>(token)} );
+            throw std::invalid_argument("Invalid floating point, token type: " + std::string{static_cast<char>(token)});
         }
     }
 }
@@ -52,7 +52,7 @@ static inline mpz_class mpz_exponent(mpz_class& left_value, mpz_class& right_val
         left_value *= left_value;
         right_value /= 2;
     }
-    
+
     return retval;
 }
 
@@ -60,7 +60,7 @@ static inline mpz_class mpz_exponent(mpz_class& left_value, mpz_class& right_val
     mpz_class left_value = m_left_child->evaluate();
     mpz_class right_value = m_right_child->evaluate();
 
-    switch(key) {
+    switch (key) {
         case Token::ADD:
             return left_value + right_value;
         case Token::SUB:
@@ -70,7 +70,7 @@ static inline mpz_class mpz_exponent(mpz_class& left_value, mpz_class& right_val
         case Token::POW_XOR:
             return mpz_exponent(left_value, right_value);
         default:
-            throw std::runtime_error("Invalid opkey: " + std::string{static_cast<char>(key)} );
+            throw std::runtime_error("Invalid opkey: " + std::string{static_cast<char>(key)});
     }
 }
 
@@ -78,7 +78,7 @@ mpfr_t& OperationMNode::evaluate_float() {
     const mpfr_t& left_value = m_left_child->evaluate_float();
     const mpfr_t& right_value = m_right_child->evaluate_float();
 
-    switch(key) {
+    switch (key) {
         case Token::ADD:
             mpfr_add(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
@@ -98,15 +98,15 @@ mpfr_t& OperationMNode::evaluate_float() {
             mpfr_pow(node_result, left_value, right_value, MPFR_RNDN);
             return node_result;
         default:
-            throw std::runtime_error("Invalid opkey: " + std::string{static_cast<char>(key)} );
+            throw std::runtime_error("Invalid opkey: " + std::string{static_cast<char>(key)});
     }
 }
 
 mpfr_t& TrigMNode::evaluate_float() {
     const mpfr_t& left_value = m_left_child->evaluate_float();
     const bool use_degrees = Startup::settings.at(Setting::ANGLE) == 1;
-    
-    switch(key) {
+
+    switch (key) {
         case Token::SIN:
             if (use_degrees) {
                 mpfr_sinu(node_result, left_value, 360, MPFR_RNDN);
@@ -143,8 +143,7 @@ mpfr_t& FactorialNode::evaluate_float() {
         throw std::runtime_error("Factorial called on negative integer value");
     }
     const unsigned long int prev_val_int = mpfr_get_ui(prev_val, MPFR_RNDN);
-    if (prev_val_int == std::numeric_limits<unsigned long int>::max() ||
-        prev_val_int == std::numeric_limits<unsigned long int>::min()) {
+    if (prev_val_int == std::numeric_limits<unsigned long int>::max() || prev_val_int == std::numeric_limits<unsigned long int>::min()) {
         throw std::runtime_error("Value is too big for factorial");
     }
     mpfr_fac_ui(node_result, prev_val_int, MPFR_RNDN);
@@ -158,4 +157,4 @@ mpfr_t& UnaryMNode::evaluate_float() {
     return node_result;
 }
 
-}
+}  // namespace MathNodes

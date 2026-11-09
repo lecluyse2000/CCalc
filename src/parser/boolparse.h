@@ -17,6 +17,6 @@ struct BoolParseState {
 
 std::optional<std::string> parse_bool(const std::string_view infix_expression, std::vector<Types::Token>& prefix_expression,
                                       std::stack<Types::Token>& operator_stack);
-}
+}  // namespace BoolParse
 
 #endif

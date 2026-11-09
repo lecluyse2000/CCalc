@@ -4,9 +4,10 @@
 #define MNODE_H
 
 #include <gmpxx.h>
-#include <string_view>
-#include <memory>
 #include <mpfr.h>
+
+#include <memory>
+#include <string_view>
 
 #include "include/types.hpp"
 #include "startup/startup.h"
@@ -56,16 +57,14 @@ struct TrigMNode : public MathNode {
         mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
     }
     ~TrigMNode() { mpfr_clear(node_result); }
-    [[nodiscard]] mpz_class evaluate() const override{ return 0; }
+    [[nodiscard]] mpz_class evaluate() const override { return 0; }
     mpfr_t& evaluate_float() override;
     mpfr_t node_result;
     const Token key;
 };
 
 struct FactorialNode : public MathNode {
-    explicit FactorialNode() {
-        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
-    }
+    explicit FactorialNode() { mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION))); }
     ~FactorialNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
     mpfr_t& evaluate_float() override;
@@ -73,15 +72,13 @@ struct FactorialNode : public MathNode {
 };
 
 struct UnaryMNode : public MathNode {
-    explicit UnaryMNode() {
-        mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION)));
-    }
+    explicit UnaryMNode() { mpfr_init2(node_result, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::PRECISION))); }
     ~UnaryMNode() { mpfr_clear(node_result); }
     [[nodiscard]] mpz_class evaluate() const override;
     mpfr_t& evaluate_float() override;
     mpfr_t node_result;
 };
 
-}
+}  // namespace MathNodes
 
 #endif

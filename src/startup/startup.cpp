@@ -1,15 +1,16 @@
 #include "startup/startup.h"
 
+#include <readline/readline.h>
+#include <unistd.h>
+
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
-#include <readline/readline.h>
+#include <iostream>
 #include <string>
 #include <string_view>
-#include <iostream>
-#include <unistd.h>
 #include <unordered_map>
 
 #include "engine/signal.h"
@@ -39,7 +40,7 @@ bool create_ini(const std::filesystem::path& full_path) {
             for (std::size_t i = 0; i < num_settings; ++i) {
                 // Comment for angle setting
                 if (setting_fields[i] == "angle=") file << "# angle=0 (radians) or angle=1 (degrees)\n";
-                file << setting_fields[i] << default_setting_values[i] << '\n'; 
+                file << setting_fields[i] << default_setting_values[i] << '\n';
             }
             return true;
         }
@@ -57,8 +58,7 @@ bool create_ini(const std::filesystem::path& full_path) {
 }
 
 // Create the setting map based on the parsed line from settings.ini
-[[nodiscard]] bool create_retval(const std::string& line, const std::filesystem::path& full_path,
-                                 std::unordered_map<Setting, long>& map) {
+[[nodiscard]] bool create_retval(const std::string& line, const std::filesystem::path& full_path, std::unordered_map<Setting, long>& map) {
     const auto equal_pos = line.find('=');
     if (equal_pos == line.size() - 1 || equal_pos == std::string::npos) {
         return create_ini_return_false(full_path);
@@ -69,7 +69,7 @@ bool create_ini(const std::filesystem::path& full_path) {
     if (key == "angle" && value_string != "0" && value_string != "1") {
         return create_ini_return_false(full_path);
     }
-    if(!std::ranges::all_of(value_string, ::isdigit)) [[unlikely]] {
+    if (!std::ranges::all_of(value_string, ::isdigit)) [[unlikely]] {
         return create_ini_return_false(full_path);
     }
     const long value_long = std::stol(value_string.data());
@@ -77,7 +77,7 @@ bool create_ini(const std::filesystem::path& full_path) {
         return create_ini_return_false(full_path);
     }
     const auto emplace_result = map.try_emplace(string_to_settings_enum(key), value_long);
-    if (!emplace_result.second) { // If try_emplace is not successful, create the default map
+    if (!emplace_result.second) {  // If try_emplace is not successful, create the default map
         return create_ini_return_false(full_path);
     }
 
@@ -85,8 +85,7 @@ bool create_ini(const std::filesystem::path& full_path) {
 }
 
 // Verify there is no invalid setting in the map
-[[nodiscard]] bool final_verification(const std::filesystem::path& full_path,
-                                      const std::unordered_map<Setting, long>& map) {
+[[nodiscard]] bool final_verification(const std::filesystem::path& full_path, const std::unordered_map<Setting, long>& map) {
     if (map.size() != setting_keys.size()) {
         return create_ini_return_false(full_path);
     }
@@ -116,7 +115,7 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
     return home / std::filesystem::path(Types::vars_filename);
 }
 
-}
+}  // namespace
 
 [[nodiscard]] std::unordered_map<Setting, long> source_ini() noexcept {
     static constexpr std::string_view ini_path = ".config/ccalc/settings.ini";
@@ -140,8 +139,8 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
     std::string line;
     while (std::getline(input_file, line)) {
         if (line == "[Settings]") continue;
-        if (line[0] == '#') continue; // Ignore comments
-        if(!create_retval(line, full_path, retval)) return create_default_settings_map();
+        if (line[0] == '#') continue;  // Ignore comments
+        if (!create_retval(line, full_path, retval)) return create_default_settings_map();
     }
     if (!final_verification(full_path, retval)) return create_default_settings_map();
 
@@ -152,8 +151,7 @@ const std::string history_location = get_history_location();
 const std::string var_map_location = get_vars_location();
 const std::unordered_map<Types::Setting, long> settings = source_ini();
 
-void startup(std::vector<std::pair<std::string, std::string> >& history,
-             std::unordered_map<char, std::string>& var_map) {
+void startup(std::vector<std::pair<std::string, std::string> >& history, std::unordered_map<char, std::string>& var_map) {
     std::filesystem::create_directories(std::filesystem::path(var_map_location).parent_path());
     using_history();
     stifle_history(static_cast<int>(Startup::settings.at(Setting::MAX_HISTORY)));
@@ -162,12 +160,12 @@ void startup(std::vector<std::pair<std::string, std::string> >& history,
 
     std::ifstream file;
     file.open(history_location);
-    if(file.is_open()) File::read_history(history, file);
+    if (file.is_open()) File::read_history(history, file);
     file.close();
     file.open(var_map_location);
-    if(file.is_open()) File::read_vars(var_map, file);
+    if (file.is_open()) File::read_vars(var_map, file);
 
     Signal::register_handlers();
 }
 
-}
+}  // namespace Startup

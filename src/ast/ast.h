@@ -4,13 +4,14 @@
 #define AST_H
 
 #include <gmpxx.h>
-#include <memory>
 #include <mpfr.h>
+
+#include <memory>
 #include <span>
 
-#include "include/types.hpp"
 #include "ast/bnode.h"
 #include "ast/mnode.h"
+#include "include/types.hpp"
 
 class BoolAST {
    public:

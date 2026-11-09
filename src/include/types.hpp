@@ -10,8 +10,8 @@
 
 namespace Types {
 
-inline constexpr std::string_view euler = 
-"2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274274663919320030599218174135966290435";
+inline constexpr std::string_view euler =
+    "2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274274663919320030599218174135966290435";
 
 inline constexpr std::string_view history_file_name = ".local/share/ccalc/ccalc_history";
 inline constexpr std::string_view vars_filename = ".local/share/ccalc/ccalc_vars";
@@ -43,11 +43,11 @@ enum struct Token : char {
     EQUAL = '=',
     SIN = 'S',
     COS = 'C',
-    TAN = 'G', //tanGent, T is already used for true
+    TAN = 'G',  // tanGent, T is already used for true
     LOG = 'L',
-    LN = 'N', 
+    LN = 'N',
     EULER = 'E',
-    PI = 'P', 
+    PI = 'P',
     PI_2 = 'I',
     ANS = 'A',
     AND = '&',
@@ -143,7 +143,7 @@ enum struct Setting {
     switch (token) {
         case Token::EULER:
         case Token::PI:
-        case Token::PI_2: 
+        case Token::PI_2:
             return true;
         default:
             return false;
@@ -154,7 +154,7 @@ enum struct Setting {
     switch (token) {
         case 'S':
         case 'C':
-        case 'T': 
+        case 'T':
             return true;
         default:
             return false;
@@ -165,7 +165,7 @@ enum struct Setting {
     switch (token) {
         case Token::SIN:
         case Token::COS:
-        case Token::TAN: 
+        case Token::TAN:
             return true;
         default:
             return false;
@@ -173,17 +173,12 @@ enum struct Setting {
 }
 
 [[nodiscard]] inline constexpr bool is_math_operand(const Token token) noexcept {
-    return std::isdigit(static_cast<char>(token)) || token == Token::DOT ||
-           is_math_var(token);
+    return std::isdigit(static_cast<char>(token)) || token == Token::DOT || is_math_var(token);
 }
 
-[[nodiscard]] inline constexpr bool is_bool_operand(const Token token) noexcept {
-    return token == Token::TRUE || token == Token::FALSE;
-}
+[[nodiscard]] inline constexpr bool is_bool_operand(const Token token) noexcept { return token == Token::TRUE || token == Token::FALSE; }
 
-[[nodiscard]] inline constexpr bool isoperand(const Token token) noexcept {
-    return is_math_operand(token) || is_bool_operand(token);
-}
+[[nodiscard]] inline constexpr bool isoperand(const Token token) noexcept { return is_math_operand(token) || is_bool_operand(token); }
 
 [[nodiscard]] inline constexpr bool is_math_operator(const Token token) noexcept {
     switch (token) {
@@ -213,9 +208,7 @@ enum struct Setting {
     }
 }
 
-[[nodiscard]] inline constexpr bool isoperator(const Token token) noexcept {
-    return is_math_operator(token) || is_bool_operator(token);
-}
+[[nodiscard]] inline constexpr bool isoperator(const Token token) noexcept { return is_math_operator(token) || is_bool_operator(token); }
 
 [[nodiscard]] inline constexpr bool isnot(const Token token) noexcept { return token == Token::FAC; }
 

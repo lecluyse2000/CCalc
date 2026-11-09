@@ -1,9 +1,10 @@
 #include "engine/signal.h"
 
-#include <csignal>
-#include <fstream>
 #include <readline/readline.h>
 #include <unistd.h>
+
+#include <csignal>
+#include <fstream>
 
 #include "ui/ui.h"
 
@@ -14,18 +15,12 @@ namespace {
 volatile sig_atomic_t g_got_sigint = 0;
 volatile sig_atomic_t g_got_sigterm = 0;
 
-void sigint_handler([[maybe_unused]] int sig) {
-    g_got_sigint = 1;
-}
-void sigterm_handler([[maybe_unused]] int sig) {
-    g_got_sigterm = 1;
-}
+void sigint_handler([[maybe_unused]] int sig) { g_got_sigint = 1; }
+void sigterm_handler([[maybe_unused]] int sig) { g_got_sigterm = 1; }
 
-}
+}  // namespace
 
-[[nodiscard]] bool signal_received() {
-    return g_got_sigint || g_got_sigterm;
-}
+[[nodiscard]] bool signal_received() { return g_got_sigint || g_got_sigterm; }
 
 int check_signals_hook() {
     if (signal_received()) {
@@ -39,15 +34,14 @@ void register_handlers() {
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
     sa.sa_handler = sigint_handler;
-    if(sigaction(SIGINT, &sa, nullptr) == -1) {
+    if (sigaction(SIGINT, &sa, nullptr) == -1) {
         UI::print_error("SIGINT handler error!");
     }
 
     sa.sa_handler = sigterm_handler;
-    if(sigaction(SIGTERM, &sa, nullptr) == -1) {
+    if (sigaction(SIGTERM, &sa, nullptr) == -1) {
         UI::print_error("SIGTERM handler error!");
     }
 }
 
-
-}
+}  // namespace Signal

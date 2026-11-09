@@ -9,8 +9,8 @@
 #include "include/types.hpp"
 
 namespace Parse {
-    [[nodiscard]] Types::ParseResult create_prefix_expression(std::string& infix_expression,
-                                                              const std::unordered_map<char, std::string>& var_map);
+[[nodiscard]] Types::ParseResult create_prefix_expression(std::string& infix_expression,
+                                                          const std::unordered_map<char, std::string>& var_map);
 }
 
 #endif

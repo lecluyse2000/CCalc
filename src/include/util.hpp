@@ -1,11 +1,12 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+#include <mpfr.h>
+#include <readline/history.h>
+
 #include <iostream>
 #include <limits>
-#include <mpfr.h>
 #include <optional>
-#include <readline/history.h>
 #include <string>
 
 #include "include/types.hpp"
@@ -97,15 +98,16 @@ inline bool convert_mpfr_string(std::string& out, const mpfr_t& val, const mpfr_
 constexpr bool pow_search(const std::string_view& infix_expression, auto current_itr) noexcept {
     for (; current_itr != infix_expression.end(); ++current_itr) {
         if (*current_itr == '(') continue;
-        if (*current_itr == 'F') return false;
+        if (*current_itr == 'F')
+            return false;
         else if (*current_itr == 'T') {
-            const std::string_view get_tan = infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(),
-                                                                                              current_itr)), 3);
+            const std::string_view get_tan =
+                infix_expression.substr(static_cast<std::size_t>(std::distance(infix_expression.begin(), current_itr)), 3);
             if (get_tan == "TAN") return true;
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -115,7 +117,8 @@ constexpr bool contains_bool_op(const std::string_view& infix_expression) noexce
         if (is_bool_operator(static_cast<Types::Token>(*itr))) {
             if (*itr == '^' && !pow_search(infix_expression, itr)) {
                 return true;
-            } else if (*itr == '^') return false;
+            } else if (*itr == '^')
+                return false;
             return true;
         }
     }
@@ -129,6 +132,6 @@ inline void free_history_entry(HIST_ENTRY*& entry) {
     free(entry);
 }
 
-}
+}  // namespace Util
 
 #endif

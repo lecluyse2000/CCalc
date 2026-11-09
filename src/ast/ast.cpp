@@ -4,11 +4,12 @@
 
 #include <gmpxx.h>
 #include <mpfr.h>
+
 #include <span>
 
-#include "include/types.hpp"
 #include "ast/bnode.h"
 #include "ast/mnode.h"
+#include "include/types.hpp"
 
 using namespace Types;
 
@@ -39,17 +40,17 @@ void BoolAST::build_ast(const std::span<const Types::Token> prefix_expression) n
 
 [[nodiscard]] bool BoolAST::evaluate() const { return m_root->evaluate(); }
 
-std::unique_ptr<MathNodes::MathNode> MathAST::build_value_node(const std::span<const Types::Token>& prefix_expression, const bool floating_point,
-                                                               std::size_t& index) const {
+std::unique_ptr<MathNodes::MathNode> MathAST::build_value_node(const std::span<const Types::Token>& prefix_expression,
+                                                               const bool floating_point, std::size_t& index) const {
     if (is_math_var(prefix_expression[index - 1])) {
-        return std::make_unique<MathNodes::ValueMNode>(prefix_expression[index - 1]); 
+        return std::make_unique<MathNodes::ValueMNode>(prefix_expression[index - 1]);
     }
     std::string current_num;
     current_num += static_cast<char>(prefix_expression[index - 1]);
     while (index < prefix_expression.size()) {
         const Token next_token = prefix_expression[index++];
         if (next_token == Token::COMMA) break;
-        current_num += static_cast<char>(next_token); 
+        current_num += static_cast<char>(next_token);
     }
 
     if (floating_point) {

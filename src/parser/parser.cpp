@@ -1,4 +1,5 @@
 // Author: Caden LeCluyse
+
 #include "parser/parser.h"
 
 #include <algorithm>
@@ -10,8 +11,8 @@
 
 #include "boolparse.h"
 #include "include/error.hpp"
-#include "include/util.hpp"
 #include "include/types.hpp"
+#include "include/util.hpp"
 #include "mathparse.h"
 
 using namespace Types;
@@ -21,9 +22,8 @@ namespace Parse {
 namespace {
 
 [[nodiscard]]
-constexpr bool trig_check(const std::string_view infix_expression,
-                          const std::unordered_map<char, std::string>& var_map,
-                          const auto& itr, const char c) noexcept {
+constexpr bool trig_check(const std::string_view infix_expression, const std::unordered_map<char, std::string>& var_map, const auto& itr,
+                          const char c) noexcept {
     // Check if "TAN" is present in the expression, since TAN has a T and would mess things up
     if (c == 'T') {
         if (static_cast<std::size_t>(std::distance(infix_expression.begin(), itr)) + 2 >= infix_expression.size()) return false;
@@ -56,17 +56,18 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
 
         if (trig_check(infix_expression, var_map, itr, c)) return true;
 
-        if (c == 'F' && var_map.contains('F')) { 
+        if (c == 'F' && var_map.contains('F')) {
             return true;
-        } else if (c == 'F') return false;
+        } else if (c == 'F')
+            return false;
 
         if (c == '!' && is_bool_operand(static_cast<Token>(next_token))) {
             return false;
             // I think this is a more robust check than just looking for a digit
             // This needs to be changed at some point
-        } else if ((std::isdigit(c) || var_map.contains(c)) && (next_token == '!' || next_token == ')' ||
-                                                                is_math_var(static_cast<Token>(next_token)) ||
-                                                                var_map.contains(next_token) || next_token == 'A')) {
+        } else if ((std::isdigit(c) || var_map.contains(c)) &&
+                   (next_token == '!' || next_token == ')' || is_math_var(static_cast<Token>(next_token)) || var_map.contains(next_token) ||
+                    next_token == 'A')) {
             return true;
         }
         if ((is_math_var(static_cast<Token>(c)) || var_map.contains(c)) &&
@@ -74,10 +75,10 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
             return true;
         } else if (is_math_operator(static_cast<Token>(c))) {
             return true;
-        } 
+        }
     }
     return std::nullopt;
-} 
+}
 
 // Checks for tan, sin, and cos while expanding vars
 [[nodiscard]] constexpr bool check_trig_expand(const std::string_view infix, std::size_t& i) {
@@ -124,29 +125,29 @@ constexpr void expand_vars(std::string& infix, const std::unordered_map<char, st
     }
 }
 
-[[nodiscard]] std::optional<std::string_view>
-clear_stack(std::vector<Token>& prefix_expression, std::stack<Token>& operator_stack, const bool is_math) {
+[[nodiscard]] std::optional<std::string_view> clear_stack(std::vector<Token>& prefix_expression, std::stack<Token>& operator_stack,
+                                                          const bool is_math) {
     while (!operator_stack.empty()) {
         if (operator_stack.top() == Token::RIGHT_PAREN) {
             while (!operator_stack.empty()) operator_stack.pop();
             return std::optional<std::string_view>("Missing open parentheses");
         }
         prefix_expression.push_back(operator_stack.top());
-        if(is_math) prefix_expression.push_back(Token::COMMA);
+        if (is_math) prefix_expression.push_back(Token::COMMA);
         operator_stack.pop();
     }
 
     return std::nullopt;
 }
 
-}
+}  // namespace
 
 // Takes in a standard expression string in infix form, and converts it to prefix
 // This is a variation of the Shunting yard algorithm, invented by Dijkstra in 1961
 [[nodiscard]]
 ParseResult create_prefix_expression(std::string& infix_expression, const std::unordered_map<char, std::string>& var_map) {
     std::stack<Token> operator_stack;
-    ParseResult parse_result; 
+    ParseResult parse_result;
 
     const auto is_math = is_math_equation(infix_expression, var_map);
     if (!is_math) {
@@ -170,7 +171,7 @@ ParseResult create_prefix_expression(std::string& infix_expression, const std::u
     parse_result.is_math = *is_math;
     if (stack_result) {
         parse_result.error_msg = *stack_result;
-        return parse_result; 
+        return parse_result;
     }
 
     std::ranges::reverse(parse_result.result);
@@ -178,4 +179,4 @@ ParseResult create_prefix_expression(std::string& infix_expression, const std::u
     return parse_result;
 }
 
-}
+}  // namespace Parse

@@ -12,6 +12,6 @@ enum struct InputResult {
 
 [[nodiscard]] int start_engine(const int argc, const char* const argv[]);
 
-}
+}  // namespace Engine
 
 #endif

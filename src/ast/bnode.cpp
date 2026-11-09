@@ -6,7 +6,7 @@
 
 namespace BoolNodes {
 
-BoolNode::BoolNode(const Types::Token token) noexcept : key(token){}
+BoolNode::BoolNode(const Types::Token token) noexcept : key(token) {}
 
 [[nodiscard]] bool ValueBNode::evaluate() const { return key == Types::Token::TRUE; }
 
@@ -26,11 +26,10 @@ BoolNode::BoolNode(const Types::Token token) noexcept : key(token){}
         case Types::Token::POW_XOR:
             return (!left_value && right_value) || (left_value && !right_value);
         default:
-            throw std::runtime_error("Invalid opkey: " + std::string{static_cast<char>(key)} );
+            throw std::runtime_error("Invalid opkey: " + std::string{static_cast<char>(key)});
     }
-
 }
 
 [[nodiscard]] bool UnaryBNode::evaluate() const { return !m_left_child->evaluate(); }
 
-}
+}  // namespace BoolNodes

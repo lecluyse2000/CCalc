@@ -31,6 +31,6 @@ struct UnaryBNode : public BoolNode {
     [[nodiscard]] bool evaluate() const override;
 };
 
-}
+}  // namespace BoolNodes
 
 #endif

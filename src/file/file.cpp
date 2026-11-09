@@ -2,17 +2,18 @@
 
 #include "file/file.h"
 
+#include <gmpxx.h>
+#include <mpfr.h>
+#include <readline/history.h>
+#include <stdio.h>
+
 #include <algorithm>
 #include <cstdio>
 #include <fstream>
-#include <gmpxx.h>
 #include <iostream>
-#include <mpfr.h>
 #include <optional>
-#include <readline/history.h>
 #include <span>
 #include <string>
-#include <stdio.h>
 #include <unordered_map>
 #include <vector>
 
@@ -33,7 +34,7 @@ void read_history(std::vector<std::pair<std::string, std::string> >& history, st
     std::string line2;
 
     while (std::getline(input_file, line)) {
-        std::getline(input_file,line2);
+        std::getline(input_file, line2);
         add_history(line.data());
         history.emplace_back(std::move(line), std::move(line2));
     }
@@ -44,15 +45,16 @@ void read_vars(std::unordered_map<char, std::string>& vars, std::ifstream& input
     std::string line2;
 
     while (std::getline(input_file, line)) {
-        std::getline(input_file,line2);
-        if (line == "ANS") vars.emplace('\0', std::move(line2));
-        else vars.emplace(line[0], std::move(line2));
+        std::getline(input_file, line2);
+        if (line == "ANS")
+            vars.emplace('\0', std::move(line2));
+        else
+            vars.emplace(line[0], std::move(line2));
     }
 }
 
 // Utility function for outputting to a file
-void write_history(const std::span<const std::pair<std::string, std::string> > history, 
-                    std::ofstream& output_file) {
+void write_history(const std::span<const std::pair<std::string, std::string> > history, std::ofstream& output_file) {
     std::ranges::for_each(history, [&output_file](const auto& expression_result) {
         const auto& [expression, result] = expression_result;
         output_file << expression << "\n" << result << '\n';
@@ -60,8 +62,7 @@ void write_history(const std::span<const std::pair<std::string, std::string> > h
 }
 
 // Utility function for outputting to a file for a user
-void output_history(const std::span<const std::pair<std::string, std::string> > history, 
-                    std::ofstream& output_file) {
+void output_history(const std::span<const std::pair<std::string, std::string> > history, std::ofstream& output_file) {
     std::ranges::for_each(history, [&output_file](const auto& expression_result) {
         const auto& [expression, result] = expression_result;
         output_file << "Expression: " << expression << "\nResult: " << result << '\n';
@@ -71,8 +72,10 @@ void output_history(const std::span<const std::pair<std::string, std::string> > 
 void write_vars(const std::unordered_map<char, std::string>& vars, std::ofstream& output_file) {
     std::ranges::for_each(vars, [&output_file](const auto& expression_result) {
         const auto& [var, result] = expression_result;
-        if (var == '\0') output_file << "ANS\n" << result << '\n';
-        else output_file << var << '\n' << result << '\n';
+        if (var == '\0')
+            output_file << "ANS\n" << result << '\n';
+        else
+            output_file << var << '\n' << result << '\n';
     });
 }
 
@@ -81,13 +84,14 @@ namespace {
 [[nodiscard]] std::vector<std::string> get_expressions() noexcept {
     std::vector<std::string> expressions;
     const std::optional<std::string> buffer = Util::get_filename(false);
-    if (!buffer) [[unlikely]] return expressions;
+    if (!buffer) [[unlikely]]
+        return expressions;
     std::ifstream input_file(*buffer);
     std::string line;
 
     if (input_file.is_open()) {
         while (std::getline(input_file, line)) {
-            if (line.empty()) continue; // Skip blank lines
+            if (line.empty()) continue;  // Skip blank lines
             expressions.emplace_back(std::move(line));
         }
     } else {
@@ -99,7 +103,8 @@ namespace {
 
 bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec_t display_precision) {
     std::string buffer;
-    if(!Util::convert_mpfr_string(buffer, final_value, display_precision)) [[unlikely]] return false;
+    if (!Util::convert_mpfr_string(buffer, final_value, display_precision)) [[unlikely]]
+        return false;
     fprintf(output_file, "Result: %s\n", buffer.c_str());
     return true;
 }
@@ -112,11 +117,11 @@ void math_float_procedure(FILE*& output_file, const std::span<const Token> resul
         if (mpfr_integer_p(final_value)) {
             mpfr_fprintf(output_file, "Result: %.0Rf\n", final_value);
         } else {
-            if(!mpfr_to_file(output_file, final_value,
-                             static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)))) [[unlikely]] return;
+            if (!mpfr_to_file(output_file, final_value, static_cast<mpfr_prec_t>(Startup::settings.at(Setting::DISPLAY_PREC)))) [[unlikely]]
+                return;
         }
     } catch (const std::exception& err) {
-        fprintf(output_file, "Error: %s\n", err.what()); 
+        fprintf(output_file, "Error: %s\n", err.what());
     }
 }
 
@@ -127,9 +132,9 @@ void math_int_procedure(FILE*& output_file, const std::span<const Token> result)
         const mpz_class final_value = tree->evaluate();
         gmp_fprintf(output_file, "Result: %Zd\n", final_value.get_mpz_t());
     } catch (const std::bad_alloc& err) {
-        fprintf(output_file, "Error: The number grew too big!\n"); 
+        fprintf(output_file, "Error: The number grew too big!\n");
     } catch (const std::exception& err) {
-        fprintf(output_file, "Error: %s\n", err.what()); 
+        fprintf(output_file, "Error: %s\n", err.what());
     }
 }
 
@@ -154,7 +159,7 @@ void bool_procedure(FILE*& output_file, const std::span<const Token> result) {
 void main_loop(FILE*& output_file, std::string& expression, const std::unordered_map<char, std::string>& var_map) {
     const std::string orig_expression = expression;
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
-    std::ranges::transform(expression, expression.begin(), [](const auto c){ return std::toupper(c); });
+    std::ranges::transform(expression, expression.begin(), [](const auto c) { return std::toupper(c); });
     const ParseResult result = Parse::create_prefix_expression(expression, var_map);
 
     fprintf(output_file, "Expression: %s\n", orig_expression.c_str());
@@ -162,7 +167,7 @@ void main_loop(FILE*& output_file, std::string& expression, const std::unordered
         fprintf(output_file, "Error: %s\n", result.error_msg.c_str());
         return;
     }
-    if(result.is_math) {
+    if (result.is_math) {
         math_procedure(output_file, result);
     } else {
         bool_procedure(output_file, result.result);
@@ -173,12 +178,14 @@ void main_loop(FILE*& output_file, std::string& expression, const std::unordered
 
 void initiate_file_mode() {
     std::vector<std::string> expressions = get_expressions();
-    if (expressions.empty()) [[unlikely]] return;
+    if (expressions.empty()) [[unlikely]]
+        return;
     const std::optional<std::string> output_file_name = Util::get_filename(true);
-    if (!output_file_name) [[unlikely]] return;
+    if (!output_file_name) [[unlikely]]
+        return;
     FILE* output_file;
     output_file = fopen(output_file_name->c_str(), "w");
-    if(!output_file) [[unlikely]] {
+    if (!output_file) [[unlikely]] {
         UI::print_error("Error opening file");
         return;
     }

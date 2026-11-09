@@ -10,13 +10,12 @@
 
 using namespace Types;
 
-namespace BoolParse { 
+namespace BoolParse {
 
 namespace {
 
 [[nodiscard]]
-std::optional<std::string> bool_loop_body(BoolParseState& state, std::vector<Token>& prefix_expression,
-                                          std::stack<Token>& operator_stack) {
+std::optional<std::string> bool_loop_body(BoolParseState& state, std::vector<Token>& prefix_expression, std::stack<Token>& operator_stack) {
     // Grab the current token
     // If the token is an operand, simply add it to the string
     // if the token is an operator or a closing parentheses, add it to the stack
@@ -52,7 +51,7 @@ std::optional<std::string> bool_loop_body(BoolParseState& state, std::vector<Tok
     return std::nullopt;
 }
 
-}
+}  // namespace
 
 [[nodiscard]]
 std::optional<std::string> parse_bool(const std::string_view infix_expression, std::vector<Token>& prefix_expression,
@@ -69,4 +68,4 @@ std::optional<std::string> parse_bool(const std::string_view infix_expression, s
     return std::nullopt;
 }
 
-}
+}  // namespace BoolParse
