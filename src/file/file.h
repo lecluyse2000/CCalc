@@ -3,9 +3,8 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include <readline/history.h>
-
 #include <fstream>
+#include <readline/history.h>
 #include <span>
 #include <string>
 #include <unordered_map>

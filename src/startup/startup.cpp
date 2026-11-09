@@ -54,6 +54,7 @@ bool create_ini(const std::filesystem::path& full_path) {
     if (!create_ini(full_path)) [[unlikely]] {
         UI::print_error("Unable to create settings.ini");
     }
+
     return false;
 }
 
@@ -92,6 +93,7 @@ bool create_ini(const std::filesystem::path& full_path) {
     if (map.contains(Setting::INVALID)) {
         return create_ini_return_false(full_path);
     }
+
     return true;
 }
 
@@ -100,6 +102,7 @@ inline std::unordered_map<Types::Setting, long> create_default_settings_map() {
     for (std::size_t i = 0; i < num_settings; ++i) {
         retval.emplace(setting_keys[i], default_setting_values[i]);
     }
+
     return retval;
 }
 

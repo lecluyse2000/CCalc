@@ -73,9 +73,11 @@ void add_trig_to_result(MathParseState& state, ParseResult& result, const std::s
     if (trig_op != "SIN" && trig_op != "COS" && trig_op != "TAN") {
         return std::optional<std::string>("Expected sin, cos, tan, received: " + trig_op);
     }
+
     add_trig_to_result(state, result, trig_op);  // Push the trig token onto the result
     (*state.itr)++;
     if (*state.itr == state.rend) state.done_parsing = true;
+
     return std::nullopt;
 }
 
@@ -85,6 +87,7 @@ void add_trig_to_result(MathParseState& state, ParseResult& result, const std::s
     result.is_floating_point = true;
     state.in_number = true;
     state.num_buffer.push_back(Token::EULER);
+
     return std::nullopt;
 }
 
@@ -99,6 +102,7 @@ void add_trig_to_result(MathParseState& state, ParseResult& result, const std::s
     result.is_floating_point = true;
     state.in_number = true;
     state.num_buffer.push_back(Token::PI);
+
     return std::nullopt;
 }
 
@@ -222,6 +226,7 @@ std::optional<std::string> open_parentheses_math(MathParseState& state, std::vec
     } else {
         return std::optional<std::string>("Missing closing parentheses");
     }
+
     return std::nullopt;
 }
 
@@ -295,6 +300,7 @@ std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& re
     } else if (!is_math_var(state.current_token)) {
         return Error::invalid_character_error_math(**state.itr);
     }
+
     state.previous_token = state.current_token;
     return std::nullopt;
 }
@@ -320,6 +326,7 @@ std::optional<std::string> parse_math(std::string& infix_expression, ParseResult
             result.result.push_back(token);
         }
     }
+
     return std::nullopt;
 }
 

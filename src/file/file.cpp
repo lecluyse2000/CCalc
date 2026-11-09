@@ -4,7 +4,6 @@
 
 #include <gmpxx.h>
 #include <mpfr.h>
-#include <readline/history.h>
 #include <stdio.h>
 
 #include <algorithm>
@@ -12,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <optional>
+#include <readline/history.h>
 #include <span>
 #include <string>
 #include <unordered_map>
@@ -106,6 +106,7 @@ bool mpfr_to_file(FILE*& output_file, const mpfr_t& final_value, const mpfr_prec
     if (!Util::convert_mpfr_string(buffer, final_value, display_precision)) [[unlikely]]
         return false;
     fprintf(output_file, "Result: %s\n", buffer.c_str());
+
     return true;
 }
 

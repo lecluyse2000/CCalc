@@ -38,6 +38,7 @@ namespace {
         UI::print_insufficient_arguments();
         return 1;
     }
+
     return 0;
 }
 
@@ -74,6 +75,7 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
         shutdown(history, var_map);
         return true;
     }
+
     return false;
 }
 
@@ -99,6 +101,7 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
         UI::print_error("You haven't evaluated any expressions yet");
         return true;
     }
+
     return false;
 }
 
@@ -107,6 +110,7 @@ bool check_signal_flags(const std::vector<std::pair<std::string, std::string> >&
         UI::print_error("There are no valid variables assigned");
         return true;
     }
+
     return false;
 }
 
@@ -170,6 +174,7 @@ inline std::string print_pi(std::string& orig_input, std::vector<std::pair<std::
     add_to_history(orig_input, pi_str, history);
     mpfr_free_cache();
     mpfr_clear(pi);
+
     return pi_copy;
 }
 
@@ -186,6 +191,7 @@ inline std::string print_euler(std::string& orig_input, std::vector<std::pair<st
     UI::print_result(euler);
     const std::string euler_copy = euler;
     add_to_history(orig_input, euler, history);
+
     return euler_copy;
 }
 
@@ -220,6 +226,7 @@ inline void print_ans(std::string& orig_input, std::vector<std::pair<std::string
         UI::print_result(var_map.at(expression[0]));
         return var_map.at(expression[0]);
     }
+
     return "";
 }
 
@@ -239,6 +246,7 @@ std::string math_float_procedure(std::string& orig_input, const std::span<const 
     } catch (const std::exception& err) {
         UI::print_error(err.what());
     }
+
     return "";
 }
 
@@ -257,6 +265,7 @@ std::string math_int_procedure(std::string& orig_input, const std::span<const To
     } catch (const std::exception& err) {
         UI::print_error(err.what());
     }
+
     return "";
 }
 

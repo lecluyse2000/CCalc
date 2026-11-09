@@ -41,6 +41,7 @@ constexpr bool trig_check(const std::string_view infix_expression, const std::un
         if (get_tan == "COS" || var_map.contains('C')) return true;
         return false;
     }
+
     return false;
 }
 
@@ -77,6 +78,7 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
             return true;
         }
     }
+
     return std::nullopt;
 }
 
@@ -94,6 +96,7 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
         while (infix[++i] != 'S');
         return true;
     }
+
     return false;
 }
 

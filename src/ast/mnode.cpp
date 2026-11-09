@@ -147,6 +147,7 @@ mpfr_t& FactorialNode::evaluate_float() {
         throw std::runtime_error("Value is too big for factorial");
     }
     mpfr_fac_ui(node_result, prev_val_int, MPFR_RNDN);
+
     return node_result;
 }
 
@@ -154,6 +155,7 @@ mpfr_t& FactorialNode::evaluate_float() {
 
 mpfr_t& UnaryMNode::evaluate_float() {
     mpfr_mul_si(node_result, m_left_child->evaluate_float(), -1L, MPFR_RNDN);
+
     return node_result;
 }
 

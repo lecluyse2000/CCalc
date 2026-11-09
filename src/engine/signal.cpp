@@ -1,10 +1,10 @@
 #include "engine/signal.h"
 
-#include <readline/readline.h>
 #include <unistd.h>
 
 #include <csignal>
 #include <fstream>
+#include <readline/readline.h>
 
 #include "ui/ui.h"
 
@@ -26,6 +26,7 @@ int check_signals_hook() {
     if (signal_received()) {
         rl_done = 1;
     }
+
     return 0;
 }
 

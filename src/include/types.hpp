@@ -136,6 +136,7 @@ enum struct Setting {
     if (string == "display_digits") return Setting::DISPLAY_PREC;
     if (string == "max_history") return Setting::MAX_HISTORY;
     if (string == "angle") return Setting::ANGLE;
+
     return Setting::INVALID;
 }
 
