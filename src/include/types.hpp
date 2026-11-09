@@ -232,6 +232,24 @@ enum struct Setting {
     }
 }
 
+[[nodiscard]]
+constexpr int get_bool_precedence(const Token op) noexcept {
+    switch (op) {
+        case Token::OR:
+        case Token::NOR:
+            return 1;
+        case Token::POW_XOR:
+            return 2;
+        case Token::AND:
+        case Token::NAND:
+            return 3;
+        case Token::FAC:
+            return 4;
+        default:
+            return 0;
+    }
+}
+
 }  // namespace Types
 
 #endif

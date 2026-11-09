@@ -262,6 +262,7 @@ bool math_operator_found(MathParseState& state, ParseResult& result, std::stack<
 
     return false;
 }
+
 // Main body of the loop for parsing math equations
 [[nodiscard]]
 std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& result, std::stack<Token>& op_stack) {
