@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_library(GMP_LIBRARIES NAMES gmp libgmp)
-find_library(GMP_LIBRARIES NAMES gmpxx)
+find_library(GMPXX_LIBRARIES NAMES gmpxx libgmpxx)
 find_library(MPFR_LIBRARIES NAMES mpfr libmpfr)
 if(NOT APPLE)
     find_library(READLINE_LIBRARIES NAMES readline libreadline)
@@ -89,6 +89,7 @@ target_include_directories(ccalc PRIVATE
 
 target_link_libraries(ccalc PRIVATE
     ${GMP_LIBRARIES}
+    ${GMPXX_LIBRARIES}
     ${MPFR_LIBRARIES}
     ${READLINE_LIBRARIES}
 )
