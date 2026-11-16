@@ -102,9 +102,11 @@ constexpr std::optional<bool> is_math_equation(const std::string_view infix_expr
 
 // Checks for ans while expanding vars
 [[nodiscard]]
-constexpr bool check_ans_expand(std::string& infix, const std::unordered_map<char, std::string>& var_map, std::size_t& index) {
+constexpr std::optional<bool> check_ans_expand(std::string& infix, const std::unordered_map<char, std::string>& var_map,
+                                               std::size_t& index) {
     if (index + 2 >= infix.size()) return false;
     if (infix[index + 1] == 'N' && infix[index + 2] == 'S') {
+        if (!var_map.contains('\0')) return std::nullopt;
         infix.replace(index, 3, "(" + var_map.at('\0') + ")");
         while (++index < infix.size() && infix[index] != ')');
         return true;
@@ -113,19 +115,24 @@ constexpr bool check_ans_expand(std::string& infix, const std::unordered_map<cha
     return false;
 }
 
-constexpr void expand_vars(std::string& infix, const std::unordered_map<char, std::string>& var_map) {
+constexpr bool expand_vars(std::string& infix, const std::unordered_map<char, std::string>& var_map) {
     for (std::size_t i = 0; i < infix.size(); ++i) {
         if (infix[i] == 'P' && i + 1 < infix.size() && infix[i + 1] == 'I') {
             i++;
             continue;
         }
         if (check_trig_expand(infix, i)) continue;
-        if (infix[i] == 'A' && check_ans_expand(infix, var_map, i)) continue;
+        if (infix[i] == 'A'){
+            const auto ans_check = check_ans_expand(infix, var_map, i);
+            if (!ans_check) return false;
+        }
         if (!var_map.contains(infix[i])) continue;
 
         infix.replace(i, 1, "(" + var_map.at(infix[i]) + ")");
         while (++i < infix.size() && infix[i] != ')');
     }
+
+    return true;
 }
 
 [[nodiscard]] std::optional<std::string_view> clear_stack(std::vector<Token>& prefix_expression, std::stack<Token>& operator_stack,
@@ -157,7 +164,10 @@ ParseResult create_prefix_expression(std::string& infix_expression, const std::u
         parse_result.error_msg = "No valid operators detected";
         return parse_result;
     }
-    if (*is_math) expand_vars(infix_expression, var_map);
+    if (*is_math && !expand_vars(infix_expression, var_map)) {
+        parse_result.error_msg = "ANS has no value";
+        return parse_result;
+    }
 
     const auto initial_checks = Error::initial_checks(infix_expression, *is_math);
     if (initial_checks) {
