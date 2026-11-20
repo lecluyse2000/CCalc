@@ -93,6 +93,11 @@ bool create_ini(const std::filesystem::path& full_path) {
     if (map.contains(Setting::INVALID)) {
         return create_ini_return_false(full_path);
     }
+    if (!map.contains(Setting::PRECISION) && !map.contains(Setting::DISPLAY_PREC) && !map.contains(Setting::MAX_HISTORY) &&
+        !map.contains(Setting::ANGLE)) {
+        return create_ini_return_false(full_path);
+    }
+    if (map.at(Setting::PRECISION) 
 
     return true;
 }

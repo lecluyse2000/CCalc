@@ -145,33 +145,24 @@ void add_trig_to_result(MathParseState& state, ParseResult& result, const std::s
     return false;
 }
 
-// Unary cases: 1) [not operand, close paren, or factorial] - (
-constexpr bool unary_first_case(const MathParseState& state) {
-    const Token next_token = get_next_token(state);
-    return state.previous_token == Token::LEFT_PAREN && !isoperand(next_token) && next_token != Token::RIGHT_PAREN &&
-           next_token != Token::FAC;
+constexpr bool unary_at_start(const MathParseState& state) {
+    return get_next_token(state) == Token::NULLCHAR;
 }
 
-// 2) ( - [operand]
-constexpr bool unary_second_case(const MathParseState& state) {
-    const Token next_token = get_next_token(state);
-    return next_token == Token::LEFT_PAREN && is_math_operand(state.previous_token);
+constexpr bool unary_after_open_parenthesis(const MathParseState& state) {
+    return get_next_token(state) == Token::LEFT_PAREN;
 }
 
-// 3) [not factorial operator] - [operand]
-constexpr bool unary_third_case(const MathParseState& state) {
-    const Token next_token = get_next_token(state);
-    return (is_math_operator(next_token) && next_token != Token::FAC) && is_math_operand(state.previous_token);
-}
+constexpr bool unary_after_operator(const MathParseState& state) {
+    const Token left_token = get_next_token(state);
 
-// 4) Exponent raised to the negative power
-constexpr bool unary_fourth_case(const MathParseState& state) {
-    const Token next_token = get_next_token(state);
-    return next_token == Token::POW_XOR;
+    return is_math_operator(left_token) && left_token != Token::FAC;
 }
 
 constexpr void check_for_unary(MathParseState& state) {
-    if (unary_first_case(state) || unary_second_case(state) || unary_third_case(state) || unary_fourth_case(state)) {
+    if (unary_at_start(state) ||
+        unary_after_open_parenthesis(state) ||
+        unary_after_operator(state)) {
         state.current_token = Token::UNARY;
     }
 }
@@ -310,7 +301,6 @@ std::optional<std::string> math_loop_body(MathParseState& state, ParseResult& re
 
 [[nodiscard]]
 std::optional<std::string> parse_math(std::string& infix_expression, ParseResult& result, std::stack<Token>& operator_stack) {
-    if (infix_expression[0] == '-') infix_expression[0] = '~';
     add_mult_signs(infix_expression);
     MathParseState state(infix_expression);
 
